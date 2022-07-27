@@ -24,7 +24,7 @@ export enum FlagResponse_Verdict {
 }
 
 export function flagResponse_VerdictFromJSON(
-    object: any
+  object: any
 ): FlagResponse_Verdict {
   switch (object) {
     case 0:
@@ -50,7 +50,7 @@ export function flagResponse_VerdictFromJSON(
 }
 
 export function flagResponse_VerdictToJSON(
-    object: FlagResponse_Verdict
+  object: FlagResponse_Verdict
 ): string {
   switch (object) {
     case FlagResponse_Verdict.VERDICT_UNSPECIFIED:
@@ -74,13 +74,13 @@ export interface SubmitFlagsResponse {
 }
 
 function createBaseSubmitFlagsRequest(): SubmitFlagsRequest {
-  return {flags: []};
+  return { flags: [] };
 }
 
 export const SubmitFlagsRequest = {
   encode(
-      message: SubmitFlagsRequest,
-      writer: _m0.Writer = _m0.Writer.create()
+    message: SubmitFlagsRequest,
+    writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     for (const v of message.flags) {
       writer.uint32(10).string(v!);
@@ -109,8 +109,8 @@ export const SubmitFlagsRequest = {
   fromJSON(object: any): SubmitFlagsRequest {
     return {
       flags: Array.isArray(object?.flags)
-          ? object.flags.map((e: any) => String(e))
-          : [],
+        ? object.flags.map((e: any) => String(e))
+        : [],
     };
   },
 
@@ -125,7 +125,7 @@ export const SubmitFlagsRequest = {
   },
 
   fromPartial<I extends Exact<DeepPartial<SubmitFlagsRequest>, I>>(
-      object: I
+    object: I
   ): SubmitFlagsRequest {
     const message = createBaseSubmitFlagsRequest();
     message.flags = object.flags?.map((e) => e) || [];
@@ -134,13 +134,13 @@ export const SubmitFlagsRequest = {
 };
 
 function createBaseFlagResponse(): FlagResponse {
-  return {flag: "", verdict: 0, message: "", flagPoints: 0};
+  return { flag: "", verdict: 0, message: "", flagPoints: 0 };
 }
 
 export const FlagResponse = {
   encode(
-      message: FlagResponse,
-      writer: _m0.Writer = _m0.Writer.create()
+    message: FlagResponse,
+    writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.flag !== "") {
       writer.uint32(10).string(message.flag);
@@ -188,8 +188,8 @@ export const FlagResponse = {
     return {
       flag: isSet(object.flag) ? String(object.flag) : "",
       verdict: isSet(object.verdict)
-          ? flagResponse_VerdictFromJSON(object.verdict)
-          : 0,
+        ? flagResponse_VerdictFromJSON(object.verdict)
+        : 0,
       message: isSet(object.message) ? String(object.message) : "",
       flagPoints: isSet(object.flagPoints) ? Number(object.flagPoints) : 0,
     };
@@ -199,14 +199,14 @@ export const FlagResponse = {
     const obj: any = {};
     message.flag !== undefined && (obj.flag = message.flag);
     message.verdict !== undefined &&
-    (obj.verdict = flagResponse_VerdictToJSON(message.verdict));
+      (obj.verdict = flagResponse_VerdictToJSON(message.verdict));
     message.message !== undefined && (obj.message = message.message);
     message.flagPoints !== undefined && (obj.flagPoints = message.flagPoints);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<FlagResponse>, I>>(
-      object: I
+    object: I
   ): FlagResponse {
     const message = createBaseFlagResponse();
     message.flag = object.flag ?? "";
@@ -218,13 +218,13 @@ export const FlagResponse = {
 };
 
 function createBaseSubmitFlagsResponse(): SubmitFlagsResponse {
-  return {responses: []};
+  return { responses: [] };
 }
 
 export const SubmitFlagsResponse = {
   encode(
-      message: SubmitFlagsResponse,
-      writer: _m0.Writer = _m0.Writer.create()
+    message: SubmitFlagsResponse,
+    writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     for (const v of message.responses) {
       FlagResponse.encode(v!, writer.uint32(10).fork()).ldelim();
@@ -253,8 +253,8 @@ export const SubmitFlagsResponse = {
   fromJSON(object: any): SubmitFlagsResponse {
     return {
       responses: Array.isArray(object?.responses)
-          ? object.responses.map((e: any) => FlagResponse.fromJSON(e))
-          : [],
+        ? object.responses.map((e: any) => FlagResponse.fromJSON(e))
+        : [],
     };
   },
 
@@ -262,7 +262,7 @@ export const SubmitFlagsResponse = {
     const obj: any = {};
     if (message.responses) {
       obj.responses = message.responses.map((e) =>
-          e ? FlagResponse.toJSON(e) : undefined
+        e ? FlagResponse.toJSON(e) : undefined
       );
     } else {
       obj.responses = [];
@@ -271,39 +271,41 @@ export const SubmitFlagsResponse = {
   },
 
   fromPartial<I extends Exact<DeepPartial<SubmitFlagsResponse>, I>>(
-      object: I
+    object: I
   ): SubmitFlagsResponse {
     const message = createBaseSubmitFlagsResponse();
     message.responses =
-        object.responses?.map((e) => FlagResponse.fromPartial(e)) || [];
+      object.responses?.map((e) => FlagResponse.fromPartial(e)) || [];
     return message;
   },
 };
 
 type Builtin =
-    | Date
-    | Function
-    | Uint8Array
-    | string
-    | number
-    | boolean
-    | undefined;
+  | Date
+  | Function
+  | Uint8Array
+  | string
+  | number
+  | boolean
+  | undefined;
 
 export type DeepPartial<T> = T extends Builtin
-    ? T
-    : T extends Array<infer U>
-        ? Array<DeepPartial<U>>
-        : T extends ReadonlyArray<infer U>
-            ? ReadonlyArray<DeepPartial<U>>
-            : T extends {}
-                ? { [K in keyof T]?: DeepPartial<T[K]> }
-                : Partial<T>;
+  ? T
+  : T extends Array<infer U>
+  ? Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U>
+  ? ReadonlyArray<DeepPartial<U>>
+  : T extends {}
+  ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin
-    ? P
-    : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<Exclude<keyof I, KeysOfUnion<P>>,
-    never>;
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

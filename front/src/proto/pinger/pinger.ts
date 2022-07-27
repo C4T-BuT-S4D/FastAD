@@ -3,11 +3,9 @@ import * as _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "pinger";
 
-export interface PingRequest {
-}
+export interface PingRequest {}
 
-export interface PingResponse {
-}
+export interface PingResponse {}
 
 function createBasePingRequest(): PingRequest {
   return {};
@@ -54,8 +52,8 @@ function createBasePingResponse(): PingResponse {
 
 export const PingResponse = {
   encode(
-      _: PingResponse,
-      writer: _m0.Writer = _m0.Writer.create()
+    _: PingResponse,
+    writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     return writer;
   },
@@ -85,7 +83,7 @@ export const PingResponse = {
   },
 
   fromPartial<I extends Exact<DeepPartial<PingResponse>, I>>(
-      _: I
+    _: I
   ): PingResponse {
     const message = createBasePingResponse();
     return message;
@@ -93,26 +91,28 @@ export const PingResponse = {
 };
 
 type Builtin =
-    | Date
-    | Function
-    | Uint8Array
-    | string
-    | number
-    | boolean
-    | undefined;
+  | Date
+  | Function
+  | Uint8Array
+  | string
+  | number
+  | boolean
+  | undefined;
 
 export type DeepPartial<T> = T extends Builtin
-    ? T
-    : T extends Array<infer U>
-        ? Array<DeepPartial<U>>
-        : T extends ReadonlyArray<infer U>
-            ? ReadonlyArray<DeepPartial<U>>
-            : T extends {}
-                ? { [K in keyof T]?: DeepPartial<T[K]> }
-                : Partial<T>;
+  ? T
+  : T extends Array<infer U>
+  ? Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U>
+  ? ReadonlyArray<DeepPartial<U>>
+  : T extends {}
+  ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin
-    ? P
-    : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<Exclude<keyof I, KeysOfUnion<P>>,
-    never>;
+  ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
+        Exclude<keyof I, KeysOfUnion<P>>,
+        never
+      >;

@@ -1,5 +1,5 @@
 /* eslint-disable */
-import {SubmitFlagsRequest, SubmitFlagsResponse} from "./receiver.js";
+import { SubmitFlagsRequest, SubmitFlagsResponse } from "./receiver.js";
 
 export const protobufPackage = "receiver";
 
