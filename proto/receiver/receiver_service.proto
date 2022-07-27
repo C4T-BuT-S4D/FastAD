@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package receiver;
+option go_package = "FastAD/pkg/proto/receiver";
+
+import "receiver/receiver.proto";
+
+// TODO: options.
+service ReceiverService {
+    rpc SubmitFlags(SubmitFlagsRequest) returns (SubmitFlagsResponse);
+}

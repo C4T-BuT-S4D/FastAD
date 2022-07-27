@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package pinger;
+option go_package = "FastAD/pkg/proto/pinger";
+
+import "pinger/pinger.proto";
+
+service PingerService {
+    rpc Ping(PingRequest) returns (PingResponse);
+}

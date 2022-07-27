@@ -1,0 +1,51 @@
+---
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - asciicheck
+    - bodyclose
+    - deadcode
+    - dogsled
+    - durationcheck
+    - errname
+    - exportloopref
+    - exhaustive
+    - gocritic
+    - gofmt
+    - goimports
+    - gomoddirectives
+    - gosimple
+    - govet
+    - ifshort
+    - ineffassign
+    - importas
+    - misspell
+    - noctx
+    - prealloc
+    - predeclared
+    - revive
+    - staticcheck
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+    - wrapcheck
+
+linters-settings:
+  wrapcheck:
+    ignoreSigs:
+      - errors.New
+      - (context.Context).Err()
+      - google.golang.org/grpc/status.Error
+      - google.golang.org/grpc/status.Errorf
+      - .Read(p []byte)  # most Read errors should be passed as-is, e.g. io.EOF.
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
