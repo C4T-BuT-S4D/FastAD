@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package receiver;
+option go_package = "FastAD/pkg/proto/receiver";
+
+message SubmitFlagsRequest {
+    repeated string flags = 1;
+}
+
+message FlagResponse {
+    enum Verdict {
+        VERDICT_UNSPECIFIED = 0;
+        VERDICT_ACCEPTED = 1;
+        VERDICT_OWN = 2;
+        VERDICT_OLD = 3;
+        VERDICT_INVALID = 4;
+    }
+
+    string flag = 1;
+    FlagResponse.Verdict verdict = 2;
+    string message = 3;
+    double flag_points = 4;
+
+    // Next: 5
+}
+
+message SubmitFlagsResponse {
+    repeated FlagResponse responses = 1;
+}
