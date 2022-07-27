@@ -1,5 +1,5 @@
 /* eslint-disable */
-import {PingRequest, PingResponse} from "./pinger.js";
+import { PingRequest, PingResponse } from "./pinger.js";
 
 export const protobufPackage = "pinger";
 
