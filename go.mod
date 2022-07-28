@@ -1,4 +1,4 @@
-module FastAD
+module fastad
 
 go 1.18
 

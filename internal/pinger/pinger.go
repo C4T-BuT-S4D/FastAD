@@ -3,7 +3,7 @@ package pinger
 import (
 	"context"
 
-	pingerpb "FastAD/pkg/proto/pinger"
+	pingerpb "fastad/pkg/proto/pinger"
 )
 
 func New() *Service {

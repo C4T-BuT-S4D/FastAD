@@ -9,11 +9,11 @@ import (
 	"syscall"
 	"time"
 
-	"FastAD/internal/pinger"
-	"FastAD/internal/receiver"
-	"FastAD/internal/wrapper"
-	pingerpb "FastAD/pkg/proto/pinger"
-	receiverpb "FastAD/pkg/proto/receiver"
+	"fastad/internal/multiproto"
+	"fastad/internal/pinger"
+	"fastad/internal/receiver"
+	pingerpb "fastad/pkg/proto/pinger"
+	receiverpb "fastad/pkg/proto/receiver"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -30,8 +30,10 @@ func main() {
 	pingerpb.RegisterPingerServiceServer(grpcServer, pinger.New())
 	reflection.Register(grpcServer)
 
-	httpServer := wrapper.NewServer(grpcServer)
-	httpServer.Addr = "0.0.0.0:8002"
+	httpServer := &http.Server{
+		Addr:    "0.0.0.0:8002",
+		Handler: multiproto.NewHandler(grpcServer),
+	}
 
 	go func() {
 		logrus.Infof("Running http server on %s", httpServer.Addr)
