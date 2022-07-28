@@ -1,4 +1,4 @@
-module fastad
+module github.com/c4t-but-s4d/fastad
 
 go 1.18
 
