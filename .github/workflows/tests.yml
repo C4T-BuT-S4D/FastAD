@@ -10,10 +10,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Set up Go 1.18
         uses: actions/setup-go@v2
         with:
           go-version: 1.18
+
+      - name: "Cache go deps"
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Run tests
         run: make test
 
@@ -22,6 +34,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:
@@ -33,19 +46,35 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Set up Node 16
         uses: actions/setup-node@v2
         with:
           node-version: "16"
+
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+
+      - name: "Cache deps"
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
       - name: Install dependencies
         working-directory: front
         run: yarn install
+
       - name: Run linters
         uses: wearerequired/lint-action@v2
         with:
           eslint: true
           eslint_dir: front/src
           eslint_args: "--ext .js,.vue,.ts"
+
       - name: Check the frontend compiles
         working-directory: front
         run: yarn build
@@ -55,7 +84,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Setup buf
         uses: bufbuild/buf-setup-action@v1.7.0
+
       - name: Lint proto
         run: make lint-proto
