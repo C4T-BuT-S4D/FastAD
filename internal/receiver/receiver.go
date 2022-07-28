@@ -3,7 +3,7 @@ package receiver
 import (
 	"context"
 
-	receiverpb "FastAD/pkg/proto/receiver"
+	receiverpb "fastad/pkg/proto/receiver"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
