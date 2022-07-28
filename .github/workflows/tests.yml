@@ -1,0 +1,62 @@
+name: tests
+on:
+  push:
+  pull_request:
+    branches:
+      - master
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Go 1.18
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.18
+      - name: Run tests
+        run: make test
+
+  lint-go:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: latest
+          args: --config .golangci.yml
+
+  lint-front:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Node 16
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+      - name: Install dependencies
+        working-directory: front
+        run: yarn install
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          eslint: true
+          prettier: true
+          eslint_dir: front/src
+          prettier_dir: front/src
+      - name: Check the frontend compiles
+        working-directory: front
+        run: yarn build
+
+  lint-proto:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup buf
+        uses: bufbuild/buf-setup-action@v1.7.0
+      - name: Lint proto
+        run: make lint-proto
