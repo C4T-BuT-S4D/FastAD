@@ -44,9 +44,8 @@ jobs:
         uses: wearerequired/lint-action@v2
         with:
           eslint: true
-          prettier: true
           eslint_dir: front/src
-          prettier_dir: front/src
+          eslint_args: "--ext .js,.vue,.ts"
       - name: Check the frontend compiles
         working-directory: front
         run: yarn build
