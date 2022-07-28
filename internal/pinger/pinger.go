@@ -3,7 +3,7 @@ package pinger
 import (
 	"context"
 
-	pingerpb "fastad/pkg/proto/pinger"
+	pingerpb "github.com/c4t-but-s4d/fastad/pkg/proto/pinger"
 )
 
 func New() *Service {

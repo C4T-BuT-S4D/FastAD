@@ -9,11 +9,11 @@ import (
 	"syscall"
 	"time"
 
-	"fastad/internal/multiproto"
-	"fastad/internal/pinger"
-	"fastad/internal/receiver"
-	pingerpb "fastad/pkg/proto/pinger"
-	receiverpb "fastad/pkg/proto/receiver"
+	"github.com/c4t-but-s4d/fastad/internal/multiproto"
+	"github.com/c4t-but-s4d/fastad/internal/pinger"
+	"github.com/c4t-but-s4d/fastad/internal/receiver"
+	pingerpb "github.com/c4t-but-s4d/fastad/pkg/proto/pinger"
+	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"

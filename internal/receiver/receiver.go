@@ -3,7 +3,7 @@ package receiver
 import (
 	"context"
 
-	receiverpb "fastad/pkg/proto/receiver"
+	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

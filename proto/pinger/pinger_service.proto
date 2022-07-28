@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 package pinger;
-option go_package = "fastad/pkg/proto/pinger";
+option go_package = "github.com/c4t-but-s4d/fastad/pkg/proto/pinger";
 
 import "pinger/pinger.proto";
 
