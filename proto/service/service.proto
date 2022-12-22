@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package service;
+option go_package = "github.com/c4t-but-s4d/fastad/pkg/proto/service";
+
+message ScoreInfo {
+  string id = 1;
+  string name = 2;
+}
+
+enum Status {
+  UNSPECIFIED = 0;
+  CHECK_ERROR = 1;
+  DOWN = 2;
+  CORRUPT = 3;
+  MUMBLE = 4;
+  UP = 5;
+}

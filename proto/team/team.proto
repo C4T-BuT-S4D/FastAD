@@ -1,0 +1,4 @@
+syntax = "proto3";
+
+package service;
+option go_package = "github.com/c4t-but-s4d/fastad/pkg/proto/service";

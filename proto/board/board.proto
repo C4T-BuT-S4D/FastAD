@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package board;
+option go_package = "github.com/c4t-but-s4d/fastad/pkg/proto/board";
+
+import "service/service.proto";
+import "service/service.proto";
+
+
+message ServicePoints {
+  double fp = 1;
+  int64 flags_stolen = 2;
+  int64 flags_lost = 3;
+}
+
+message ServiceScore {
+  service.Status status = 1;
+  double sla = 2;
+  ServicePoints points = 3;
+  double score = 4;
+}
+
+message TeamScore {
+
+  repeated ServiceScore service_scores = 1;
+  double score = 2;
+}
+
+message ScoreBoard {
+
+}
