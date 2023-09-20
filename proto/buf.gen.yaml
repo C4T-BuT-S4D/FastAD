@@ -4,15 +4,15 @@ managed:
   go_package_prefix:
     default: proto
 plugins:
-  - remote: buf.build/protocolbuffers/plugins/go
+  - plugin: buf.build/protocolbuffers/go
     out: ../pkg
-  - remote: buf.build/grpc/plugins/go
+  - plugin: buf.build/grpc/go
     out: ../pkg
-  - remote: buf.build/stephenh/plugins/ts-proto
-    out: ../front/src/proto
-    opt:
-      - ts_proto_opt=env=node
-      - ts_proto_opt=oneof=unions
-      - ts_proto_opt=unrecognizedEnum=false
-      - ts_proto_opt=enumsAsLiterals=true
-      - ts_proto_opt=outputServices=nice-grpc,outputServices=generic-definitions
+#  - plugin: buf.build/community/stephenh-ts-proto
+#    out: ../front/src/proto
+#    opt:
+#      - ts_proto_opt=env=node
+#      - ts_proto_opt=oneof=unions
+#      - ts_proto_opt=unrecognizedEnum=false
+#      - ts_proto_opt=enumsAsLiterals=true
+#      - ts_proto_opt=outputServices=nice-grpc,outputServices=generic-definitions

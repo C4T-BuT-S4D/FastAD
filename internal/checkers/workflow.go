@@ -1,24 +1,42 @@
 package checkers
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/c4t-but-s4d/fastad/internal/models"
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	"go.temporal.io/sdk/workflow"
 )
 
 type WorkflowParameters struct {
-	Teams    []string
-	Services []string
+	GameSettings *models.GameSettings
 }
 
 func WorkflowDefinition(ctx workflow.Context, params WorkflowParameters) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("starting workflow")
 
+	lao := workflow.LocalActivityOptions{
+		ScheduleToCloseTimeout: time.Second * 3,
+	}
+	laoCtx := workflow.WithLocalActivityOptions(ctx, lao)
+
+	var fetchDataResult *ActivityFetchDataResult
+	if err := workflow.ExecuteLocalActivity(
+		laoCtx,
+		ActivityFetchDataDefinition,
+		&ActivityFetchDataParameters{
+			GameSettings: params.GameSettings,
+		},
+	).Get(ctx, &fetchDataResult); err != nil {
+		return fmt.Errorf("running fetch data activity: %w", err)
+	}
+
 	wg := workflow.NewWaitGroup(ctx)
-	wg.Add(len(params.Teams) * len(params.Services))
-	for _, team := range params.Teams {
-		for _, service := range params.Services {
+	wg.Add(len(fetchDataResult.Teams) * len(fetchDataResult.Services))
+	for _, team := range fetchDataResult.Teams {
+		for _, service := range fetchDataResult.Services {
 			team := team
 			service := service
 			workflow.Go(ctx, func(ctx workflow.Context) {
@@ -32,91 +50,102 @@ func WorkflowDefinition(ctx workflow.Context, params WorkflowParameters) error {
 	return nil
 }
 
-func runCheckers(ctx workflow.Context, team string, service string) {
+func runCheckers(ctx workflow.Context, team *models.Team, service *models.Service) {
 	logger := workflow.GetLogger(ctx)
 
-	checkActivityOptions := workflow.ActivityOptions{
-		ScheduleToCloseTimeout: time.Second,
+	commonActivityOptions := workflow.ActivityOptions{
+		ScheduleToCloseTimeout: service.CheckerTimeout() + checkerKillDelay*2,
 	}
-	checkCtx := workflow.WithActivityOptions(ctx, checkActivityOptions)
+	activityCtx := workflow.WithActivityOptions(ctx, commonActivityOptions)
+
 	var checkResult *CheckActivityResult
-	if err := workflow.ExecuteActivity(checkCtx, CheckActivityDefinition, CheckActivityParameters{
+	putResults := make([]*PutActivityResult, 0, service.Puts)
+	getResults := make([]*GetActivityResult, 0, service.Gets)
+
+	if err := workflow.ExecuteActivity(activityCtx, CheckActivityDefinition, CheckActivityParameters{
 		Team:    team,
 		Service: service,
 	}).Get(ctx, &checkResult); err != nil {
-		logger.Error("error in check", "team", team, "service", service, "error", err)
-		return
+		checkResult = &CheckActivityResult{
+			Verdict: &models.CheckerVerdict{
+				Action:  checkerpb.Action_ACTION_CHECK,
+				Status:  checkerpb.Status_STATUS_CHECK_FAILED,
+				Public:  "internal error",
+				Private: fmt.Sprintf("check activity err: %v", err),
+			},
+		}
 	}
 
-	if !checkResult.Success {
-		logger.Info("check failed", "team", team, "service", service)
-		return
-	}
+	if checkResult.Verdict.IsUp() {
+		putResultsChan := workflow.NewBufferedChannel(ctx, service.Puts)
 
-	putResultsChan := workflow.NewBufferedChannel(ctx, 3)
+		for i := 0; i < service.Puts; i++ {
+			workflow.Go(activityCtx, func(ctx workflow.Context) {
+				var putResult *PutActivityResult
+				if err := workflow.ExecuteActivity(
+					ctx,
+					PutActivityDefinition,
+					PutActivityParameters{
+						Team:    team,
+						Service: service,
+					},
+				).Get(ctx, &putResult); err != nil {
+					logger.Error("error in put", "team", team, "service", service, "error", err)
+					putResult = &PutActivityResult{
+						Verdict: &models.CheckerVerdict{
+							Action:  checkerpb.Action_ACTION_PUT,
+							Status:  checkerpb.Status_STATUS_CHECK_FAILED,
+							Public:  "internal error",
+							Private: fmt.Sprintf("put activity err: %v", err),
+						},
+					}
+				}
+				putResultsChan.Send(ctx, putResult)
+			})
+		}
 
-	putActivityOptions := workflow.ActivityOptions{
-		ScheduleToCloseTimeout: time.Second,
-	}
-	putCtx := workflow.WithActivityOptions(ctx, putActivityOptions)
-	for i := 0; i < 3; i++ {
-		workflow.Go(putCtx, func(ctx workflow.Context) {
+		getResultsChan := workflow.NewBufferedChannel(ctx, 3)
+
+		for i := 0; i < service.Gets; i++ {
+			workflow.Go(activityCtx, func(ctx workflow.Context) {
+				var getResult *GetActivityResult
+				if err := workflow.ExecuteActivity(
+					ctx,
+					GetActivityDefinition,
+					GetActivityParameters{
+						Team:    team,
+						Service: service,
+					},
+				).Get(ctx, &getResult); err != nil {
+					logger.Error("error in get", "team", team, "service", service, "error", err)
+					getResult = &GetActivityResult{
+						Verdict: &models.CheckerVerdict{
+							Action:  checkerpb.Action_ACTION_GET,
+							Status:  checkerpb.Status_STATUS_CHECK_FAILED,
+							Public:  "internal error",
+							Private: fmt.Sprintf("get activity err: %v", err),
+						},
+					}
+				}
+				getResultsChan.Send(ctx, getResult)
+			})
+		}
+
+		for i := 0; i < service.Puts; i++ {
 			var putResult *PutActivityResult
-			if err := workflow.ExecuteActivity(
-				putCtx,
-				PutActivityDefinition,
-				PutActivityParameters{
-					Team:    team,
-					Service: service,
-				},
-			).Get(ctx, &putResult); err != nil {
-				logger.Error("error in put", "team", team, "service", service, "error", err)
-				putResult = &PutActivityResult{Success: false}
-			}
-			putResultsChan.Send(ctx, putResult)
-		})
-	}
+			putResultsChan.Receive(ctx, &putResult)
+			putResults = append(putResults, putResult)
+		}
 
-	getResultsChan := workflow.NewBufferedChannel(ctx, 3)
-
-	getActivityOptions := workflow.ActivityOptions{
-		ScheduleToCloseTimeout: time.Second,
-	}
-	getCtx := workflow.WithActivityOptions(ctx, getActivityOptions)
-	for i := 0; i < 2; i++ {
-		workflow.Go(getCtx, func(ctx workflow.Context) {
+		for i := 0; i < service.Gets; i++ {
 			var getResult *GetActivityResult
-			if err := workflow.ExecuteActivity(
-				getCtx,
-				GetActivityDefinition,
-				GetActivityParameters{
-					Team:    team,
-					Service: service,
-				},
-			).Get(ctx, &getResult); err != nil {
-				logger.Error("error in get", "team", team, "service", service, "error", err)
-				getResult = &GetActivityResult{Success: false}
-			}
-			getResultsChan.Send(ctx, getResult)
-		})
-	}
-
-	putResults := make([]*PutActivityResult, 0, 3)
-	for i := 0; i < 3; i++ {
-		var putResult *PutActivityResult
-		putResultsChan.Receive(ctx, &putResult)
-		putResults = append(putResults, putResult)
-	}
-
-	getResults := make([]*GetActivityResult, 0, 2)
-	for i := 0; i < 2; i++ {
-		var getResult *GetActivityResult
-		getResultsChan.Receive(ctx, &getResult)
-		getResults = append(getResults, getResult)
+			getResultsChan.Receive(ctx, &getResult)
+			getResults = append(getResults, getResult)
+		}
 	}
 
 	lastActivityOptions := workflow.ActivityOptions{
-		ScheduleToCloseTimeout: time.Second,
+		ScheduleToCloseTimeout: time.Second * 5,
 	}
 	lastCtx := workflow.WithActivityOptions(ctx, lastActivityOptions)
 	if err := workflow.ExecuteActivity(

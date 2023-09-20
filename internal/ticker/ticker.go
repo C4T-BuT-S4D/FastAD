@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
+	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/sirupsen/logrus"
 	"go.temporal.io/sdk/client"
 )
@@ -52,8 +53,13 @@ func (t *Ticker) scheduleTasks(ctx context.Context) error {
 		TaskQueue: "checkers",
 	}
 	workflowRun, err := t.temporalClient.ExecuteWorkflow(context.Background(), workflowOptions, "WorkflowDefinition", checkers.WorkflowParameters{
-		Teams:    []string{"team1", "team2"},
-		Services: []string{"service1", "service2"},
+		GameSettings: &models.GameSettings{
+			FlagLifetimeRounds: 10,
+			RoundTime:          10,
+			StartTime:          time.Now(),
+			EndTime:            time.Now(),
+			CheckersBasePath:   "checkers",
+		},
 	})
 	if err != nil {
 		return fmt.Errorf("executing workflow: %v", err)

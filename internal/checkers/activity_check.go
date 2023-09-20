@@ -2,27 +2,32 @@ package checkers
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/c4t-but-s4d/fastad/internal/models"
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	"github.com/sirupsen/logrus"
 )
 
 type CheckActivityParameters struct {
-	Team    string
-	Service string
+	GameSettings *models.GameSettings
+	Team         *models.Team
+	Service      *models.Service
 }
 
 type CheckActivityResult struct {
-	Success bool
+	Verdict *models.CheckerVerdict
 }
 
-func CheckActivityDefinition(ctx context.Context, params CheckActivityParameters) (*CheckActivityResult, error) {
-	logrus.Infof("running check %s/%s", params.Team, params.Service)
-	if params.Team == "team1" && params.Service == "service1" {
-		return &CheckActivityResult{Success: true}, nil
-	}
-	if params.Team == "team2" && params.Service == "service1" {
-		return &CheckActivityResult{Success: true}, nil
-	}
-	return nil, fmt.Errorf("unknown check %s/%s", params.Team, params.Service)
+func CheckActivityDefinition(ctx context.Context, params *CheckActivityParameters) (*CheckActivityResult, error) {
+	logger := logrus.WithFields(logrus.Fields{
+		"team":    params.Team.Name,
+		"service": params.Service.Name,
+		"action":  checkerpb.Action_ACTION_CHECK,
+	})
+
+	logger.Info("starting")
+	verdict := RunCheckAction(ctx, params)
+	logger.Info("finished: %v", verdict)
+
+	return &CheckActivityResult{Verdict: verdict}, nil
 }

@@ -2,20 +2,39 @@ package checkers
 
 import (
 	"context"
+	"strings"
 
+	"github.com/c4t-but-s4d/fastad/internal/models"
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	"github.com/sirupsen/logrus"
 )
 
 type PutActivityParameters struct {
-	Team    string
-	Service string
+	GameSettings *models.GameSettings
+	Team         *models.Team
+	Service      *models.Service
 }
 
 type PutActivityResult struct {
-	Success bool
+	Verdict *models.CheckerVerdict
 }
 
-func PutActivityDefinition(ctx context.Context, params PutActivityParameters) (*PutActivityResult, error) {
-	logrus.Infof("running put %s/%s", params.Team, params.Service)
-	return nil, nil
+func PutActivityDefinition(ctx context.Context, params *PutActivityParameters) (*PutActivityResult, error) {
+	logger := logrus.WithFields(logrus.Fields{
+		"team":    params.Team.Name,
+		"service": params.Service.Name,
+		"action":  checkerpb.Action_ACTION_PUT,
+	})
+
+	flag := &models.Flag{
+		Flag:    strings.Repeat("A", 31) + "=",
+		Private: "some-flag-id",
+	}
+
+	logger.Info("starting")
+	verdict := RunPutAction(ctx, params, flag)
+	logger.Info("finished: %v", verdict)
+
+	return &PutActivityResult{Verdict: verdict}, nil
+
 }
