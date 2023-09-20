@@ -3,12 +3,14 @@ package checkers
 import (
 	"context"
 
+	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/sirupsen/logrus"
 )
 
 type LastActivityParameters struct {
-	Team    string
-	Service string
+	GameSettings *models.GameSettings
+	Team         *models.Team
+	Service      *models.Service
 
 	CheckResult *CheckActivityResult
 	PutResults  []*PutActivityResult
@@ -16,7 +18,7 @@ type LastActivityParameters struct {
 }
 
 func LastActivityDefinition(ctx context.Context, params LastActivityParameters) error {
-	logrus.Infof("running last %s/%s", params.Team, params.Service)
+	logrus.Infof("running last %v/%v", params.Team, params.Service)
 	logrus.Infof("received check result: %v", params.CheckResult)
 	logrus.Infof("received put results: %v", params.PutResults)
 	logrus.Infof("received get results: %v", params.GetResults)
