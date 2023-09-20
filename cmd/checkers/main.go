@@ -32,6 +32,7 @@ func main() {
 	checkersWorker.RegisterActivity(checkers.CheckActivityDefinition)
 	checkersWorker.RegisterActivity(checkers.PutActivityDefinition)
 	checkersWorker.RegisterActivity(checkers.GetActivityDefinition)
+	checkersWorker.RegisterActivity(checkers.LastActivityDefinition)
 
 	if err := checkersWorker.Run(worker.InterruptCh()); err != nil {
 		logrus.Fatalf("Unable to start workers: %v", err)

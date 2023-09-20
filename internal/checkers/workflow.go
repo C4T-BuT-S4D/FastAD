@@ -69,7 +69,7 @@ func runCheckers(ctx workflow.Context, team string, service string) {
 					Team:    team,
 					Service: service,
 				},
-			); err != nil {
+			).Get(ctx, &putResult); err != nil {
 				logger.Error("error in put", "team", team, "service", service, "error", err)
 				putResult = &PutActivityResult{Success: false}
 			}
@@ -93,7 +93,7 @@ func runCheckers(ctx workflow.Context, team string, service string) {
 					Team:    team,
 					Service: service,
 				},
-			); err != nil {
+			).Get(ctx, &getResult); err != nil {
 				logger.Error("error in get", "team", team, "service", service, "error", err)
 				getResult = &GetActivityResult{Success: false}
 			}
@@ -130,7 +130,7 @@ func runCheckers(ctx workflow.Context, team string, service string) {
 			PutResults:  putResults,
 			GetResults:  getResults,
 		},
-	); err != nil {
+	).Get(ctx, nil); err != nil {
 		logger.Error("error in last", "team", team, "service", service, "error", err)
 	}
 
