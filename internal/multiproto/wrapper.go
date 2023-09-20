@@ -44,7 +44,7 @@ func (s *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc"):
 		s.grpcServer.ServeHTTP(w, r)
-	case s.webServer.IsGrpcWebRequest(r) || s.webServer.IsGrpcWebSocketRequest(r):
+	case s.webServer.IsAcceptableGrpcCorsRequest(r) || s.webServer.IsGrpcWebRequest(r) || s.webServer.IsGrpcWebSocketRequest(r):
 		s.webServer.ServeHTTP(w, r)
 	default:
 		s.httpHandler.ServeHTTP(w, r)
