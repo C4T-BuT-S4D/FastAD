@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 package checker;
-option go_package = "github.com/c4t-but-s4d/fastad/pkg/proto/checker";
 
 enum Action {
     ACTION_UNSPECIFIED = 0;

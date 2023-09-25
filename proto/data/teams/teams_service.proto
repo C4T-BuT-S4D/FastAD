@@ -1,7 +1,6 @@
 syntax = "proto3";
 
 package data.teams;
-option go_package = "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams";
 
 import "data/teams/teams.proto";
 
