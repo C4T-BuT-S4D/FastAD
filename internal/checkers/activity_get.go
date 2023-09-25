@@ -19,7 +19,7 @@ type GetActivityResult struct {
 	Verdict *models.CheckerVerdict
 }
 
-func GetActivityDefinition(ctx context.Context, params *GetActivityParameters) (*GetActivityResult, error) {
+func (s *ActivityState) GetActivityDefinition(ctx context.Context, params *GetActivityParameters) (*GetActivityResult, error) {
 	logger := logrus.WithFields(logrus.Fields{
 		"team":    params.Team.Name,
 		"service": params.Service.Name,

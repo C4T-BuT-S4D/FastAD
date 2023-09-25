@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package data.services;
+option go_package = "github.com/c4t-but-s4d/fastad/pkg/proto/data/services";
+
+import "checker/checker.proto";
+
+message Service {
+    message Checker {
+        checker.Type type = 1;
+        string path = 2;
+        int32 timeout_seconds = 3;
+    }
+
+    int32 id = 1;
+    string name = 2;
+
+    data.services.Service.Checker checker = 3;
+
+    double default_score = 4;
+
+    int32 gets = 5;
+    int32 puts = 6;
+}
+
+message ListRequest {
+    int64 last_update = 1;
+}
+
+message ListResponse {
+    repeated Service services = 1;
+    int64 last_update = 2;
+}

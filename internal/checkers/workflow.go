@@ -25,7 +25,7 @@ func WorkflowDefinition(ctx workflow.Context, params WorkflowParameters) error {
 	var fetchDataResult *ActivityFetchDataResult
 	if err := workflow.ExecuteLocalActivity(
 		laoCtx,
-		ActivityFetchDataDefinition,
+		ActivityFetchDataName,
 		&ActivityFetchDataParameters{
 			GameSettings: params.GameSettings,
 		},
@@ -62,10 +62,14 @@ func runCheckers(ctx workflow.Context, team *models.Team, service *models.Servic
 	putResults := make([]*PutActivityResult, 0, service.Puts)
 	getResults := make([]*GetActivityResult, 0, service.Gets)
 
-	if err := workflow.ExecuteActivity(activityCtx, CheckActivityDefinition, CheckActivityParameters{
-		Team:    team,
-		Service: service,
-	}).Get(ctx, &checkResult); err != nil {
+	if err := workflow.ExecuteActivity(
+		activityCtx,
+		ActivityCheckName,
+		CheckActivityParameters{
+			Team:    team,
+			Service: service,
+		},
+	).Get(ctx, &checkResult); err != nil {
 		checkResult = &CheckActivityResult{
 			Verdict: &models.CheckerVerdict{
 				Action:  checkerpb.Action_ACTION_CHECK,
@@ -84,7 +88,7 @@ func runCheckers(ctx workflow.Context, team *models.Team, service *models.Servic
 				var putResult *PutActivityResult
 				if err := workflow.ExecuteActivity(
 					ctx,
-					PutActivityDefinition,
+					ActivityPutName,
 					PutActivityParameters{
 						Team:    team,
 						Service: service,
@@ -111,7 +115,7 @@ func runCheckers(ctx workflow.Context, team *models.Team, service *models.Servic
 				var getResult *GetActivityResult
 				if err := workflow.ExecuteActivity(
 					ctx,
-					GetActivityDefinition,
+					ActivityGetName,
 					GetActivityParameters{
 						Team:    team,
 						Service: service,
@@ -150,7 +154,7 @@ func runCheckers(ctx workflow.Context, team *models.Team, service *models.Servic
 	lastCtx := workflow.WithActivityOptions(ctx, lastActivityOptions)
 	if err := workflow.ExecuteActivity(
 		lastCtx,
-		LastActivityDefinition,
+		ActivityLastName,
 		LastActivityParameters{
 			Team:    team,
 			Service: service,

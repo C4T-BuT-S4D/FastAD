@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package data.teams;
+option go_package = "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams";
+
+import "data/teams/teams.proto";
+
+service TeamsService {
+    rpc List(data.teams.ListRequest) returns (data.teams.ListResponse);
+
+    rpc CreateBatch(data.teams.CreateBatchRequest) returns (data.teams.CreateBatchResponse);
+}

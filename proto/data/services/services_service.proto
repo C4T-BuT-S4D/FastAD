@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package data.services;
+option go_package = "github.com/c4t-but-s4d/fastad/pkg/proto/data/services";
+
+import "data/services/services.proto";
+
+service ServicesService {
+    rpc List(data.services.ListRequest) returns (data.services.ListResponse);
+}
