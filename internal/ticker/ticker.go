@@ -26,6 +26,8 @@ func NewTicker(checkInterval time.Duration, temporalClient client.Client) *Ticke
 }
 
 func (t *Ticker) Run(ctx context.Context) {
+	t.RunOnce(ctx)
+
 	ticker := time.NewTicker(t.checkInterval)
 	defer ticker.Stop()
 	for {

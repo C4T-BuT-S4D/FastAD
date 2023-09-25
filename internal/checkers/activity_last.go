@@ -17,7 +17,7 @@ type LastActivityParameters struct {
 	GetResults  []*GetActivityResult
 }
 
-func LastActivityDefinition(ctx context.Context, params LastActivityParameters) error {
+func (s *ActivityState) LastActivityDefinition(ctx context.Context, params LastActivityParameters) error {
 	logrus.Infof("running last %v/%v", params.Team, params.Service)
 	logrus.Infof("received check result: %v", params.CheckResult)
 	logrus.Infof("received put results: %v", params.PutResults)

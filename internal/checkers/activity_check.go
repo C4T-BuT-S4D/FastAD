@@ -18,7 +18,7 @@ type CheckActivityResult struct {
 	Verdict *models.CheckerVerdict
 }
 
-func CheckActivityDefinition(ctx context.Context, params *CheckActivityParameters) (*CheckActivityResult, error) {
+func (s *ActivityState) CheckActivityDefinition(ctx context.Context, params *CheckActivityParameters) (*CheckActivityResult, error) {
 	logger := logrus.WithFields(logrus.Fields{
 		"team":    params.Team.Name,
 		"service": params.Service.Name,

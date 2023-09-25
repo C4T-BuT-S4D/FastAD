@@ -14,7 +14,7 @@ type Service struct {
 	CheckerPath           string
 	CheckerTimeoutSeconds int
 
-	DefaultScore int
+	DefaultScore float64
 
 	Gets int
 	Puts int

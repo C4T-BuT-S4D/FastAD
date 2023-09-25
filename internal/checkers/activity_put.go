@@ -19,7 +19,7 @@ type PutActivityResult struct {
 	Verdict *models.CheckerVerdict
 }
 
-func PutActivityDefinition(ctx context.Context, params *PutActivityParameters) (*PutActivityResult, error) {
+func (s *ActivityState) PutActivityDefinition(ctx context.Context, params *PutActivityParameters) (*PutActivityResult, error) {
 	logger := logrus.WithFields(logrus.Fields{
 		"team":    params.Team.Name,
 		"service": params.Service.Name,
