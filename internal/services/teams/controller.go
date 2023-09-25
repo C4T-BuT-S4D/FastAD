@@ -55,7 +55,7 @@ func (c *Controller) CreateBatch(ctx context.Context, teams []*models.Team) erro
 }
 
 func (c *Controller) Migrate(ctx context.Context) error {
-	if _, err := c.db.NewCreateTable().Model(&models.Team{}).Exec(ctx); err != nil {
+	if _, err := c.db.NewCreateTable().IfNotExists().Model(&models.Team{}).Exec(ctx); err != nil {
 		return fmt.Errorf("creating teams table: %w", err)
 	}
 	if err := c.r.Set(ctx, lastUpdateRedisKey, time.Now(), 0).Err(); err != nil {

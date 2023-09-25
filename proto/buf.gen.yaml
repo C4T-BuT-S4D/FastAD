@@ -12,11 +12,13 @@ plugins:
     out: ../pkg/proto
     opt:
       - paths=source_relative
-#  - plugin: buf.build/community/stephenh-ts-proto
-#    out: ../front/src/proto
-#    opt:
-#      - ts_proto_opt=env=node
-#      - ts_proto_opt=oneof=unions
-#      - ts_proto_opt=unrecognizedEnum=false
-#      - ts_proto_opt=enumsAsLiterals=true
-#      - ts_proto_opt=outputServices=nice-grpc,outputServices=generic-definitions
+  - plugin: buf.build/community/stephenh-ts-proto
+    out: ../front/src/proto
+    opt:
+      - env=browser
+      - oneof=unions
+      - unrecognizedEnum=false
+      - enumsAsLiterals=true
+      - outputServices=nice-grpc,outputServices=generic-definitions
+      - useAsyncIterable=true
+      - esModuleInterop=true
