@@ -7,6 +7,7 @@ import (
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/google/uuid"
 	"github.com/samber/lo"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -24,6 +25,10 @@ func NewService(controller *Controller) *Service {
 }
 
 func (s *Service) List(ctx context.Context, req *teamspb.ListRequest) (*teamspb.ListResponse, error) {
+	logrus.Debugf("TeamsService/List: %v", req)
+
+	// FIXME: check admin rights.
+
 	lastUpdate, err := s.controller.LastUpdate(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "getting last update time: %v", err)
@@ -52,6 +57,8 @@ func (s *Service) List(ctx context.Context, req *teamspb.ListRequest) (*teamspb.
 }
 
 func (s *Service) CreateBatch(ctx context.Context, req *teamspb.CreateBatchRequest) (*teamspb.CreateBatchResponse, error) {
+	logrus.Debugf("TeamsService/CreateBatch: %v", req)
+
 	// FIXME: check admin rights.
 
 	teams := lo.Map(req.Teams, func(team *teamspb.Team, _ int) *models.Team {

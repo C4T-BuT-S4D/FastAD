@@ -1,6 +1,6 @@
 .PHONY: lint-proto
 lint-proto:
-	cd proto && buf lint && buf build
+	cd proto && buf lint
 
 .PHONY: lint-go
 lint-go:
@@ -12,7 +12,7 @@ lint-front:
 
 .PHONY: proto
 proto: lint-proto
-	cd proto && buf generate
+	cd proto && buf generate && buf build --as-file-descriptor-set -o descriptor.pb
 
 .PHONY: tidy
 tidy:
