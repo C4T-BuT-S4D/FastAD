@@ -35,7 +35,7 @@ export interface CreateBatchResponse {
 }
 
 function createBaseTeam(): Team {
-  return {id: 0, name: "", address: "", token: "", labels: {}};
+  return { id: 0, name: "", address: "", token: "", labels: {} };
 }
 
 export const Team = {
@@ -53,7 +53,7 @@ export const Team = {
       writer.uint32(34).string(message.token);
     }
     Object.entries(message.labels).forEach(([key, value]) => {
-      Team_LabelsEntry.encode({key: key as any, value}, writer.uint32(42).fork()).ldelim();
+      Team_LabelsEntry.encode({ key: key as any, value }, writer.uint32(42).fork()).ldelim();
     });
     return writer;
   },
@@ -114,7 +114,7 @@ export const Team = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<Team, Uint8Array>
-  async* encodeTransform(source: AsyncIterable<Team | Team[]> | Iterable<Team | Team[]>): AsyncIterable<Uint8Array> {
+  async *encodeTransform(source: AsyncIterable<Team | Team[]> | Iterable<Team | Team[]>): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
         for (const p of pkt) {
@@ -128,8 +128,8 @@ export const Team = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, Team>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Team> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -149,11 +149,11 @@ export const Team = {
       address: isSet(object.address) ? String(object.address) : "",
       token: isSet(object.token) ? String(object.token) : "",
       labels: isObject(object.labels)
-          ? Object.entries(object.labels).reduce<{ [key: string]: string }>((acc, [key, value]) => {
-            acc[key] = String(value);
-            return acc;
-          }, {})
-          : {},
+        ? Object.entries(object.labels).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
     };
   },
 
@@ -203,7 +203,7 @@ export const Team = {
 };
 
 function createBaseTeam_LabelsEntry(): Team_LabelsEntry {
-  return {key: "", value: ""};
+  return { key: "", value: "" };
 }
 
 export const Team_LabelsEntry = {
@@ -249,8 +249,8 @@ export const Team_LabelsEntry = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<Team_LabelsEntry, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<Team_LabelsEntry | Team_LabelsEntry[]> | Iterable<Team_LabelsEntry | Team_LabelsEntry[]>,
+  async *encodeTransform(
+    source: AsyncIterable<Team_LabelsEntry | Team_LabelsEntry[]> | Iterable<Team_LabelsEntry | Team_LabelsEntry[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -265,8 +265,8 @@ export const Team_LabelsEntry = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, Team_LabelsEntry>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Team_LabelsEntry> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -280,7 +280,7 @@ export const Team_LabelsEntry = {
   },
 
   fromJSON(object: any): Team_LabelsEntry {
-    return {key: isSet(object.key) ? String(object.key) : "", value: isSet(object.value) ? String(object.value) : ""};
+    return { key: isSet(object.key) ? String(object.key) : "", value: isSet(object.value) ? String(object.value) : "" };
   },
 
   toJSON(message: Team_LabelsEntry): unknown {
@@ -306,7 +306,7 @@ export const Team_LabelsEntry = {
 };
 
 function createBaseListRequest(): ListRequest {
-  return {lastUpdate: BigInt("0")};
+  return { lastUpdate: BigInt("0") };
 }
 
 export const ListRequest = {
@@ -342,8 +342,8 @@ export const ListRequest = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<ListRequest, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<ListRequest | ListRequest[]> | Iterable<ListRequest | ListRequest[]>,
+  async *encodeTransform(
+    source: AsyncIterable<ListRequest | ListRequest[]> | Iterable<ListRequest | ListRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -358,8 +358,8 @@ export const ListRequest = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, ListRequest>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<ListRequest> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -373,7 +373,7 @@ export const ListRequest = {
   },
 
   fromJSON(object: any): ListRequest {
-    return {lastUpdate: isSet(object.lastUpdate) ? BigInt(object.lastUpdate) : BigInt("0")};
+    return { lastUpdate: isSet(object.lastUpdate) ? BigInt(object.lastUpdate) : BigInt("0") };
   },
 
   toJSON(message: ListRequest): unknown {
@@ -395,7 +395,7 @@ export const ListRequest = {
 };
 
 function createBaseListResponse(): ListResponse {
-  return {teams: [], lastUpdate: BigInt("0")};
+  return { teams: [], lastUpdate: BigInt("0") };
 }
 
 export const ListResponse = {
@@ -441,8 +441,8 @@ export const ListResponse = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<ListResponse, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<ListResponse | ListResponse[]> | Iterable<ListResponse | ListResponse[]>,
+  async *encodeTransform(
+    source: AsyncIterable<ListResponse | ListResponse[]> | Iterable<ListResponse | ListResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -457,8 +457,8 @@ export const ListResponse = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, ListResponse>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<ListResponse> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -501,7 +501,7 @@ export const ListResponse = {
 };
 
 function createBaseCreateBatchRequest(): CreateBatchRequest {
-  return {teams: []};
+  return { teams: [] };
 }
 
 export const CreateBatchRequest = {
@@ -537,10 +537,10 @@ export const CreateBatchRequest = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<CreateBatchRequest, Uint8Array>
-  async* encodeTransform(
-      source:
-          | AsyncIterable<CreateBatchRequest | CreateBatchRequest[]>
-          | Iterable<CreateBatchRequest | CreateBatchRequest[]>,
+  async *encodeTransform(
+    source:
+      | AsyncIterable<CreateBatchRequest | CreateBatchRequest[]>
+      | Iterable<CreateBatchRequest | CreateBatchRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -555,8 +555,8 @@ export const CreateBatchRequest = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, CreateBatchRequest>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<CreateBatchRequest> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -570,7 +570,7 @@ export const CreateBatchRequest = {
   },
 
   fromJSON(object: any): CreateBatchRequest {
-    return {teams: Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : []};
+    return { teams: Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : [] };
   },
 
   toJSON(message: CreateBatchRequest): unknown {
@@ -592,7 +592,7 @@ export const CreateBatchRequest = {
 };
 
 function createBaseCreateBatchResponse(): CreateBatchResponse {
-  return {teams: []};
+  return { teams: [] };
 }
 
 export const CreateBatchResponse = {
@@ -628,10 +628,10 @@ export const CreateBatchResponse = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<CreateBatchResponse, Uint8Array>
-  async* encodeTransform(
-      source:
-          | AsyncIterable<CreateBatchResponse | CreateBatchResponse[]>
-          | Iterable<CreateBatchResponse | CreateBatchResponse[]>,
+  async *encodeTransform(
+    source:
+      | AsyncIterable<CreateBatchResponse | CreateBatchResponse[]>
+      | Iterable<CreateBatchResponse | CreateBatchResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -646,8 +646,8 @@ export const CreateBatchResponse = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, CreateBatchResponse>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<CreateBatchResponse> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -661,7 +661,7 @@ export const CreateBatchResponse = {
   },
 
   fromJSON(object: any): CreateBatchResponse {
-    return {teams: Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : []};
+    return { teams: Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : [] };
   },
 
   toJSON(message: CreateBatchResponse): unknown {
@@ -685,14 +685,14 @@ export const CreateBatchResponse = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-    : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-        : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
-            : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-                : Partial<T>;
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
-    : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToBigint(long: Long) {
   return BigInt(long.toString());

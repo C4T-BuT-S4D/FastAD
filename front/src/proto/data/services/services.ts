@@ -1,7 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
-import {Type, typeFromJSON, typeToJSON} from "../../checker/checker";
+import { Type, typeFromJSON, typeToJSON } from "../../checker/checker";
 
 export const protobufPackage = "data.services";
 
@@ -30,7 +30,7 @@ export interface ListResponse {
 }
 
 function createBaseService(): Service {
-  return {id: 0, name: "", checker: undefined, defaultScore: 0, gets: 0, puts: 0};
+  return { id: 0, name: "", checker: undefined, defaultScore: 0, gets: 0, puts: 0 };
 }
 
 export const Service = {
@@ -116,8 +116,8 @@ export const Service = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<Service, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<Service | Service[]> | Iterable<Service | Service[]>,
+  async *encodeTransform(
+    source: AsyncIterable<Service | Service[]> | Iterable<Service | Service[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -132,8 +132,8 @@ export const Service = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, Service>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Service> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -188,8 +188,8 @@ export const Service = {
     message.id = object.id ?? 0;
     message.name = object.name ?? "";
     message.checker = (object.checker !== undefined && object.checker !== null)
-        ? Service_Checker.fromPartial(object.checker)
-        : undefined;
+      ? Service_Checker.fromPartial(object.checker)
+      : undefined;
     message.defaultScore = object.defaultScore ?? 0;
     message.gets = object.gets ?? 0;
     message.puts = object.puts ?? 0;
@@ -198,7 +198,7 @@ export const Service = {
 };
 
 function createBaseService_Checker(): Service_Checker {
-  return {type: 0, path: "", timeoutSeconds: 0};
+  return { type: 0, path: "", timeoutSeconds: 0 };
 }
 
 export const Service_Checker = {
@@ -254,8 +254,8 @@ export const Service_Checker = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<Service_Checker, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<Service_Checker | Service_Checker[]> | Iterable<Service_Checker | Service_Checker[]>,
+  async *encodeTransform(
+    source: AsyncIterable<Service_Checker | Service_Checker[]> | Iterable<Service_Checker | Service_Checker[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -270,8 +270,8 @@ export const Service_Checker = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, Service_Checker>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Service_Checker> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -319,7 +319,7 @@ export const Service_Checker = {
 };
 
 function createBaseListRequest(): ListRequest {
-  return {lastUpdate: BigInt("0")};
+  return { lastUpdate: BigInt("0") };
 }
 
 export const ListRequest = {
@@ -355,8 +355,8 @@ export const ListRequest = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<ListRequest, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<ListRequest | ListRequest[]> | Iterable<ListRequest | ListRequest[]>,
+  async *encodeTransform(
+    source: AsyncIterable<ListRequest | ListRequest[]> | Iterable<ListRequest | ListRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -371,8 +371,8 @@ export const ListRequest = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, ListRequest>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<ListRequest> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -386,7 +386,7 @@ export const ListRequest = {
   },
 
   fromJSON(object: any): ListRequest {
-    return {lastUpdate: isSet(object.lastUpdate) ? BigInt(object.lastUpdate) : BigInt("0")};
+    return { lastUpdate: isSet(object.lastUpdate) ? BigInt(object.lastUpdate) : BigInt("0") };
   },
 
   toJSON(message: ListRequest): unknown {
@@ -408,7 +408,7 @@ export const ListRequest = {
 };
 
 function createBaseListResponse(): ListResponse {
-  return {services: [], lastUpdate: BigInt("0")};
+  return { services: [], lastUpdate: BigInt("0") };
 }
 
 export const ListResponse = {
@@ -454,8 +454,8 @@ export const ListResponse = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<ListResponse, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<ListResponse | ListResponse[]> | Iterable<ListResponse | ListResponse[]>,
+  async *encodeTransform(
+    source: AsyncIterable<ListResponse | ListResponse[]> | Iterable<ListResponse | ListResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -470,8 +470,8 @@ export const ListResponse = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, ListResponse>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<ListResponse> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -516,14 +516,14 @@ export const ListResponse = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-    : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-        : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
-            : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-                : Partial<T>;
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
-    : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToBigint(long: Long) {
   return BigInt(long.toString());
