@@ -30,3 +30,11 @@ message ListResponse {
     repeated Service services = 1;
     int64 last_update = 2;
 }
+
+message CreateBatchRequest {
+    repeated Service services = 1;
+}
+
+message CreateBatchResponse {
+    repeated Service services = 1;
+}
