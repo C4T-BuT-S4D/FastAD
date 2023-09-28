@@ -22,3 +22,4 @@ plugins:
       - outputServices=nice-grpc,outputServices=generic-definitions
       - useAsyncIterable=true
       - esModuleInterop=true
+      - forceLong=bigint

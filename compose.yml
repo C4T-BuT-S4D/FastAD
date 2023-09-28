@@ -1,0 +1,61 @@
+services:
+  data-service:
+    build:
+      context: .
+      dockerfile: docker/data_service/Dockerfile
+    environment:
+      FASTAD_DATA_SERVICE_DEBUG: 1
+      FASTAD_DATA_SERVICE_LISTEN_ADDRESS: 0.0.0.0:11337
+
+      FASTAD_DATA_SERVICE_POSTGRES_USER: ${POSTGRES_USER:-fastad}
+      FASTAD_DATA_SERVICE_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fastad}
+      FASTAD_DATA_SERVICE_POSTGRES_DATABASE: ${POSTGRES_DB:-fastad}
+      FASTAD_DATA_SERVICE_POSTGRES_HOST: postgres
+
+      FASTAD_DATA_SERVICE_REDIS_HOST: redis
+    ports:
+      - "11337:11337"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  envoy:
+    image: envoyproxy/envoy:v1.27.0
+    volumes:
+      - ./docker/envoy/envoy.yaml:/etc/envoy/envoy.yaml
+      - ./proto/descriptor.pb:/etc/envoy/descriptor.pb
+    ports:
+      - "8080:8080"
+    depends_on:
+      - data-service
+    command: /usr/local/bin/envoy -c /etc/envoy/envoy.yaml --service-cluster envoy --service-node envoy --log-level debug
+
+  postgres:
+    image: postgres:15.4-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fastad}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fastad}
+      POSTGRES_DB: ${POSTGRES_DB:-fastad}
+    volumes:
+      - ./vol/db:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: pg_isready -U ${POSTGRES_USER:-fastad} -d ${POSTGRES_DB:-fastad}
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:6.2.13-alpine
+    ports:
+      - "6378:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
