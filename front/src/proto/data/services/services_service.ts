@@ -1,6 +1,6 @@
 /* eslint-disable */
 import type { CallContext, CallOptions } from "nice-grpc-common";
-import { ListRequest, ListResponse } from "./services";
+import { CreateBatchRequest, CreateBatchResponse, ListRequest, ListResponse } from "./services";
 
 export const protobufPackage = "data.services";
 
@@ -15,6 +15,18 @@ export const ServicesServiceDefinition = {
       requestStream: false,
       responseType: ListResponse,
       responseStream: false,
+      options: {
+        _unknownFields: {
+          578365826: [new Uint8Array([15, 18, 13, 47, 97, 112, 105, 47, 115, 101, 114, 118, 105, 99, 101, 115])],
+        },
+      },
+    },
+    createBatch: {
+      name: "CreateBatch",
+      requestType: CreateBatchRequest,
+      requestStream: false,
+      responseType: CreateBatchResponse,
+      responseStream: false,
       options: {},
     },
   },
@@ -22,10 +34,18 @@ export const ServicesServiceDefinition = {
 
 export interface ServicesServiceImplementation<CallContextExt = {}> {
   list(request: ListRequest, context: CallContext & CallContextExt): Promise<DeepPartial<ListResponse>>;
+  createBatch(
+    request: CreateBatchRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<CreateBatchResponse>>;
 }
 
 export interface ServicesServiceClient<CallOptionsExt = {}> {
   list(request: DeepPartial<ListRequest>, options?: CallOptions & CallOptionsExt): Promise<ListResponse>;
+  createBatch(
+    request: DeepPartial<CreateBatchRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<CreateBatchResponse>;
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;

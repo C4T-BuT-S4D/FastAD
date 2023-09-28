@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	ServicesService_List_FullMethodName = "/data.services.ServicesService/List"
+	ServicesService_List_FullMethodName        = "/data.services.ServicesService/List"
+	ServicesService_CreateBatch_FullMethodName = "/data.services.ServicesService/CreateBatch"
 )
 
 // ServicesServiceClient is the client API for ServicesService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ServicesServiceClient interface {
 	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error)
+	CreateBatch(ctx context.Context, in *CreateBatchRequest, opts ...grpc.CallOption) (*CreateBatchResponse, error)
 }
 
 type servicesServiceClient struct {
@@ -46,11 +48,21 @@ func (c *servicesServiceClient) List(ctx context.Context, in *ListRequest, opts 
 	return out, nil
 }
 
+func (c *servicesServiceClient) CreateBatch(ctx context.Context, in *CreateBatchRequest, opts ...grpc.CallOption) (*CreateBatchResponse, error) {
+	out := new(CreateBatchResponse)
+	err := c.cc.Invoke(ctx, ServicesService_CreateBatch_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServicesServiceServer is the server API for ServicesService service.
 // All implementations must embed UnimplementedServicesServiceServer
 // for forward compatibility
 type ServicesServiceServer interface {
 	List(context.Context, *ListRequest) (*ListResponse, error)
+	CreateBatch(context.Context, *CreateBatchRequest) (*CreateBatchResponse, error)
 	mustEmbedUnimplementedServicesServiceServer()
 }
 
@@ -60,6 +72,9 @@ type UnimplementedServicesServiceServer struct {
 
 func (UnimplementedServicesServiceServer) List(context.Context, *ListRequest) (*ListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
+}
+func (UnimplementedServicesServiceServer) CreateBatch(context.Context, *CreateBatchRequest) (*CreateBatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateBatch not implemented")
 }
 func (UnimplementedServicesServiceServer) mustEmbedUnimplementedServicesServiceServer() {}
 
@@ -92,6 +107,24 @@ func _ServicesService_List_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ServicesService_CreateBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateBatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServicesServiceServer).CreateBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ServicesService_CreateBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServicesServiceServer).CreateBatch(ctx, req.(*CreateBatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ServicesService_ServiceDesc is the grpc.ServiceDesc for ServicesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -102,6 +135,10 @@ var ServicesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "List",
 			Handler:    _ServicesService_List_Handler,
+		},
+		{
+			MethodName: "CreateBatch",
+			Handler:    _ServicesService_CreateBatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
