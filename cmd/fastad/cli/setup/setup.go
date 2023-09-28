@@ -5,8 +5,10 @@ import (
 	"os"
 
 	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
+	"github.com/c4t-but-s4d/fastad/internal/clients/services"
 	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
@@ -57,9 +59,14 @@ func NewSetupCommand(*common.CommandContext) *cli.Command {
 			}
 
 			teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(apiConn))
+			servicesClient := services.NewClient(servicespb.NewServicesServiceClient(apiConn))
 
 			teamsToCreate := lo.Map(cfg.Teams, func(t Team, _ int) *teamspb.Team {
 				return t.ToProto()
+			})
+
+			servicesToCreate := lo.Map(cfg.Services, func(s Service, _ int) *servicespb.Service {
+				return s.ToProto()
 			})
 
 			createdTeams, err := teamsClient.CreateBatch(c.Context, teamsToCreate)
@@ -67,7 +74,14 @@ func NewSetupCommand(*common.CommandContext) *cli.Command {
 				return fmt.Errorf("creating teams: %w", err)
 			}
 
+			createdServices, err := servicesClient.CreateBatch(c.Context, servicesToCreate)
+			if err != nil {
+				return fmt.Errorf("creating services: %w", err)
+			}
+
 			logrus.Infof("created teams: %+v", createdTeams)
+
+			logrus.Infof("created services: %+v", createdServices)
 
 			return nil
 		},

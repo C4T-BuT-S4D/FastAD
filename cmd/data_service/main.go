@@ -10,8 +10,10 @@ import (
 	"syscall"
 
 	"github.com/c4t-but-s4d/fastad/internal/logging"
+	"github.com/c4t-but-s4d/fastad/internal/services/services"
 	"github.com/c4t-but-s4d/fastad/internal/services/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/mitchellh/mapstructure"
 	"github.com/redis/go-redis/v9"
@@ -70,8 +72,12 @@ func main() {
 	teamsController := teams.NewController(db, redisClient)
 	teamsService := teams.NewService(teamsController)
 
+	servicesController := services.NewController(db, redisClient)
+	servicesService := services.NewService(servicesController)
+
 	server := grpctools.NewServer()
 	teamspb.RegisterTeamsServiceServer(server, teamsService)
+	servicespb.RegisterServicesServiceServer(server, servicesService)
 
 	runCtx, runCancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer runCancel()
@@ -85,6 +91,10 @@ func main() {
 
 	if err := teamsController.Migrate(runCtx); err != nil {
 		logrus.Fatalf("error migrating teams: %v", err)
+	}
+
+	if err := servicesController.Migrate(runCtx); err != nil {
+		logrus.Fatalf("error migrating services: %v", err)
 	}
 
 	logrus.Infof("starting server on %s", cfg.ListenAddress)
