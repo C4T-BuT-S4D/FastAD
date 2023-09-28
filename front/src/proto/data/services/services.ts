@@ -29,6 +29,14 @@ export interface ListResponse {
   lastUpdate: bigint;
 }
 
+export interface CreateBatchRequest {
+  services: Service[];
+}
+
+export interface CreateBatchResponse {
+  services: Service[];
+}
+
 function createBaseService(): Service {
   return { id: 0, name: "", checker: undefined, defaultScore: 0, gets: 0, puts: 0 };
 }
@@ -509,6 +517,188 @@ export const ListResponse = {
     const message = createBaseListResponse();
     message.services = object.services?.map((e) => Service.fromPartial(e)) || [];
     message.lastUpdate = object.lastUpdate ?? BigInt("0");
+    return message;
+  },
+};
+
+function createBaseCreateBatchRequest(): CreateBatchRequest {
+  return { services: [] };
+}
+
+export const CreateBatchRequest = {
+  encode(message: CreateBatchRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.services) {
+      Service.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateBatchRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateBatchRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.services.push(Service.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<CreateBatchRequest, Uint8Array>
+  async *encodeTransform(
+    source:
+      | AsyncIterable<CreateBatchRequest | CreateBatchRequest[]>
+      | Iterable<CreateBatchRequest | CreateBatchRequest[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (Array.isArray(pkt)) {
+        for (const p of pkt) {
+          yield* [CreateBatchRequest.encode(p).finish()];
+        }
+      } else {
+        yield* [CreateBatchRequest.encode(pkt).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, CreateBatchRequest>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<CreateBatchRequest> {
+    for await (const pkt of source) {
+      if (Array.isArray(pkt)) {
+        for (const p of pkt) {
+          yield* [CreateBatchRequest.decode(p)];
+        }
+      } else {
+        yield* [CreateBatchRequest.decode(pkt)];
+      }
+    }
+  },
+
+  fromJSON(object: any): CreateBatchRequest {
+    return { services: Array.isArray(object?.services) ? object.services.map((e: any) => Service.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: CreateBatchRequest): unknown {
+    const obj: any = {};
+    if (message.services?.length) {
+      obj.services = message.services.map((e) => Service.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateBatchRequest>, I>>(base?: I): CreateBatchRequest {
+    return CreateBatchRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateBatchRequest>, I>>(object: I): CreateBatchRequest {
+    const message = createBaseCreateBatchRequest();
+    message.services = object.services?.map((e) => Service.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseCreateBatchResponse(): CreateBatchResponse {
+  return { services: [] };
+}
+
+export const CreateBatchResponse = {
+  encode(message: CreateBatchResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.services) {
+      Service.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateBatchResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateBatchResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.services.push(Service.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<CreateBatchResponse, Uint8Array>
+  async *encodeTransform(
+    source:
+      | AsyncIterable<CreateBatchResponse | CreateBatchResponse[]>
+      | Iterable<CreateBatchResponse | CreateBatchResponse[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (Array.isArray(pkt)) {
+        for (const p of pkt) {
+          yield* [CreateBatchResponse.encode(p).finish()];
+        }
+      } else {
+        yield* [CreateBatchResponse.encode(pkt).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, CreateBatchResponse>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<CreateBatchResponse> {
+    for await (const pkt of source) {
+      if (Array.isArray(pkt)) {
+        for (const p of pkt) {
+          yield* [CreateBatchResponse.decode(p)];
+        }
+      } else {
+        yield* [CreateBatchResponse.decode(pkt)];
+      }
+    }
+  },
+
+  fromJSON(object: any): CreateBatchResponse {
+    return { services: Array.isArray(object?.services) ? object.services.map((e: any) => Service.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: CreateBatchResponse): unknown {
+    const obj: any = {};
+    if (message.services?.length) {
+      obj.services = message.services.map((e) => Service.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateBatchResponse>, I>>(base?: I): CreateBatchResponse {
+    return CreateBatchResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateBatchResponse>, I>>(object: I): CreateBatchResponse {
+    const message = createBaseCreateBatchResponse();
+    message.services = object.services?.map((e) => Service.fromPartial(e)) || [];
     return message;
   },
 };
