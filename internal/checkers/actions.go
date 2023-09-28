@@ -36,7 +36,7 @@ func RunCheckAction(
 		checkAction,
 		params.Team.Address,
 	)
-	return RunAction(ctx, cmd, params.Service.CheckerTimeout())
+	return RunAction(ctx, cmd, params.Service.CheckerTimeout(checkerpb.Action_ACTION_CHECK))
 }
 
 func RunPutAction(
@@ -56,7 +56,7 @@ func RunPutAction(
 		flag.Flag,
 		"1",
 	)
-	return RunAction(ctx, cmd, params.Service.CheckerTimeout())
+	return RunAction(ctx, cmd, params.Service.CheckerTimeout(checkerpb.Action_ACTION_PUT))
 }
 
 func RunGetAction(
@@ -76,7 +76,7 @@ func RunGetAction(
 		flag.Flag,
 		"1",
 	)
-	return RunAction(ctx, cmd, params.Service.CheckerTimeout())
+	return RunAction(ctx, cmd, params.Service.CheckerTimeout(checkerpb.Action_ACTION_GET))
 }
 
 func RunAction(ctx context.Context, cmd *exec.Cmd, softTimeout time.Duration) *models.CheckerVerdict {

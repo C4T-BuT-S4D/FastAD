@@ -2,13 +2,29 @@ syntax = "proto3";
 
 package data.services;
 
+import "google/protobuf/duration.proto";
+
 import "checker/checker.proto";
 
 message Service {
     message Checker {
+        message ActionTimeout {
+            checker.Action action = 1;
+            google.protobuf.Duration timeout = 2;
+        }
+
+        message ActionRunCount {
+            checker.Action action = 1;
+            int32 run_count = 2;
+        }
+
         checker.Type type = 1;
         string path = 2;
-        int32 timeout_seconds = 3;
+
+        google.protobuf.Duration default_timeout = 3;
+        repeated ActionTimeout action_timeouts = 4;
+
+        repeated ActionRunCount action_run_counts = 5;
     }
 
     int32 id = 1;
@@ -17,9 +33,6 @@ message Service {
     data.services.Service.Checker checker = 3;
 
     double default_score = 4;
-
-    int32 gets = 5;
-    int32 puts = 6;
 }
 
 message ListRequest {

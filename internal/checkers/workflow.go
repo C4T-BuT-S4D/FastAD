@@ -53,17 +53,25 @@ func WorkflowDefinition(ctx workflow.Context, params WorkflowParameters) error {
 func runCheckers(ctx workflow.Context, team *models.Team, service *models.Service) {
 	logger := workflow.GetLogger(ctx)
 
-	commonActivityOptions := workflow.ActivityOptions{
-		ScheduleToCloseTimeout: service.CheckerTimeout() + checkerKillDelay*2,
-	}
-	activityCtx := workflow.WithActivityOptions(ctx, commonActivityOptions)
+	checkActivityCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		ScheduleToCloseTimeout: service.CheckerTimeout(checkerpb.Action_ACTION_CHECK) + checkerKillDelay*2,
+	})
+	putActivityCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		ScheduleToCloseTimeout: service.CheckerTimeout(checkerpb.Action_ACTION_PUT) + checkerKillDelay*2,
+	})
+	getActivityCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		ScheduleToCloseTimeout: service.CheckerTimeout(checkerpb.Action_ACTION_GET) + checkerKillDelay*2,
+	})
+
+	putCount := service.RunCount(checkerpb.Action_ACTION_PUT)
+	getCount := service.RunCount(checkerpb.Action_ACTION_GET)
 
 	var checkResult *CheckActivityResult
-	putResults := make([]*PutActivityResult, 0, service.Puts)
-	getResults := make([]*GetActivityResult, 0, service.Gets)
+	putResults := make([]*PutActivityResult, 0, putCount)
+	getResults := make([]*GetActivityResult, 0, getCount)
 
 	if err := workflow.ExecuteActivity(
-		activityCtx,
+		checkActivityCtx,
 		ActivityCheckName,
 		CheckActivityParameters{
 			Team:    team,
@@ -81,10 +89,10 @@ func runCheckers(ctx workflow.Context, team *models.Team, service *models.Servic
 	}
 
 	if checkResult.Verdict.IsUp() {
-		putResultsChan := workflow.NewBufferedChannel(ctx, service.Puts)
+		putResultsChan := workflow.NewBufferedChannel(ctx, putCount)
 
-		for i := 0; i < service.Puts; i++ {
-			workflow.Go(activityCtx, func(ctx workflow.Context) {
+		for i := 0; i < putCount; i++ {
+			workflow.Go(putActivityCtx, func(ctx workflow.Context) {
 				var putResult *PutActivityResult
 				if err := workflow.ExecuteActivity(
 					ctx,
@@ -110,8 +118,8 @@ func runCheckers(ctx workflow.Context, team *models.Team, service *models.Servic
 
 		getResultsChan := workflow.NewBufferedChannel(ctx, 3)
 
-		for i := 0; i < service.Gets; i++ {
-			workflow.Go(activityCtx, func(ctx workflow.Context) {
+		for i := 0; i < getCount; i++ {
+			workflow.Go(getActivityCtx, func(ctx workflow.Context) {
 				var getResult *GetActivityResult
 				if err := workflow.ExecuteActivity(
 					ctx,
@@ -135,13 +143,13 @@ func runCheckers(ctx workflow.Context, team *models.Team, service *models.Servic
 			})
 		}
 
-		for i := 0; i < service.Puts; i++ {
+		for i := 0; i < putCount; i++ {
 			var putResult *PutActivityResult
 			putResultsChan.Receive(ctx, &putResult)
 			putResults = append(putResults, putResult)
 		}
 
-		for i := 0; i < service.Gets; i++ {
+		for i := 0; i < getCount; i++ {
 			var getResult *GetActivityResult
 			getResultsChan.Receive(ctx, &getResult)
 			getResults = append(getResults, getResult)

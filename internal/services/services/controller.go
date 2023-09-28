@@ -1,4 +1,4 @@
-package teams
+package services
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"github.com/uptrace/bun"
 )
 
-const lastUpdateRedisKey = "teams::last_update"
+const lastUpdateRedisKey = "services::last_update"
 
 type Controller struct {
 	db *bun.DB
@@ -33,27 +33,20 @@ func (c *Controller) LastUpdate(ctx context.Context) (int64, error) {
 	return 0, fmt.Errorf("getting last update time: %w", err)
 }
 
-func (c *Controller) List(ctx context.Context) ([]*models.Team, error) {
-	var teams []*models.Team
+func (c *Controller) List(ctx context.Context) ([]*models.Service, error) {
+	var teams []*models.Service
 	if err := c.db.NewSelect().Model(&teams).Scan(ctx); err != nil {
 		return nil, fmt.Errorf("getting teams: %w", err)
 	}
 	return teams, nil
 }
 
-func (c *Controller) CreateBatch(ctx context.Context, teams []*models.Team) error {
-	if len(teams) == 0 {
+func (c *Controller) CreateBatch(ctx context.Context, services []*models.Service) error {
+	if len(services) == 0 {
 		return nil
 	}
-	if _, err := c.db.
-		NewInsert().
-		Model(&teams).
-		On("CONFLICT (name) DO UPDATE").
-		Set("address = EXCLUDED.address").
-		Set("token = EXCLUDED.token").
-		Set("labels = EXCLUDED.labels").
-		Exec(ctx); err != nil {
-		return fmt.Errorf("inserting teams: %w", err)
+	if _, err := c.db.NewInsert().Model(&services).Exec(ctx); err != nil {
+		return fmt.Errorf("inserting services: %w", err)
 	}
 	if err := c.r.Set(ctx, lastUpdateRedisKey, time.Now(), 0).Err(); err != nil {
 		return fmt.Errorf("setting last update time: %w", err)
@@ -62,8 +55,8 @@ func (c *Controller) CreateBatch(ctx context.Context, teams []*models.Team) erro
 }
 
 func (c *Controller) Migrate(ctx context.Context) error {
-	if _, err := c.db.NewCreateTable().IfNotExists().Model(&models.Team{}).Exec(ctx); err != nil {
-		return fmt.Errorf("creating teams table: %w", err)
+	if _, err := c.db.NewCreateTable().IfNotExists().Model(&models.Service{}).Exec(ctx); err != nil {
+		return fmt.Errorf("creating services table: %w", err)
 	}
 	if err := c.r.Set(ctx, lastUpdateRedisKey, time.Now(), 0).Err(); err != nil {
 		return fmt.Errorf("setting last update time: %w", err)

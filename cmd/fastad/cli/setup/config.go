@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
@@ -55,6 +56,12 @@ func (s *Service) Validate() error {
 		return fmt.Errorf("name is not set")
 	}
 	return nil
+}
+
+func (s *Service) ToProto() *servicespb.Service {
+	return &servicespb.Service{
+		Name: s.Name,
+	}
 }
 
 type GameConfig struct {
