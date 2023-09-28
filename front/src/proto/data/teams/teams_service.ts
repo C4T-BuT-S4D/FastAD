@@ -15,7 +15,9 @@ export const TeamsServiceDefinition = {
             requestStream: false,
             responseType: ListResponse,
             responseStream: false,
-            options: {},
+            options: {
+                _unknownFields: {578365826: [new Uint8Array([12, 18, 10, 47, 97, 112, 105, 47, 116, 101, 97, 109, 115])]},
+            },
         },
         createBatch: {
             name: "CreateBatch",
@@ -46,7 +48,7 @@ export interface TeamsServiceClient<CallOptionsExt = {}> {
     ): Promise<CreateBatchResponse>;
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
     : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>

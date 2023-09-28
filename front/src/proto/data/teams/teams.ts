@@ -18,12 +18,12 @@ export interface Team_LabelsEntry {
 }
 
 export interface ListRequest {
-  lastUpdate: number;
+  lastUpdate: bigint;
 }
 
 export interface ListResponse {
   teams: Team[];
-  lastUpdate: number;
+  lastUpdate: bigint;
 }
 
 export interface CreateBatchRequest {
@@ -306,13 +306,13 @@ export const Team_LabelsEntry = {
 };
 
 function createBaseListRequest(): ListRequest {
-  return {lastUpdate: 0};
+  return {lastUpdate: BigInt("0")};
 }
 
 export const ListRequest = {
   encode(message: ListRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.lastUpdate !== 0) {
-      writer.uint32(8).int64(message.lastUpdate);
+    if (message.lastUpdate !== BigInt("0")) {
+      writer.uint32(8).int64(message.lastUpdate.toString());
     }
     return writer;
   },
@@ -329,7 +329,7 @@ export const ListRequest = {
             break;
           }
 
-          message.lastUpdate = longToNumber(reader.int64() as Long);
+          message.lastUpdate = longToBigint(reader.int64() as Long);
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -373,13 +373,13 @@ export const ListRequest = {
   },
 
   fromJSON(object: any): ListRequest {
-    return {lastUpdate: isSet(object.lastUpdate) ? Number(object.lastUpdate) : 0};
+    return {lastUpdate: isSet(object.lastUpdate) ? BigInt(object.lastUpdate) : BigInt("0")};
   },
 
   toJSON(message: ListRequest): unknown {
     const obj: any = {};
-    if (message.lastUpdate !== 0) {
-      obj.lastUpdate = Math.round(message.lastUpdate);
+    if (message.lastUpdate !== BigInt("0")) {
+      obj.lastUpdate = message.lastUpdate.toString();
     }
     return obj;
   },
@@ -389,13 +389,13 @@ export const ListRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<ListRequest>, I>>(object: I): ListRequest {
     const message = createBaseListRequest();
-    message.lastUpdate = object.lastUpdate ?? 0;
+    message.lastUpdate = object.lastUpdate ?? BigInt("0");
     return message;
   },
 };
 
 function createBaseListResponse(): ListResponse {
-  return {teams: [], lastUpdate: 0};
+  return {teams: [], lastUpdate: BigInt("0")};
 }
 
 export const ListResponse = {
@@ -403,8 +403,8 @@ export const ListResponse = {
     for (const v of message.teams) {
       Team.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-    if (message.lastUpdate !== 0) {
-      writer.uint32(16).int64(message.lastUpdate);
+    if (message.lastUpdate !== BigInt("0")) {
+      writer.uint32(16).int64(message.lastUpdate.toString());
     }
     return writer;
   },
@@ -428,7 +428,7 @@ export const ListResponse = {
             break;
           }
 
-          message.lastUpdate = longToNumber(reader.int64() as Long);
+          message.lastUpdate = longToBigint(reader.int64() as Long);
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -474,7 +474,7 @@ export const ListResponse = {
   fromJSON(object: any): ListResponse {
     return {
       teams: Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : [],
-      lastUpdate: isSet(object.lastUpdate) ? Number(object.lastUpdate) : 0,
+      lastUpdate: isSet(object.lastUpdate) ? BigInt(object.lastUpdate) : BigInt("0"),
     };
   },
 
@@ -483,8 +483,8 @@ export const ListResponse = {
     if (message.teams?.length) {
       obj.teams = message.teams.map((e) => Team.toJSON(e));
     }
-    if (message.lastUpdate !== 0) {
-      obj.lastUpdate = Math.round(message.lastUpdate);
+    if (message.lastUpdate !== BigInt("0")) {
+      obj.lastUpdate = message.lastUpdate.toString();
     }
     return obj;
   },
@@ -495,7 +495,7 @@ export const ListResponse = {
   fromPartial<I extends Exact<DeepPartial<ListResponse>, I>>(object: I): ListResponse {
     const message = createBaseListResponse();
     message.teams = object.teams?.map((e) => Team.fromPartial(e)) || [];
-    message.lastUpdate = object.lastUpdate ?? 0;
+    message.lastUpdate = object.lastUpdate ?? BigInt("0");
     return message;
   },
 };
@@ -682,26 +682,7 @@ export const CreateBatchResponse = {
   },
 };
 
-declare const self: any | undefined;
-declare const window: any | undefined;
-declare const global: any | undefined;
-const tsProtoGlobalThis: any = (() => {
-  if (typeof globalThis !== "undefined") {
-    return globalThis;
-  }
-  if (typeof self !== "undefined") {
-    return self;
-  }
-  if (typeof window !== "undefined") {
-    return window;
-  }
-  if (typeof global !== "undefined") {
-    return global;
-  }
-  throw "Unable to locate global object";
-})();
-
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
     : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
@@ -713,11 +694,8 @@ type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
     : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
-function longToNumber(long: Long): number {
-  if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new tsProtoGlobalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
-  }
-  return long.toNumber();
+function longToBigint(long: Long) {
+  return BigInt(long.toString());
 }
 
 if (_m0.util.Long !== Long) {

@@ -37,6 +37,20 @@ func (c *Client) GetByID(ctx context.Context, id int) (*models.Team, error) {
 	return c.cache.GetTeamByID(id), nil
 }
 
+func (c *Client) CreateBatch(ctx context.Context, teams []*teamspb.Team) ([]*models.Team, error) {
+	resp, err := c.c.CreateBatch(ctx, &teamspb.CreateBatchRequest{Teams: teams})
+	if err != nil {
+		return nil, fmt.Errorf("making api request: %w", err)
+	}
+
+	teamModels := lo.Map(resp.Teams, func(team *teamspb.Team, _ int) *models.Team {
+		return models.NewTeamFromProto(team)
+	})
+	c.cache.SetTeams(teamModels)
+
+	return teamModels, nil
+}
+
 func (c *Client) refresh(ctx context.Context) error {
 	c.refreshMu.Lock()
 	defer c.refreshMu.Unlock()

@@ -1,0 +1,16 @@
+game:
+  # start time in rfc3339 format
+  start_time: '2021-11-30T15:30:00+03:00'
+  end_time: '2021-11-30T15:30:00+03:00'
+
+teams:
+  - name: 'team1'
+    address: 'addr1'
+
+  - name: 'team2'
+    address: 'addr2'
+
+services:
+  - name: 'service1'
+
+  - name: 'service2'

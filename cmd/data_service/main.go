@@ -11,6 +11,7 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/internal/services/teams"
+	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/mitchellh/mapstructure"
 	"github.com/redis/go-redis/v9"
@@ -20,8 +21,6 @@ import (
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 type Postgres struct {
@@ -71,8 +70,7 @@ func main() {
 	teamsController := teams.NewController(db, redisClient)
 	teamsService := teams.NewService(teamsController)
 
-	server := grpc.NewServer()
-	reflection.Register(server)
+	server := grpctools.NewServer()
 	teamspb.RegisterTeamsServiceServer(server, teamsService)
 
 	runCtx, runCancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
@@ -113,7 +111,7 @@ func setupConfig() (*Config, error) {
 	}
 	viper.SetEnvPrefix("FASTAD_DATA_SERVICE")
 	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 
 	viper.SetDefault("listen_address", "127.0.0.1:11337")
 
@@ -126,6 +124,8 @@ func setupConfig() (*Config, error) {
 	viper.SetDefault("redis.host", "127.0.0.1")
 	viper.SetDefault("redis.port", 6379)
 	viper.SetDefault("redis.db", 0)
+
+	logrus.Infof("config: %+v", viper.AllSettings())
 
 	cfg := new(Config)
 	if err := viper.Unmarshal(

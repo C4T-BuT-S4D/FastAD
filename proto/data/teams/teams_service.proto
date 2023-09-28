@@ -2,10 +2,16 @@ syntax = "proto3";
 
 package data.teams;
 
+import "google/api/annotations.proto";
+
 import "data/teams/teams.proto";
 
 service TeamsService {
-    rpc List(data.teams.ListRequest) returns (data.teams.ListResponse);
+    rpc List(data.teams.ListRequest) returns (data.teams.ListResponse) {
+        option (google.api.http) = {
+            get: "/api/teams"
+        };
+    };
 
     rpc CreateBatch(data.teams.CreateBatchRequest) returns (data.teams.CreateBatchResponse);
 }

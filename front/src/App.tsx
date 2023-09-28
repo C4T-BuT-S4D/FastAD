@@ -18,7 +18,7 @@ function App() {
         }
 
         void wrapper();
-    });
+    }, []);
 
     return (
         <>
@@ -41,7 +41,7 @@ function App() {
             </div>
             <h4>Teams:</h4>
             {teams?.map((team) => (
-                <p>{team.name}</p>
+                <p key={team.id}>{team.name}</p>
             ))}
             <p className="read-the-docs">
                 Click on the Vite and React logos to learn more
