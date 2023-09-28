@@ -1,8 +1,8 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
-import {Action, actionFromJSON, actionToJSON, Type, typeFromJSON, typeToJSON} from "../../checker/checker";
-import {Duration} from "../../google/protobuf/duration";
+import { Action, actionFromJSON, actionToJSON, Type, typeFromJSON, typeToJSON } from "../../checker/checker";
+import { Duration } from "../../google/protobuf/duration";
 
 export const protobufPackage = "data.services";
 
@@ -49,7 +49,7 @@ export interface CreateBatchResponse {
 }
 
 function createBaseService(): Service {
-  return {id: 0, name: "", checker: undefined, defaultScore: 0};
+  return { id: 0, name: "", checker: undefined, defaultScore: 0 };
 }
 
 export const Service = {
@@ -187,7 +187,7 @@ export const Service = {
 };
 
 function createBaseService_Checker(): Service_Checker {
-  return {type: 0, path: "", defaultTimeout: undefined, actionTimeouts: [], actionRunCounts: []};
+  return { type: 0, path: "", defaultTimeout: undefined, actionTimeouts: [], actionRunCounts: [] };
 }
 
 export const Service_Checker = {
@@ -299,11 +299,11 @@ export const Service_Checker = {
       path: isSet(object.path) ? String(object.path) : "",
       defaultTimeout: isSet(object.defaultTimeout) ? Duration.fromJSON(object.defaultTimeout) : undefined,
       actionTimeouts: Array.isArray(object?.actionTimeouts)
-          ? object.actionTimeouts.map((e: any) => Service_Checker_ActionTimeout.fromJSON(e))
-          : [],
+        ? object.actionTimeouts.map((e: any) => Service_Checker_ActionTimeout.fromJSON(e))
+        : [],
       actionRunCounts: Array.isArray(object?.actionRunCounts)
-          ? object.actionRunCounts.map((e: any) => Service_Checker_ActionRunCount.fromJSON(e))
-          : [],
+        ? object.actionRunCounts.map((e: any) => Service_Checker_ActionRunCount.fromJSON(e))
+        : [],
     };
   },
 
@@ -335,8 +335,8 @@ export const Service_Checker = {
     message.type = object.type ?? 0;
     message.path = object.path ?? "";
     message.defaultTimeout = (object.defaultTimeout !== undefined && object.defaultTimeout !== null)
-        ? Duration.fromPartial(object.defaultTimeout)
-        : undefined;
+      ? Duration.fromPartial(object.defaultTimeout)
+      : undefined;
     message.actionTimeouts = object.actionTimeouts?.map((e) => Service_Checker_ActionTimeout.fromPartial(e)) || [];
     message.actionRunCounts = object.actionRunCounts?.map((e) => Service_Checker_ActionRunCount.fromPartial(e)) || [];
     return message;
@@ -344,7 +344,7 @@ export const Service_Checker = {
 };
 
 function createBaseService_Checker_ActionTimeout(): Service_Checker_ActionTimeout {
-  return {action: 0, timeout: undefined};
+  return { action: 0, timeout: undefined };
 }
 
 export const Service_Checker_ActionTimeout = {
@@ -390,10 +390,10 @@ export const Service_Checker_ActionTimeout = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<Service_Checker_ActionTimeout, Uint8Array>
-  async* encodeTransform(
-      source:
-          | AsyncIterable<Service_Checker_ActionTimeout | Service_Checker_ActionTimeout[]>
-          | Iterable<Service_Checker_ActionTimeout | Service_Checker_ActionTimeout[]>,
+  async *encodeTransform(
+    source:
+      | AsyncIterable<Service_Checker_ActionTimeout | Service_Checker_ActionTimeout[]>
+      | Iterable<Service_Checker_ActionTimeout | Service_Checker_ActionTimeout[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -408,8 +408,8 @@ export const Service_Checker_ActionTimeout = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, Service_Checker_ActionTimeout>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Service_Checker_ActionTimeout> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -444,19 +444,19 @@ export const Service_Checker_ActionTimeout = {
     return Service_Checker_ActionTimeout.fromPartial(base ?? ({} as any));
   },
   fromPartial<I extends Exact<DeepPartial<Service_Checker_ActionTimeout>, I>>(
-      object: I,
+    object: I,
   ): Service_Checker_ActionTimeout {
     const message = createBaseService_Checker_ActionTimeout();
     message.action = object.action ?? 0;
     message.timeout = (object.timeout !== undefined && object.timeout !== null)
-        ? Duration.fromPartial(object.timeout)
-        : undefined;
+      ? Duration.fromPartial(object.timeout)
+      : undefined;
     return message;
   },
 };
 
 function createBaseService_Checker_ActionRunCount(): Service_Checker_ActionRunCount {
-  return {action: 0, runCount: 0};
+  return { action: 0, runCount: 0 };
 }
 
 export const Service_Checker_ActionRunCount = {
@@ -502,10 +502,10 @@ export const Service_Checker_ActionRunCount = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<Service_Checker_ActionRunCount, Uint8Array>
-  async* encodeTransform(
-      source:
-          | AsyncIterable<Service_Checker_ActionRunCount | Service_Checker_ActionRunCount[]>
-          | Iterable<Service_Checker_ActionRunCount | Service_Checker_ActionRunCount[]>,
+  async *encodeTransform(
+    source:
+      | AsyncIterable<Service_Checker_ActionRunCount | Service_Checker_ActionRunCount[]>
+      | Iterable<Service_Checker_ActionRunCount | Service_Checker_ActionRunCount[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -520,8 +520,8 @@ export const Service_Checker_ActionRunCount = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, Service_Checker_ActionRunCount>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Service_Checker_ActionRunCount> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -556,7 +556,7 @@ export const Service_Checker_ActionRunCount = {
     return Service_Checker_ActionRunCount.fromPartial(base ?? ({} as any));
   },
   fromPartial<I extends Exact<DeepPartial<Service_Checker_ActionRunCount>, I>>(
-      object: I,
+    object: I,
   ): Service_Checker_ActionRunCount {
     const message = createBaseService_Checker_ActionRunCount();
     message.action = object.action ?? 0;
