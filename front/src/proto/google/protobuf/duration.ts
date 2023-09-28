@@ -83,7 +83,7 @@ export interface Duration {
 }
 
 function createBaseDuration(): Duration {
-  return {seconds: BigInt("0"), nanos: 0};
+  return { seconds: BigInt("0"), nanos: 0 };
 }
 
 export const Duration = {
@@ -129,8 +129,8 @@ export const Duration = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<Duration, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<Duration | Duration[]> | Iterable<Duration | Duration[]>,
+  async *encodeTransform(
+    source: AsyncIterable<Duration | Duration[]> | Iterable<Duration | Duration[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -145,8 +145,8 @@ export const Duration = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, Duration>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Duration> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -191,14 +191,14 @@ export const Duration = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-    : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-        : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
-            : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-                : Partial<T>;
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
-    : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToBigint(long: Long) {
   return BigInt(long.toString());
