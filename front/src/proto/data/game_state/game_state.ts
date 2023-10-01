@@ -1,11 +1,11 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import {Duration} from "../../google/protobuf/duration";
-import {Timestamp} from "../../google/protobuf/timestamp";
+import { Duration } from "../../google/protobuf/duration";
+import { Timestamp } from "../../google/protobuf/timestamp";
 
 export const protobufPackage = "data.game_state";
 
-export const GameMode = {GAME_MODE_UNSPECIFIED: 0, GAME_MODE_CLASSIC: 1} as const;
+export const GameMode = { GAME_MODE_UNSPECIFIED: 0, GAME_MODE_CLASSIC: 1 } as const;
 
 export type GameMode = typeof GameMode[keyof typeof GameMode];
 
@@ -174,8 +174,8 @@ export const GameState = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<GameState, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<GameState | GameState[]> | Iterable<GameState | GameState[]>,
+  async *encodeTransform(
+    source: AsyncIterable<GameState | GameState[]> | Iterable<GameState | GameState[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -190,8 +190,8 @@ export const GameState = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, GameState>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<GameState> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -256,8 +256,8 @@ export const GameState = {
     message.paused = object.paused ?? false;
     message.flagLifetimeRounds = object.flagLifetimeRounds ?? 0;
     message.roundDuration = (object.roundDuration !== undefined && object.roundDuration !== null)
-        ? Duration.fromPartial(object.roundDuration)
-        : undefined;
+      ? Duration.fromPartial(object.roundDuration)
+      : undefined;
     message.mode = object.mode ?? 0;
     message.runningRound = object.runningRound ?? 0;
     message.runningRoundStart = object.runningRoundStart ?? undefined;
@@ -292,8 +292,8 @@ export const GetRequest = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<GetRequest, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<GetRequest | GetRequest[]> | Iterable<GetRequest | GetRequest[]>,
+  async *encodeTransform(
+    source: AsyncIterable<GetRequest | GetRequest[]> | Iterable<GetRequest | GetRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -308,8 +308,8 @@ export const GetRequest = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, GetRequest>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<GetRequest> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -341,7 +341,7 @@ export const GetRequest = {
 };
 
 function createBaseGetResponse(): GetResponse {
-  return {gameState: undefined};
+  return { gameState: undefined };
 }
 
 export const GetResponse = {
@@ -377,8 +377,8 @@ export const GetResponse = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<GetResponse, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<GetResponse | GetResponse[]> | Iterable<GetResponse | GetResponse[]>,
+  async *encodeTransform(
+    source: AsyncIterable<GetResponse | GetResponse[]> | Iterable<GetResponse | GetResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -393,8 +393,8 @@ export const GetResponse = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, GetResponse>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<GetResponse> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -408,7 +408,7 @@ export const GetResponse = {
   },
 
   fromJSON(object: any): GetResponse {
-    return {gameState: isSet(object.gameState) ? GameState.fromJSON(object.gameState) : undefined};
+    return { gameState: isSet(object.gameState) ? GameState.fromJSON(object.gameState) : undefined };
   },
 
   toJSON(message: GetResponse): unknown {
@@ -425,8 +425,8 @@ export const GetResponse = {
   fromPartial<I extends Exact<DeepPartial<GetResponse>, I>>(object: I): GetResponse {
     const message = createBaseGetResponse();
     message.gameState = (object.gameState !== undefined && object.gameState !== null)
-        ? GameState.fromPartial(object.gameState)
-        : undefined;
+      ? GameState.fromPartial(object.gameState)
+      : undefined;
     return message;
   },
 };
@@ -458,8 +458,8 @@ export const GetRoundRequest = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<GetRoundRequest, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<GetRoundRequest | GetRoundRequest[]> | Iterable<GetRoundRequest | GetRoundRequest[]>,
+  async *encodeTransform(
+    source: AsyncIterable<GetRoundRequest | GetRoundRequest[]> | Iterable<GetRoundRequest | GetRoundRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -474,8 +474,8 @@ export const GetRoundRequest = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, GetRoundRequest>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<GetRoundRequest> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -507,7 +507,7 @@ export const GetRoundRequest = {
 };
 
 function createBaseGetRoundResponse(): GetRoundResponse {
-  return {runningRound: 0};
+  return { runningRound: 0 };
 }
 
 export const GetRoundResponse = {
@@ -543,8 +543,8 @@ export const GetRoundResponse = {
 
   // encodeTransform encodes a source of message objects.
   // Transform<GetRoundResponse, Uint8Array>
-  async* encodeTransform(
-      source: AsyncIterable<GetRoundResponse | GetRoundResponse[]> | Iterable<GetRoundResponse | GetRoundResponse[]>,
+  async *encodeTransform(
+    source: AsyncIterable<GetRoundResponse | GetRoundResponse[]> | Iterable<GetRoundResponse | GetRoundResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -559,8 +559,8 @@ export const GetRoundResponse = {
 
   // decodeTransform decodes a source of encoded messages.
   // Transform<Uint8Array, GetRoundResponse>
-  async* decodeTransform(
-      source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<GetRoundResponse> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
@@ -574,7 +574,7 @@ export const GetRoundResponse = {
   },
 
   fromJSON(object: any): GetRoundResponse {
-    return {runningRound: isSet(object.runningRound) ? Number(object.runningRound) : 0};
+    return { runningRound: isSet(object.runningRound) ? Number(object.runningRound) : 0 };
   },
 
   toJSON(message: GetRoundResponse): unknown {
@@ -617,19 +617,19 @@ const tsProtoGlobalThis: any = (() => {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-    : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-        : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
-            : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-                : Partial<T>;
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
-    : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function toTimestamp(date: Date): Timestamp {
   const seconds = BigInt(Math.trunc(date.getTime() / 1_000));
   const nanos = (date.getTime() % 1_000) * 1_000_000;
-  return {seconds, nanos};
+  return { seconds, nanos };
 }
 
 function fromTimestamp(t: Timestamp): Date {

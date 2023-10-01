@@ -1,6 +1,6 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import {Version} from "../version/version";
+import { Version } from "../version/version";
 
 export const protobufPackage = "data.teams";
 
@@ -306,7 +306,7 @@ export const Team_LabelsEntry = {
 };
 
 function createBaseListRequest(): ListRequest {
-  return {version: undefined};
+  return { version: undefined };
 }
 
 export const ListRequest = {
@@ -373,7 +373,7 @@ export const ListRequest = {
   },
 
   fromJSON(object: any): ListRequest {
-    return {version: isSet(object.version) ? Version.fromJSON(object.version) : undefined};
+    return { version: isSet(object.version) ? Version.fromJSON(object.version) : undefined };
   },
 
   toJSON(message: ListRequest): unknown {
@@ -390,14 +390,14 @@ export const ListRequest = {
   fromPartial<I extends Exact<DeepPartial<ListRequest>, I>>(object: I): ListRequest {
     const message = createBaseListRequest();
     message.version = (object.version !== undefined && object.version !== null)
-        ? Version.fromPartial(object.version)
-        : undefined;
+      ? Version.fromPartial(object.version)
+      : undefined;
     return message;
   },
 };
 
 function createBaseListResponse(): ListResponse {
-  return {teams: [], version: undefined};
+  return { teams: [], version: undefined };
 }
 
 export const ListResponse = {
@@ -498,8 +498,8 @@ export const ListResponse = {
     const message = createBaseListResponse();
     message.teams = object.teams?.map((e) => Team.fromPartial(e)) || [];
     message.version = (object.version !== undefined && object.version !== null)
-        ? Version.fromPartial(object.version)
-        : undefined;
+      ? Version.fromPartial(object.version)
+      : undefined;
     return message;
   },
 };
