@@ -46,7 +46,7 @@ func (c *Controller) Increment(ctx context.Context, tx bun.Tx, name string) (int
 			Version: 1,
 		}).
 		On("CONFLICT (name) DO UPDATE").
-		Set("version = version + 1").
+		Set("version = v.version + 1").
 		Returning("*").
 		Exec(ctx); err != nil {
 		return 0, fmt.Errorf("inserting version: %w", err)
@@ -55,7 +55,11 @@ func (c *Controller) Increment(ctx context.Context, tx bun.Tx, name string) (int
 }
 
 func (c *Controller) Migrate(ctx context.Context) error {
-	if _, err := c.db.NewCreateTable().IfNotExists().Model(&models.Version{}).Exec(ctx); err != nil {
+	if _, err := c.db.
+		NewCreateTable().
+		IfNotExists().
+		Model(&models.Version{}).
+		Exec(ctx); err != nil {
 		return fmt.Errorf("creating version table: %w", err)
 	}
 	return nil

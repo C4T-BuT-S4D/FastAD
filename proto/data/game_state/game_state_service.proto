@@ -12,10 +12,4 @@ service GameStateService {
             get: "/api/game_state"
         };
     }
-
-    rpc GetRound(data.game_state.GetRoundRequest) returns (data.game_state.GetRoundResponse) {
-        option (google.api.http) = {
-            get: "/api/game_state/round"
-        };
-    }
 }

@@ -25,7 +25,7 @@ func NewService(controller *Controller) *Service {
 }
 
 func (s *Service) List(ctx context.Context, req *servicespb.ListRequest) (*servicespb.ListResponse, error) {
-	logrus.Debugf("TeamsService/List: %v", req)
+	logrus.Debugf("ServicesService/List: %v", req)
 
 	// FIXME: check admin rights.
 
@@ -56,7 +56,7 @@ func (s *Service) List(ctx context.Context, req *servicespb.ListRequest) (*servi
 }
 
 func (s *Service) CreateBatch(ctx context.Context, req *servicespb.CreateBatchRequest) (*servicespb.CreateBatchResponse, error) {
-	logrus.Debugf("TeamsService/CreateBatch: %v", req)
+	logrus.Debugf("ServicesService/CreateBatch: %v", req)
 
 	// FIXME: check admin rights.
 

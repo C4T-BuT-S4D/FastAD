@@ -41,9 +41,7 @@ func (c *Controller) CreateBatch(ctx context.Context, teams []*models.Team) erro
 
 	if err := c.db.RunInTx(
 		ctx,
-		&sql.TxOptions{
-			Isolation: sql.LevelSerializable,
-		},
+		&sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
 			if _, err := c.db.
 				NewInsert().

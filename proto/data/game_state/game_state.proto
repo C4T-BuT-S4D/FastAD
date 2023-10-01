@@ -5,6 +5,8 @@ package data.game_state;
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 
+import "data/version/version.proto";
+
 enum GameMode {
     GAME_MODE_UNSPECIFIED = 0;
     GAME_MODE_CLASSIC = 1;
@@ -13,26 +15,24 @@ enum GameMode {
 message GameState {
     google.protobuf.Timestamp start_time = 1;
     google.protobuf.Timestamp end_time = 2;
+    int32 total_rounds = 3;
 
-    bool paused = 3;
+    bool paused = 4;
 
-    int32 flag_lifetime_rounds = 4;
-    google.protobuf.Duration round_duration = 5;
+    int32 flag_lifetime_rounds = 5;
+    google.protobuf.Duration round_duration = 6;
 
-    data.game_state.GameMode mode = 6;
+    data.game_state.GameMode mode = 7;
 
-    int32 running_round = 7;
-    google.protobuf.Timestamp running_round_start = 8;
+    int32 running_round = 8;
+    google.protobuf.Timestamp running_round_start = 9;
 }
 
-message GetRequest {}
+message GetRequest {
+    data.version.Version version = 1;
+}
 
 message GetResponse {
     data.game_state.GameState game_state = 1;
-}
-
-message GetRoundRequest {}
-
-message GetRoundResponse {
-    int32 running_round = 1;
+    data.version.Version version = 2;
 }
