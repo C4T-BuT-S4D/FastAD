@@ -9,23 +9,17 @@ import "data/version/version.proto";
 
 message Service {
     message Checker {
-        message ActionTimeout {
+        message Action {
             checker.Action action = 1;
             google.protobuf.Duration timeout = 2;
-        }
-
-        message ActionRunCount {
-            checker.Action action = 1;
-            int32 run_count = 2;
+            int32 run_count = 3;
         }
 
         checker.Type type = 1;
         string path = 2;
 
         google.protobuf.Duration default_timeout = 3;
-        repeated ActionTimeout action_timeouts = 4;
-
-        repeated ActionRunCount action_run_counts = 5;
+        repeated Action actions = 4;
     }
 
     int32 id = 1;

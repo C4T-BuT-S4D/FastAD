@@ -12,5 +12,9 @@ teams:
 
 services:
   - name: 'service1'
+    checker:
+      path: 'service1/checker.py'
 
   - name: 'service2'
+    checker:
+      path: 'service2/checker.py'

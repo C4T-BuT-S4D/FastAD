@@ -34,7 +34,11 @@ func (c *Controller) Get(ctx context.Context) (*models.GameState, error) {
 }
 
 func (c *Controller) Migrate(ctx context.Context) error {
-	if _, err := c.db.NewCreateTable().IfNotExists().Model(&models.GameState{}).Exec(ctx); err != nil {
+	if _, err := c.db.
+		NewCreateTable().
+		IfNotExists().
+		Model(&models.GameState{}).
+		Exec(ctx); err != nil {
 		return fmt.Errorf("creating game state table: %w", err)
 	}
 	return nil

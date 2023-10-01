@@ -1,8 +1,8 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import { Action, actionFromJSON, actionToJSON, Type, typeFromJSON, typeToJSON } from "../../checker/checker";
-import { Duration } from "../../google/protobuf/duration";
-import { Version } from "../version/version";
+import {Action, actionFromJSON, actionToJSON, Type, typeFromJSON, typeToJSON} from "../../checker/checker";
+import {Duration} from "../../google/protobuf/duration";
+import {Version} from "../version/version";
 
 export const protobufPackage = "data.services";
 
@@ -17,17 +17,12 @@ export interface Service_Checker {
   type: Type;
   path: string;
   defaultTimeout: Duration | undefined;
-  actionTimeouts: Service_Checker_ActionTimeout[];
-  actionRunCounts: Service_Checker_ActionRunCount[];
+  actions: Service_Checker_Action[];
 }
 
-export interface Service_Checker_ActionTimeout {
+export interface Service_Checker_Action {
   action: Action;
   timeout: Duration | undefined;
-}
-
-export interface Service_Checker_ActionRunCount {
-  action: Action;
   runCount: number;
 }
 
@@ -187,7 +182,7 @@ export const Service = {
 };
 
 function createBaseService_Checker(): Service_Checker {
-  return { type: 0, path: "", defaultTimeout: undefined, actionTimeouts: [], actionRunCounts: [] };
+  return {type: 0, path: "", defaultTimeout: undefined, actions: []};
 }
 
 export const Service_Checker = {
@@ -201,11 +196,8 @@ export const Service_Checker = {
     if (message.defaultTimeout !== undefined) {
       Duration.encode(message.defaultTimeout, writer.uint32(26).fork()).ldelim();
     }
-    for (const v of message.actionTimeouts) {
-      Service_Checker_ActionTimeout.encode(v!, writer.uint32(34).fork()).ldelim();
-    }
-    for (const v of message.actionRunCounts) {
-      Service_Checker_ActionRunCount.encode(v!, writer.uint32(42).fork()).ldelim();
+    for (const v of message.actions) {
+      Service_Checker_Action.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -243,14 +235,7 @@ export const Service_Checker = {
             break;
           }
 
-          message.actionTimeouts.push(Service_Checker_ActionTimeout.decode(reader, reader.uint32()));
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.actionRunCounts.push(Service_Checker_ActionRunCount.decode(reader, reader.uint32()));
+          message.actions.push(Service_Checker_Action.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -298,12 +283,7 @@ export const Service_Checker = {
       type: isSet(object.type) ? typeFromJSON(object.type) : 0,
       path: isSet(object.path) ? String(object.path) : "",
       defaultTimeout: isSet(object.defaultTimeout) ? Duration.fromJSON(object.defaultTimeout) : undefined,
-      actionTimeouts: Array.isArray(object?.actionTimeouts)
-        ? object.actionTimeouts.map((e: any) => Service_Checker_ActionTimeout.fromJSON(e))
-        : [],
-      actionRunCounts: Array.isArray(object?.actionRunCounts)
-        ? object.actionRunCounts.map((e: any) => Service_Checker_ActionRunCount.fromJSON(e))
-        : [],
+      actions: Array.isArray(object?.actions) ? object.actions.map((e: any) => Service_Checker_Action.fromJSON(e)) : [],
     };
   },
 
@@ -318,11 +298,8 @@ export const Service_Checker = {
     if (message.defaultTimeout !== undefined) {
       obj.defaultTimeout = Duration.toJSON(message.defaultTimeout);
     }
-    if (message.actionTimeouts?.length) {
-      obj.actionTimeouts = message.actionTimeouts.map((e) => Service_Checker_ActionTimeout.toJSON(e));
-    }
-    if (message.actionRunCounts?.length) {
-      obj.actionRunCounts = message.actionRunCounts.map((e) => Service_Checker_ActionRunCount.toJSON(e));
+    if (message.actions?.length) {
+      obj.actions = message.actions.map((e) => Service_Checker_Action.toJSON(e));
     }
     return obj;
   },
@@ -337,31 +314,33 @@ export const Service_Checker = {
     message.defaultTimeout = (object.defaultTimeout !== undefined && object.defaultTimeout !== null)
       ? Duration.fromPartial(object.defaultTimeout)
       : undefined;
-    message.actionTimeouts = object.actionTimeouts?.map((e) => Service_Checker_ActionTimeout.fromPartial(e)) || [];
-    message.actionRunCounts = object.actionRunCounts?.map((e) => Service_Checker_ActionRunCount.fromPartial(e)) || [];
+    message.actions = object.actions?.map((e) => Service_Checker_Action.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseService_Checker_ActionTimeout(): Service_Checker_ActionTimeout {
-  return { action: 0, timeout: undefined };
+function createBaseService_Checker_Action(): Service_Checker_Action {
+  return {action: 0, timeout: undefined, runCount: 0};
 }
 
-export const Service_Checker_ActionTimeout = {
-  encode(message: Service_Checker_ActionTimeout, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const Service_Checker_Action = {
+  encode(message: Service_Checker_Action, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.action !== 0) {
       writer.uint32(8).int32(message.action);
     }
     if (message.timeout !== undefined) {
       Duration.encode(message.timeout, writer.uint32(18).fork()).ldelim();
     }
+    if (message.runCount !== 0) {
+      writer.uint32(24).int32(message.runCount);
+    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Service_Checker_ActionTimeout {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Service_Checker_Action {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseService_Checker_ActionTimeout();
+    const message = createBaseService_Checker_Action();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -379,113 +358,8 @@ export const Service_Checker_ActionTimeout = {
 
           message.timeout = Duration.decode(reader, reader.uint32());
           continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  // encodeTransform encodes a source of message objects.
-  // Transform<Service_Checker_ActionTimeout, Uint8Array>
-  async *encodeTransform(
-    source:
-      | AsyncIterable<Service_Checker_ActionTimeout | Service_Checker_ActionTimeout[]>
-      | Iterable<Service_Checker_ActionTimeout | Service_Checker_ActionTimeout[]>,
-  ): AsyncIterable<Uint8Array> {
-    for await (const pkt of source) {
-      if (Array.isArray(pkt)) {
-        for (const p of pkt) {
-          yield* [Service_Checker_ActionTimeout.encode(p).finish()];
-        }
-      } else {
-        yield* [Service_Checker_ActionTimeout.encode(pkt).finish()];
-      }
-    }
-  },
-
-  // decodeTransform decodes a source of encoded messages.
-  // Transform<Uint8Array, Service_Checker_ActionTimeout>
-  async *decodeTransform(
-    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-  ): AsyncIterable<Service_Checker_ActionTimeout> {
-    for await (const pkt of source) {
-      if (Array.isArray(pkt)) {
-        for (const p of pkt) {
-          yield* [Service_Checker_ActionTimeout.decode(p)];
-        }
-      } else {
-        yield* [Service_Checker_ActionTimeout.decode(pkt)];
-      }
-    }
-  },
-
-  fromJSON(object: any): Service_Checker_ActionTimeout {
-    return {
-      action: isSet(object.action) ? actionFromJSON(object.action) : 0,
-      timeout: isSet(object.timeout) ? Duration.fromJSON(object.timeout) : undefined,
-    };
-  },
-
-  toJSON(message: Service_Checker_ActionTimeout): unknown {
-    const obj: any = {};
-    if (message.action !== 0) {
-      obj.action = actionToJSON(message.action);
-    }
-    if (message.timeout !== undefined) {
-      obj.timeout = Duration.toJSON(message.timeout);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Service_Checker_ActionTimeout>, I>>(base?: I): Service_Checker_ActionTimeout {
-    return Service_Checker_ActionTimeout.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<Service_Checker_ActionTimeout>, I>>(
-    object: I,
-  ): Service_Checker_ActionTimeout {
-    const message = createBaseService_Checker_ActionTimeout();
-    message.action = object.action ?? 0;
-    message.timeout = (object.timeout !== undefined && object.timeout !== null)
-      ? Duration.fromPartial(object.timeout)
-      : undefined;
-    return message;
-  },
-};
-
-function createBaseService_Checker_ActionRunCount(): Service_Checker_ActionRunCount {
-  return { action: 0, runCount: 0 };
-}
-
-export const Service_Checker_ActionRunCount = {
-  encode(message: Service_Checker_ActionRunCount, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.action !== 0) {
-      writer.uint32(8).int32(message.action);
-    }
-    if (message.runCount !== 0) {
-      writer.uint32(16).int32(message.runCount);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Service_Checker_ActionRunCount {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseService_Checker_ActionRunCount();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.action = reader.int32() as any;
-          continue;
-        case 2:
-          if (tag !== 16) {
+        case 3:
+          if (tag !== 24) {
             break;
           }
 
@@ -501,50 +375,54 @@ export const Service_Checker_ActionRunCount = {
   },
 
   // encodeTransform encodes a source of message objects.
-  // Transform<Service_Checker_ActionRunCount, Uint8Array>
+  // Transform<Service_Checker_Action, Uint8Array>
   async *encodeTransform(
     source:
-      | AsyncIterable<Service_Checker_ActionRunCount | Service_Checker_ActionRunCount[]>
-      | Iterable<Service_Checker_ActionRunCount | Service_Checker_ActionRunCount[]>,
+        | AsyncIterable<Service_Checker_Action | Service_Checker_Action[]>
+        | Iterable<Service_Checker_Action | Service_Checker_Action[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
         for (const p of pkt) {
-          yield* [Service_Checker_ActionRunCount.encode(p).finish()];
+          yield* [Service_Checker_Action.encode(p).finish()];
         }
       } else {
-        yield* [Service_Checker_ActionRunCount.encode(pkt).finish()];
+        yield* [Service_Checker_Action.encode(pkt).finish()];
       }
     }
   },
 
   // decodeTransform decodes a source of encoded messages.
-  // Transform<Uint8Array, Service_Checker_ActionRunCount>
+  // Transform<Uint8Array, Service_Checker_Action>
   async *decodeTransform(
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-  ): AsyncIterable<Service_Checker_ActionRunCount> {
+  ): AsyncIterable<Service_Checker_Action> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
         for (const p of pkt) {
-          yield* [Service_Checker_ActionRunCount.decode(p)];
+          yield* [Service_Checker_Action.decode(p)];
         }
       } else {
-        yield* [Service_Checker_ActionRunCount.decode(pkt)];
+        yield* [Service_Checker_Action.decode(pkt)];
       }
     }
   },
 
-  fromJSON(object: any): Service_Checker_ActionRunCount {
+  fromJSON(object: any): Service_Checker_Action {
     return {
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
+      timeout: isSet(object.timeout) ? Duration.fromJSON(object.timeout) : undefined,
       runCount: isSet(object.runCount) ? Number(object.runCount) : 0,
     };
   },
 
-  toJSON(message: Service_Checker_ActionRunCount): unknown {
+  toJSON(message: Service_Checker_Action): unknown {
     const obj: any = {};
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
+    }
+    if (message.timeout !== undefined) {
+      obj.timeout = Duration.toJSON(message.timeout);
     }
     if (message.runCount !== 0) {
       obj.runCount = Math.round(message.runCount);
@@ -552,14 +430,15 @@ export const Service_Checker_ActionRunCount = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Service_Checker_ActionRunCount>, I>>(base?: I): Service_Checker_ActionRunCount {
-    return Service_Checker_ActionRunCount.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Service_Checker_Action>, I>>(base?: I): Service_Checker_Action {
+    return Service_Checker_Action.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Service_Checker_ActionRunCount>, I>>(
-    object: I,
-  ): Service_Checker_ActionRunCount {
-    const message = createBaseService_Checker_ActionRunCount();
+  fromPartial<I extends Exact<DeepPartial<Service_Checker_Action>, I>>(object: I): Service_Checker_Action {
+    const message = createBaseService_Checker_Action();
     message.action = object.action ?? 0;
+    message.timeout = (object.timeout !== undefined && object.timeout !== null)
+      ? Duration.fromPartial(object.timeout)
+      : undefined;
     message.runCount = object.runCount ?? 0;
     return message;
   },
