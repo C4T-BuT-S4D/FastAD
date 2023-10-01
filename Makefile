@@ -27,3 +27,10 @@ test-go:
 
 .PHONY: test
 test: test-go
+
+.PHONY: commit-proto
+commit-proto: proto
+	git add proto
+	git add pkg/proto
+	git add front/src/proto
+	git commit -m "Regenerate proto"
