@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
+	"github.com/c4t-but-s4d/fastad/internal/version"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
@@ -28,18 +29,17 @@ func (s *Service) List(ctx context.Context, req *servicespb.ListRequest) (*servi
 
 	// FIXME: check admin rights.
 
-	lastUpdate, err := s.controller.LastUpdate(ctx)
+	gotVersion, err := s.controller.Versions.Get(ctx, VersionKey)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "getting last update time: %v", err)
+		return nil, status.Errorf(codes.Internal, "getting version: %v", err)
 	}
 
-	if req.LastUpdate != 0 {
-		if req.LastUpdate > lastUpdate {
-			return nil, status.Errorf(codes.InvalidArgument, "last update time is in the future")
-		}
-		if req.LastUpdate == lastUpdate {
-			return &servicespb.ListResponse{LastUpdate: lastUpdate}, nil
-		}
+	requestedVersion := req.GetVersion().GetVersion()
+	if requestedVersion > gotVersion {
+		return nil, status.Errorf(codes.FailedPrecondition, "requested version is greater than current")
+	}
+	if requestedVersion == gotVersion {
+		return &servicespb.ListResponse{Version: version.NewVersionProto(gotVersion)}, nil
 	}
 
 	services, err := s.controller.List(ctx)
@@ -48,10 +48,10 @@ func (s *Service) List(ctx context.Context, req *servicespb.ListRequest) (*servi
 	}
 
 	return &servicespb.ListResponse{
-		LastUpdate: lastUpdate,
 		Services: lo.Map(services, func(service *models.Service, _ int) *servicespb.Service {
 			return service.ToProto()
 		}),
+		Version: version.NewVersionProto(gotVersion),
 	}, nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
+	"github.com/c4t-but-s4d/fastad/internal/version"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/google/uuid"
 	"github.com/samber/lo"
@@ -27,20 +28,19 @@ func NewService(controller *Controller) *Service {
 func (s *Service) List(ctx context.Context, req *teamspb.ListRequest) (*teamspb.ListResponse, error) {
 	logrus.Debugf("TeamsService/List: %v", req)
 
-	// FIXME: check admin rights.
+	// FIXME: check admin rights, remove token from result.
 
-	lastUpdate, err := s.controller.LastUpdate(ctx)
+	gotVersion, err := s.controller.Versions.Get(ctx, VersionKey)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "getting last update time: %v", err)
+		return nil, status.Errorf(codes.Internal, "getting version: %v", err)
 	}
 
-	if req.LastUpdate != 0 {
-		if req.LastUpdate > lastUpdate {
-			return nil, status.Errorf(codes.InvalidArgument, "last update time is in the future")
-		}
-		if req.LastUpdate == lastUpdate {
-			return &teamspb.ListResponse{LastUpdate: lastUpdate}, nil
-		}
+	requestedVersion := req.GetVersion().GetVersion()
+	if requestedVersion > gotVersion {
+		return nil, status.Errorf(codes.FailedPrecondition, "requested version is greater than current")
+	}
+	if requestedVersion == gotVersion {
+		return &teamspb.ListResponse{Version: version.NewVersionProto(gotVersion)}, nil
 	}
 
 	teams, err := s.controller.List(ctx)
@@ -49,10 +49,10 @@ func (s *Service) List(ctx context.Context, req *teamspb.ListRequest) (*teamspb.
 	}
 
 	return &teamspb.ListResponse{
-		LastUpdate: lastUpdate,
 		Teams: lo.Map(teams, func(team *models.Team, _ int) *teamspb.Team {
 			return team.ToProto()
 		}),
+		Version: version.NewVersionProto(gotVersion),
 	}, nil
 }
 

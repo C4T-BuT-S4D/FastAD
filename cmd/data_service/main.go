@@ -12,11 +12,11 @@ import (
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/internal/services/services"
 	"github.com/c4t-but-s4d/fastad/internal/services/teams"
+	"github.com/c4t-but-s4d/fastad/internal/version"
 	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/mitchellh/mapstructure"
-	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -34,16 +34,9 @@ type Postgres struct {
 	EnableSSL bool   `mapstructure:"enable_ssl"`
 }
 
-type Redis struct {
-	Host string `mapstructure:"host"`
-	Port int    `mapstructure:"port"`
-	DB   int    `mapstructure:"db"`
-}
-
 type Config struct {
 	ListenAddress string   `mapstructure:"listen_address"`
 	Postgres      Postgres `mapstructure:"postgres"`
-	Redis         Redis    `mapstructure:"redis"`
 }
 
 func main() {
@@ -64,15 +57,12 @@ func main() {
 	sqlDB := sql.OpenDB(pgConn)
 	db := bun.NewDB(sqlDB, pgdialect.New())
 
-	redisClient := redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port),
-		DB:   cfg.Redis.DB,
-	})
+	versionController := version.NewController(db)
 
-	teamsController := teams.NewController(db, redisClient)
+	teamsController := teams.NewController(db, versionController)
 	teamsService := teams.NewService(teamsController)
 
-	servicesController := services.NewController(db, redisClient)
+	servicesController := services.NewController(db, versionController)
 	servicesService := services.NewService(servicesController)
 
 	server := grpctools.NewServer()
@@ -85,8 +75,9 @@ func main() {
 	if err := db.PingContext(runCtx); err != nil {
 		logrus.Fatalf("error pinging postgres: %v", err)
 	}
-	if err := redisClient.Ping(runCtx).Err(); err != nil {
-		logrus.Fatalf("error pinging redis: %v", err)
+
+	if err := versionController.Migrate(runCtx); err != nil {
+		logrus.Fatalf("error migrating versions: %v", err)
 	}
 
 	if err := teamsController.Migrate(runCtx); err != nil {
