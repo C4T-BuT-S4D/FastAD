@@ -52,6 +52,8 @@ static_resources:
                       proto_descriptor: /etc/envoy/descriptor.pb
                       services:
                         - "data.teams.TeamsService"
+                        - "data.services.ServicesService"
+                        - "data.game_state.GameStateService"
 
                   - name: envoy.filters.http.grpc_web
                     typed_config:

@@ -5,9 +5,11 @@ import (
 	"os"
 
 	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
+	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/internal/clients/services"
 	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/samber/lo"
@@ -60,12 +62,13 @@ func NewSetupCommand(*common.CommandContext) *cli.Command {
 
 			teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(apiConn))
 			servicesClient := services.NewClient(servicespb.NewServicesServiceClient(apiConn))
+			gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(apiConn))
 
-			teamsToCreate := lo.Map(cfg.Teams, func(t Team, _ int) *teamspb.Team {
+			teamsToCreate := lo.Map(cfg.Teams, func(t *Team, _ int) *teamspb.Team {
 				return t.ToProto()
 			})
 
-			servicesToCreate := lo.Map(cfg.Services, func(s Service, _ int) *servicespb.Service {
+			servicesToCreate := lo.Map(cfg.Services, func(s *Service, _ int) *servicespb.Service {
 				return s.ToProto()
 			})
 
@@ -73,15 +76,19 @@ func NewSetupCommand(*common.CommandContext) *cli.Command {
 			if err != nil {
 				return fmt.Errorf("creating teams: %w", err)
 			}
+			logrus.Infof("created teams: %+v", createdTeams)
 
 			createdServices, err := servicesClient.CreateBatch(c.Context, servicesToCreate)
 			if err != nil {
 				return fmt.Errorf("creating services: %w", err)
 			}
-
-			logrus.Infof("created teams: %+v", createdTeams)
-
 			logrus.Infof("created services: %+v", createdServices)
+
+			createdGameService, err := gameStateClient.Update(c.Context, cfg.Game.ToUpdateRequestProto())
+			if err != nil {
+				return fmt.Errorf("updating game state: %w", err)
+			}
+			logrus.Infof("created game state: %+v", createdGameService)
 
 			return nil
 		},

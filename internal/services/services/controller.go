@@ -43,7 +43,7 @@ func (c *Controller) CreateBatch(ctx context.Context, services []*models.Service
 		ctx,
 		&sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
-			if _, err := tx.
+			if err := tx.
 				NewInsert().
 				Model(&services).
 				On("CONFLICT (name) DO UPDATE").
@@ -52,7 +52,8 @@ func (c *Controller) CreateBatch(ctx context.Context, services []*models.Service
 				Set("default_score = EXCLUDED.default_score").
 				Set("default_timeout = EXCLUDED.default_timeout").
 				Set("actions = EXCLUDED.actions").
-				Exec(ctx); err != nil {
+				Returning("*").
+				Scan(ctx); err != nil {
 				return fmt.Errorf("inserting services: %w", err)
 			}
 			if _, err := c.Versions.Increment(ctx, tx, VersionKey); err != nil {

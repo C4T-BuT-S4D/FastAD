@@ -10,10 +10,12 @@ import (
 	"syscall"
 
 	"github.com/c4t-but-s4d/fastad/internal/logging"
+	"github.com/c4t-but-s4d/fastad/internal/services/gamestate"
 	"github.com/c4t-but-s4d/fastad/internal/services/services"
 	"github.com/c4t-but-s4d/fastad/internal/services/teams"
 	"github.com/c4t-but-s4d/fastad/internal/version"
 	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/mitchellh/mapstructure"
@@ -65,9 +67,13 @@ func main() {
 	servicesController := services.NewController(db, versionController)
 	servicesService := services.NewService(servicesController)
 
+	gameStateController := gamestate.NewController(db, versionController)
+	gameStateService := gamestate.NewService(gameStateController)
+
 	server := grpctools.NewServer()
 	teamspb.RegisterTeamsServiceServer(server, teamsService)
 	servicespb.RegisterServicesServiceServer(server, servicesService)
+	gspb.RegisterGameStateServiceServer(server, gameStateService)
 
 	runCtx, runCancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer runCancel()
@@ -86,6 +92,10 @@ func main() {
 
 	if err := servicesController.Migrate(runCtx); err != nil {
 		logrus.Fatalf("error migrating services: %v", err)
+	}
+
+	if err := gameStateController.Migrate(runCtx); err != nil {
+		logrus.Fatalf("error migrating game state: %v", err)
 	}
 
 	logrus.Infof("starting server on %s", cfg.ListenAddress)
