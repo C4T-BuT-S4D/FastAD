@@ -1,4 +1,4 @@
-package game_state
+package gamestate
 
 import (
 	"context"

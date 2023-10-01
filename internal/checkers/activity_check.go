@@ -27,7 +27,7 @@ func (s *ActivityState) CheckActivityDefinition(ctx context.Context, params *Che
 
 	logger.Info("starting")
 	verdict := RunCheckAction(ctx, params)
-	logger.Info("finished: %v", verdict)
+	logger.Infof("finished: %v", verdict)
 
 	return &CheckActivityResult{Verdict: verdict}, nil
 }

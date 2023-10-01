@@ -33,7 +33,7 @@ func (s *ActivityState) GetActivityDefinition(ctx context.Context, params *GetAc
 
 	logger.Info("starting")
 	verdict := RunGetAction(ctx, params, flag)
-	logger.Info("finished: %v", verdict)
+	logger.Infof("finished: %v", verdict)
 
 	return &GetActivityResult{Verdict: verdict}, nil
 }

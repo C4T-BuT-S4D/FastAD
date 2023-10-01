@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var TimeoutError = errors.New("timeout")
+var ErrTimeout = errors.New("timeout")
 
 func RunCommandGracefully(ctx context.Context, cmd *exec.Cmd, killDelay time.Duration) error {
 	err := cmd.Start()
@@ -38,13 +38,13 @@ func RunCommandGracefully(ctx context.Context, cmd *exec.Cmd, killDelay time.Dur
 		case err := <-done:
 			// process exited before kill delay,
 			// return timeout + original error (most likely terminated by signal).
-			return errors.Join(TimeoutError, fmt.Errorf("waiting for process: %w", err))
+			return errors.Join(ErrTimeout, fmt.Errorf("waiting for process: %w", err))
 		case <-t.C:
 			// kill process.
 		}
 
 		<-done
-		return errors.Join(TimeoutError, ctx.Err())
+		return errors.Join(ErrTimeout, ctx.Err())
 	case err := <-done:
 		if err != nil {
 			return fmt.Errorf("waiting for process: %w", err)

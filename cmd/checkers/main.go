@@ -54,6 +54,9 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUserAgent(cfg.UserAgent),
 	)
+	if err != nil {
+		logrus.Fatalf("unable to connect to data service: %v", err)
+	}
 
 	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn))
 
