@@ -105,7 +105,7 @@ func RunAction(ctx context.Context, cmd *exec.Cmd, softTimeout time.Duration) *m
 		verdict.Public = stdout.String()
 		verdict.Private = stderr.String()
 
-	case errors.Is(err, TimeoutError):
+	case errors.Is(err, ErrTimeout):
 		verdict.Status = checkerpb.Status_STATUS_DOWN
 		verdict.Public = "timeout"
 		// TODO: truncate.
