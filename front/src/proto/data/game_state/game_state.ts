@@ -103,13 +103,13 @@ export const GameState = {
       Timestamp.encode(toTimestamp(message.endTime), writer.uint32(18).fork()).ldelim();
     }
     if (message.totalRounds !== 0) {
-      writer.uint32(24).int32(message.totalRounds);
+      writer.uint32(24).uint32(message.totalRounds);
     }
     if (message.paused === true) {
       writer.uint32(32).bool(message.paused);
     }
     if (message.flagLifetimeRounds !== 0) {
-      writer.uint32(40).int32(message.flagLifetimeRounds);
+      writer.uint32(40).uint32(message.flagLifetimeRounds);
     }
     if (message.roundDuration !== undefined) {
       Duration.encode(message.roundDuration, writer.uint32(50).fork()).ldelim();
@@ -118,7 +118,7 @@ export const GameState = {
       writer.uint32(56).int32(message.mode);
     }
     if (message.runningRound !== 0) {
-      writer.uint32(64).int32(message.runningRound);
+      writer.uint32(64).uint32(message.runningRound);
     }
     if (message.runningRoundStart !== undefined) {
       Timestamp.encode(toTimestamp(message.runningRoundStart), writer.uint32(74).fork()).ldelim();
@@ -152,7 +152,7 @@ export const GameState = {
             break;
           }
 
-          message.totalRounds = reader.int32();
+          message.totalRounds = reader.uint32();
           continue;
         case 4:
           if (tag !== 32) {
@@ -166,7 +166,7 @@ export const GameState = {
             break;
           }
 
-          message.flagLifetimeRounds = reader.int32();
+          message.flagLifetimeRounds = reader.uint32();
           continue;
         case 6:
           if (tag !== 50) {
@@ -187,7 +187,7 @@ export const GameState = {
             break;
           }
 
-          message.runningRound = reader.int32();
+          message.runningRound = reader.uint32();
           continue;
         case 9:
           if (tag !== 74) {
@@ -525,13 +525,13 @@ export const UpdateRequest = {
       Timestamp.encode(toTimestamp(message.endTime), writer.uint32(18).fork()).ldelim();
     }
     if (message.totalRounds !== 0) {
-      writer.uint32(24).int32(message.totalRounds);
+      writer.uint32(24).uint32(message.totalRounds);
     }
     if (message.paused === true) {
       writer.uint32(32).bool(message.paused);
     }
     if (message.flagLifetimeRounds !== 0) {
-      writer.uint32(40).int32(message.flagLifetimeRounds);
+      writer.uint32(40).uint32(message.flagLifetimeRounds);
     }
     if (message.roundDuration !== undefined) {
       Duration.encode(message.roundDuration, writer.uint32(50).fork()).ldelim();
@@ -568,7 +568,7 @@ export const UpdateRequest = {
             break;
           }
 
-          message.totalRounds = reader.int32();
+          message.totalRounds = reader.uint32();
           continue;
         case 4:
           if (tag !== 32) {
@@ -582,7 +582,7 @@ export const UpdateRequest = {
             break;
           }
 
-          message.flagLifetimeRounds = reader.int32();
+          message.flagLifetimeRounds = reader.uint32();
           continue;
         case 6:
           if (tag !== 50) {
