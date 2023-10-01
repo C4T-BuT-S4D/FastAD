@@ -10,9 +10,9 @@ import (
 )
 
 type PutActivityParameters struct {
-	GameSettings *models.GameSettings
-	Team         *models.Team
-	Service      *models.Service
+	GameState *models.GameState
+	Team      *models.Team
+	Service   *models.Service
 }
 
 type PutActivityResult struct {

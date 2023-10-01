@@ -8,9 +8,9 @@ import (
 )
 
 type LastActivityParameters struct {
-	GameSettings *models.GameSettings
-	Team         *models.Team
-	Service      *models.Service
+	GameState *models.GameState
+	Team      *models.Team
+	Service   *models.Service
 
 	CheckResult *CheckActivityResult
 	PutResults  []*PutActivityResult

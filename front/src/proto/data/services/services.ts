@@ -1,8 +1,8 @@
 /* eslint-disable */
-import Long from "long";
 import _m0 from "protobufjs/minimal";
-import { Action, actionFromJSON, actionToJSON, Type, typeFromJSON, typeToJSON } from "../../checker/checker";
-import { Duration } from "../../google/protobuf/duration";
+import {Action, actionFromJSON, actionToJSON, Type, typeFromJSON, typeToJSON} from "../../checker/checker";
+import {Duration} from "../../google/protobuf/duration";
+import {Version} from "../version/version";
 
 export const protobufPackage = "data.services";
 
@@ -32,12 +32,12 @@ export interface Service_Checker_ActionRunCount {
 }
 
 export interface ListRequest {
-  lastUpdate: bigint;
+  version: Version | undefined;
 }
 
 export interface ListResponse {
   services: Service[];
-  lastUpdate: bigint;
+  version: Version | undefined;
 }
 
 export interface CreateBatchRequest {
@@ -566,13 +566,13 @@ export const Service_Checker_ActionRunCount = {
 };
 
 function createBaseListRequest(): ListRequest {
-  return { lastUpdate: BigInt("0") };
+  return {version: undefined};
 }
 
 export const ListRequest = {
   encode(message: ListRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.lastUpdate !== BigInt("0")) {
-      writer.uint32(8).int64(message.lastUpdate.toString());
+    if (message.version !== undefined) {
+      Version.encode(message.version, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
@@ -585,11 +585,11 @@ export const ListRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.lastUpdate = longToBigint(reader.int64() as Long);
+          message.version = Version.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -633,13 +633,13 @@ export const ListRequest = {
   },
 
   fromJSON(object: any): ListRequest {
-    return { lastUpdate: isSet(object.lastUpdate) ? BigInt(object.lastUpdate) : BigInt("0") };
+    return {version: isSet(object.version) ? Version.fromJSON(object.version) : undefined};
   },
 
   toJSON(message: ListRequest): unknown {
     const obj: any = {};
-    if (message.lastUpdate !== BigInt("0")) {
-      obj.lastUpdate = message.lastUpdate.toString();
+    if (message.version !== undefined) {
+      obj.version = Version.toJSON(message.version);
     }
     return obj;
   },
@@ -649,13 +649,15 @@ export const ListRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<ListRequest>, I>>(object: I): ListRequest {
     const message = createBaseListRequest();
-    message.lastUpdate = object.lastUpdate ?? BigInt("0");
+    message.version = (object.version !== undefined && object.version !== null)
+        ? Version.fromPartial(object.version)
+        : undefined;
     return message;
   },
 };
 
 function createBaseListResponse(): ListResponse {
-  return { services: [], lastUpdate: BigInt("0") };
+  return {services: [], version: undefined};
 }
 
 export const ListResponse = {
@@ -663,8 +665,8 @@ export const ListResponse = {
     for (const v of message.services) {
       Service.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-    if (message.lastUpdate !== BigInt("0")) {
-      writer.uint32(16).int64(message.lastUpdate.toString());
+    if (message.version !== undefined) {
+      Version.encode(message.version, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -684,11 +686,11 @@ export const ListResponse = {
           message.services.push(Service.decode(reader, reader.uint32()));
           continue;
         case 2:
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.lastUpdate = longToBigint(reader.int64() as Long);
+          message.version = Version.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -734,7 +736,7 @@ export const ListResponse = {
   fromJSON(object: any): ListResponse {
     return {
       services: Array.isArray(object?.services) ? object.services.map((e: any) => Service.fromJSON(e)) : [],
-      lastUpdate: isSet(object.lastUpdate) ? BigInt(object.lastUpdate) : BigInt("0"),
+      version: isSet(object.version) ? Version.fromJSON(object.version) : undefined,
     };
   },
 
@@ -743,8 +745,8 @@ export const ListResponse = {
     if (message.services?.length) {
       obj.services = message.services.map((e) => Service.toJSON(e));
     }
-    if (message.lastUpdate !== BigInt("0")) {
-      obj.lastUpdate = message.lastUpdate.toString();
+    if (message.version !== undefined) {
+      obj.version = Version.toJSON(message.version);
     }
     return obj;
   },
@@ -755,7 +757,9 @@ export const ListResponse = {
   fromPartial<I extends Exact<DeepPartial<ListResponse>, I>>(object: I): ListResponse {
     const message = createBaseListResponse();
     message.services = object.services?.map((e) => Service.fromPartial(e)) || [];
-    message.lastUpdate = object.lastUpdate ?? BigInt("0");
+    message.version = (object.version !== undefined && object.version !== null)
+        ? Version.fromPartial(object.version)
+        : undefined;
     return message;
   },
 };
@@ -953,15 +957,6 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
-
-function longToBigint(long: Long) {
-  return BigInt(long.toString());
-}
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

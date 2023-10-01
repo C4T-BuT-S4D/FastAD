@@ -8,8 +8,10 @@ import (
 	"syscall"
 
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
+	"github.com/c4t-but-s4d/fastad/internal/clients/services"
 	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
@@ -55,7 +57,9 @@ func main() {
 
 	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn))
 
-	activityState := checkers.NewActivityState(teamsClient)
+	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn))
+
+	activityState := checkers.NewActivityState(teamsClient, servicesClient)
 
 	checkersWorker := worker.New(temporalClient, "checkers", worker.Options{})
 	checkersWorker.RegisterWorkflow(checkers.WorkflowDefinition)

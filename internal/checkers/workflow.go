@@ -10,7 +10,7 @@ import (
 )
 
 type WorkflowParameters struct {
-	GameSettings *models.GameSettings
+	GameState *models.GameState
 }
 
 func WorkflowDefinition(ctx workflow.Context, params WorkflowParameters) error {
@@ -27,7 +27,7 @@ func WorkflowDefinition(ctx workflow.Context, params WorkflowParameters) error {
 		laoCtx,
 		ActivityFetchDataName,
 		&ActivityFetchDataParameters{
-			GameSettings: params.GameSettings,
+			GameState: params.GameState,
 		},
 	).Get(ctx, &fetchDataResult); err != nil {
 		return fmt.Errorf("running fetch data activity: %w", err)

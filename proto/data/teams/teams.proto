@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package data.teams;
 
+import "data/version/version.proto";
+
 message Team {
     int32 id = 1;
     string name = 2;
@@ -11,12 +13,12 @@ message Team {
 }
 
 message ListRequest {
-    int64 last_update = 1;
+    data.version.Version version = 1;
 }
 
 message ListResponse {
     repeated Team teams = 1;
-    int64 last_update = 2;
+    data.version.Version version = 2;
 }
 
 message CreateBatchRequest {

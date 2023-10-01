@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	// TODO: rewrite with cobra.
 	app := cli.NewApp()
 
 	runCtx, runCancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)

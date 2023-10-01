@@ -30,7 +30,8 @@ func RunCheckAction(
 	cmd := exec.CommandContext(
 		ctx,
 		filepath.Join(
-			params.GameSettings.CheckersBasePath,
+			// TODO: some form of configuration.
+			"checkers",
 			params.Service.CheckerPath,
 		),
 		checkAction,
@@ -47,7 +48,8 @@ func RunPutAction(
 	cmd := exec.CommandContext(
 		ctx,
 		filepath.Join(
-			params.GameSettings.CheckersBasePath,
+			// TODO: some form of configuration.
+			"checkers",
 			params.Service.CheckerPath,
 		),
 		putAction,
@@ -67,7 +69,8 @@ func RunGetAction(
 	cmd := exec.CommandContext(
 		ctx,
 		filepath.Join(
-			params.GameSettings.CheckersBasePath,
+			// TODO: some form of configuration.
+			"checkers",
 			params.Service.CheckerPath,
 		),
 		getAction,

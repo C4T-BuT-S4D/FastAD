@@ -1,6 +1,7 @@
 package checkers
 
 import (
+	"github.com/c4t-but-s4d/fastad/internal/clients/services"
 	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
 )
 
@@ -13,11 +14,16 @@ const (
 )
 
 type ActivityState struct {
-	teamsClient *teams.Client
+	teamsClient    *teams.Client
+	servicesClient *services.Client
 }
 
-func NewActivityState(teamsClient *teams.Client) *ActivityState {
+func NewActivityState(
+	teamsClient *teams.Client,
+	servicesClient *services.Client,
+) *ActivityState {
 	return &ActivityState{
-		teamsClient: teamsClient,
+		teamsClient:    teamsClient,
+		servicesClient: servicesClient,
 	}
 }

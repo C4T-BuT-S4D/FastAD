@@ -9,7 +9,7 @@ import (
 )
 
 type ActivityFetchDataParameters struct {
-	GameSettings *models.GameSettings
+	GameState *models.GameState
 }
 
 type ActivityFetchDataResult struct {
@@ -25,18 +25,16 @@ func (s *ActivityState) ActivityFetchDataDefinition(
 	if err != nil {
 		return nil, fmt.Errorf("getting teams: %w", err)
 	}
-
 	logrus.Infof("fetched teams: %v", teams)
 
+	services, err := s.servicesClient.List(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting services: %w", err)
+	}
+	logrus.Infof("fetched services: %v", services)
+
 	return &ActivityFetchDataResult{
-		Teams: teams,
-		Services: []*models.Service{
-			{
-				Name: "service1",
-			},
-			{
-				Name: "service2",
-			},
-		},
+		Teams:    teams,
+		Services: services,
 	}, nil
 }
