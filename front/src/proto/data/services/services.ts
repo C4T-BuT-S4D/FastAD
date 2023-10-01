@@ -1,8 +1,8 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import {Action, actionFromJSON, actionToJSON, Type, typeFromJSON, typeToJSON} from "../../checker/checker";
-import {Duration} from "../../google/protobuf/duration";
-import {Version} from "../version/version";
+import { Action, actionFromJSON, actionToJSON, Type, typeFromJSON, typeToJSON } from "../../checker/checker";
+import { Duration } from "../../google/protobuf/duration";
+import { Version } from "../version/version";
 
 export const protobufPackage = "data.services";
 
@@ -182,7 +182,7 @@ export const Service = {
 };
 
 function createBaseService_Checker(): Service_Checker {
-  return {type: 0, path: "", defaultTimeout: undefined, actions: []};
+  return { type: 0, path: "", defaultTimeout: undefined, actions: [] };
 }
 
 export const Service_Checker = {
@@ -320,7 +320,7 @@ export const Service_Checker = {
 };
 
 function createBaseService_Checker_Action(): Service_Checker_Action {
-  return {action: 0, timeout: undefined, runCount: 0};
+  return { action: 0, timeout: undefined, runCount: 0 };
 }
 
 export const Service_Checker_Action = {
@@ -378,8 +378,8 @@ export const Service_Checker_Action = {
   // Transform<Service_Checker_Action, Uint8Array>
   async *encodeTransform(
     source:
-        | AsyncIterable<Service_Checker_Action | Service_Checker_Action[]>
-        | Iterable<Service_Checker_Action | Service_Checker_Action[]>,
+      | AsyncIterable<Service_Checker_Action | Service_Checker_Action[]>
+      | Iterable<Service_Checker_Action | Service_Checker_Action[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (Array.isArray(pkt)) {
