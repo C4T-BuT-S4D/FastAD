@@ -5,6 +5,7 @@ package data.services;
 import "google/protobuf/duration.proto";
 
 import "checker/checker.proto";
+import "data/version/version.proto";
 
 message Service {
     message Checker {
@@ -36,12 +37,12 @@ message Service {
 }
 
 message ListRequest {
-    int64 last_update = 1;
+    data.version.Version version = 1;
 }
 
 message ListResponse {
     repeated Service services = 1;
-    int64 last_update = 2;
+    data.version.Version version = 2;
 }
 
 message CreateBatchRequest {

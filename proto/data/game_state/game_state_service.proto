@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package data.game_state;
+
+import "google/api/annotations.proto";
+
+import "data/game_state/game_state.proto";
+
+service GameStateService {
+    rpc Get(data.game_state.GetRequest) returns (data.game_state.GetResponse) {
+        option (google.api.http) = {
+            get: "/api/game_state"
+        };
+    }
+
+    rpc GetRound(data.game_state.GetRoundRequest) returns (data.game_state.GetRoundResponse) {
+        option (google.api.http) = {
+            get: "/api/game_state/round"
+        };
+    }
+}

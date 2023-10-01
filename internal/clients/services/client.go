@@ -7,14 +7,16 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
+	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
 	"github.com/samber/lo"
+	"google.golang.org/protobuf/proto"
 )
 
 type Client struct {
 	c servicespb.ServicesServiceClient
 
-	refreshMu  sync.Mutex
-	lastUpdate int64
+	refreshMu sync.Mutex
+	version   *versionpb.Version
 
 	cache *Cache
 }
@@ -55,16 +57,16 @@ func (c *Client) refresh(ctx context.Context) error {
 	c.refreshMu.Lock()
 	defer c.refreshMu.Unlock()
 
-	resp, err := c.c.List(ctx, &servicespb.ListRequest{LastUpdate: c.lastUpdate})
+	resp, err := c.c.List(ctx, &servicespb.ListRequest{Version: c.version})
 	if err != nil {
 		return fmt.Errorf("getting services: %w", err)
 	}
 
-	if resp.LastUpdate == c.lastUpdate {
+	if proto.Equal(c.version, resp.Version) {
 		return nil
 	}
 
-	c.lastUpdate = resp.LastUpdate
+	c.version = resp.Version
 
 	serviceModels := lo.Map(resp.Services, func(service *servicespb.Service, _ int) *models.Service {
 		return models.NewServiceFromProto(service)

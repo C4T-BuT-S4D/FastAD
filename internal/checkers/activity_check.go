@@ -9,9 +9,9 @@ import (
 )
 
 type CheckActivityParameters struct {
-	GameSettings *models.GameSettings
-	Team         *models.Team
-	Service      *models.Service
+	GameState *models.GameState
+	Team      *models.Team
+	Service   *models.Service
 }
 
 type CheckActivityResult struct {

@@ -2,35 +2,28 @@ package teams
 
 import (
 	"context"
-	"errors"
+	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
-	"github.com/redis/go-redis/v9"
+	"github.com/c4t-but-s4d/fastad/internal/version"
 	"github.com/uptrace/bun"
 )
 
-const lastUpdateRedisKey = "teams::last_update"
+const VersionKey = "teams"
 
 type Controller struct {
+	Versions *version.Controller
+
 	db *bun.DB
-	r  *redis.Client
 }
 
-func NewController(db *bun.DB, r *redis.Client) *Controller {
-	return &Controller{db: db, r: r}
-}
+func NewController(db *bun.DB, versionController *version.Controller) *Controller {
+	return &Controller{
+		Versions: versionController,
 
-func (c *Controller) LastUpdate(ctx context.Context) (int64, error) {
-	t, err := c.r.Get(ctx, lastUpdateRedisKey).Time()
-	if err == nil {
-		return t.UnixNano(), nil
+		db: db,
 	}
-	if errors.Is(err, redis.Nil) {
-		return 0, nil
-	}
-	return 0, fmt.Errorf("getting last update time: %w", err)
 }
 
 func (c *Controller) List(ctx context.Context) ([]*models.Team, error) {
@@ -45,28 +38,38 @@ func (c *Controller) CreateBatch(ctx context.Context, teams []*models.Team) erro
 	if len(teams) == 0 {
 		return nil
 	}
-	if _, err := c.db.
-		NewInsert().
-		Model(&teams).
-		On("CONFLICT (name) DO UPDATE").
-		Set("address = EXCLUDED.address").
-		Set("token = EXCLUDED.token").
-		Set("labels = EXCLUDED.labels").
-		Exec(ctx); err != nil {
-		return fmt.Errorf("inserting teams: %w", err)
+
+	if err := c.db.RunInTx(
+		ctx,
+		&sql.TxOptions{
+			Isolation: sql.LevelSerializable,
+		},
+		func(ctx context.Context, tx bun.Tx) error {
+			if _, err := c.db.
+				NewInsert().
+				Model(&teams).
+				On("CONFLICT (name) DO UPDATE").
+				Set("address = EXCLUDED.address").
+				Set("token = EXCLUDED.token").
+				Set("labels = EXCLUDED.labels").
+				Exec(ctx); err != nil {
+				return fmt.Errorf("inserting teams: %w", err)
+			}
+			if _, err := c.Versions.Increment(ctx, tx, VersionKey); err != nil {
+				return fmt.Errorf("incrementing version: %w", err)
+			}
+			return nil
+		},
+	); err != nil {
+		return fmt.Errorf("in transaction: %w", err)
 	}
-	if err := c.r.Set(ctx, lastUpdateRedisKey, time.Now(), 0).Err(); err != nil {
-		return fmt.Errorf("setting last update time: %w", err)
-	}
+
 	return nil
 }
 
 func (c *Controller) Migrate(ctx context.Context) error {
 	if _, err := c.db.NewCreateTable().IfNotExists().Model(&models.Team{}).Exec(ctx); err != nil {
 		return fmt.Errorf("creating teams table: %w", err)
-	}
-	if err := c.r.Set(ctx, lastUpdateRedisKey, time.Now(), 0).Err(); err != nil {
-		return fmt.Errorf("setting last update time: %w", err)
 	}
 	return nil
 }
