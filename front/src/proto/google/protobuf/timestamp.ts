@@ -96,148 +96,148 @@ export const protobufPackage = "google.protobuf";
  * ) to obtain a formatter capable of generating timestamps in this format.
  */
 export interface Timestamp {
-    /**
-     * Represents seconds of UTC time since Unix epoch
-     * 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
-     * 9999-12-31T23:59:59Z inclusive.
-     */
-    seconds: bigint;
-    /**
-     * Non-negative fractions of a second at nanosecond resolution. Negative
-     * second values with fractions must still have non-negative nanos values
-     * that count forward in time. Must be from 0 to 999,999,999
-     * inclusive.
-     */
-    nanos: number;
+  /**
+   * Represents seconds of UTC time since Unix epoch
+   * 1970-01-01T00:00:00Z. Must be from 0001-01-01T00:00:00Z to
+   * 9999-12-31T23:59:59Z inclusive.
+   */
+  seconds: bigint;
+  /**
+   * Non-negative fractions of a second at nanosecond resolution. Negative
+   * second values with fractions must still have non-negative nanos values
+   * that count forward in time. Must be from 0 to 999,999,999
+   * inclusive.
+   */
+  nanos: number;
 }
 
 function createBaseTimestamp(): Timestamp {
-    return {seconds: BigInt("0"), nanos: 0};
+  return { seconds: BigInt("0"), nanos: 0 };
 }
 
 export const Timestamp = {
-    encode(message: Timestamp, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-        if (message.seconds !== BigInt("0")) {
-            writer.uint32(8).int64(message.seconds.toString());
+  encode(message: Timestamp, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.seconds !== BigInt("0")) {
+      writer.uint32(8).int64(message.seconds.toString());
+    }
+    if (message.nanos !== 0) {
+      writer.uint32(16).int32(message.nanos);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Timestamp {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTimestamp();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.seconds = longToBigint(reader.int64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.nanos = reader.int32();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<Timestamp, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<Timestamp | Timestamp[]> | Iterable<Timestamp | Timestamp[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (Array.isArray(pkt)) {
+        for (const p of pkt) {
+          yield* [Timestamp.encode(p).finish()];
         }
-        if (message.nanos !== 0) {
-            writer.uint32(16).int32(message.nanos);
+      } else {
+        yield* [Timestamp.encode(pkt).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, Timestamp>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<Timestamp> {
+    for await (const pkt of source) {
+      if (Array.isArray(pkt)) {
+        for (const p of pkt) {
+          yield* [Timestamp.decode(p)];
         }
-        return writer;
-    },
+      } else {
+        yield* [Timestamp.decode(pkt)];
+      }
+    }
+  },
 
-    decode(input: _m0.Reader | Uint8Array, length?: number): Timestamp {
-        const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-        let end = length === undefined ? reader.len : reader.pos + length;
-        const message = createBaseTimestamp();
-        while (reader.pos < end) {
-            const tag = reader.uint32();
-            switch (tag >>> 3) {
-                case 1:
-                    if (tag !== 8) {
-                        break;
-                    }
+  fromJSON(object: any): Timestamp {
+    return {
+      seconds: isSet(object.seconds) ? BigInt(object.seconds) : BigInt("0"),
+      nanos: isSet(object.nanos) ? Number(object.nanos) : 0,
+    };
+  },
 
-                    message.seconds = longToBigint(reader.int64() as Long);
-                    continue;
-                case 2:
-                    if (tag !== 16) {
-                        break;
-                    }
+  toJSON(message: Timestamp): unknown {
+    const obj: any = {};
+    if (message.seconds !== BigInt("0")) {
+      obj.seconds = message.seconds.toString();
+    }
+    if (message.nanos !== 0) {
+      obj.nanos = Math.round(message.nanos);
+    }
+    return obj;
+  },
 
-                    message.nanos = reader.int32();
-                    continue;
-            }
-            if ((tag & 7) === 4 || tag === 0) {
-                break;
-            }
-            reader.skipType(tag & 7);
-        }
-        return message;
-    },
-
-    // encodeTransform encodes a source of message objects.
-    // Transform<Timestamp, Uint8Array>
-    async* encodeTransform(
-        source: AsyncIterable<Timestamp | Timestamp[]> | Iterable<Timestamp | Timestamp[]>,
-    ): AsyncIterable<Uint8Array> {
-        for await (const pkt of source) {
-            if (Array.isArray(pkt)) {
-                for (const p of pkt) {
-                    yield* [Timestamp.encode(p).finish()];
-                }
-            } else {
-                yield* [Timestamp.encode(pkt).finish()];
-            }
-        }
-    },
-
-    // decodeTransform decodes a source of encoded messages.
-    // Transform<Uint8Array, Timestamp>
-    async* decodeTransform(
-        source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-    ): AsyncIterable<Timestamp> {
-        for await (const pkt of source) {
-            if (Array.isArray(pkt)) {
-                for (const p of pkt) {
-                    yield* [Timestamp.decode(p)];
-                }
-            } else {
-                yield* [Timestamp.decode(pkt)];
-            }
-        }
-    },
-
-    fromJSON(object: any): Timestamp {
-        return {
-            seconds: isSet(object.seconds) ? BigInt(object.seconds) : BigInt("0"),
-            nanos: isSet(object.nanos) ? Number(object.nanos) : 0,
-        };
-    },
-
-    toJSON(message: Timestamp): unknown {
-        const obj: any = {};
-        if (message.seconds !== BigInt("0")) {
-            obj.seconds = message.seconds.toString();
-        }
-        if (message.nanos !== 0) {
-            obj.nanos = Math.round(message.nanos);
-        }
-        return obj;
-    },
-
-    create<I extends Exact<DeepPartial<Timestamp>, I>>(base?: I): Timestamp {
-        return Timestamp.fromPartial(base ?? ({} as any));
-    },
-    fromPartial<I extends Exact<DeepPartial<Timestamp>, I>>(object: I): Timestamp {
-        const message = createBaseTimestamp();
-        message.seconds = object.seconds ?? BigInt("0");
-        message.nanos = object.nanos ?? 0;
-        return message;
-    },
+  create<I extends Exact<DeepPartial<Timestamp>, I>>(base?: I): Timestamp {
+    return Timestamp.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Timestamp>, I>>(object: I): Timestamp {
+    const message = createBaseTimestamp();
+    message.seconds = object.seconds ?? BigInt("0");
+    message.nanos = object.nanos ?? 0;
+    return message;
+  },
 };
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-    : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-        : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
-            : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-                : Partial<T>;
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
-    : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToBigint(long: Long) {
-    return BigInt(long.toString());
+  return BigInt(long.toString());
 }
 
 if (_m0.util.Long !== Long) {
-    _m0.util.Long = Long as any;
-    _m0.configure();
+  _m0.util.Long = Long as any;
+  _m0.configure();
 }
 
 function isSet(value: any): boolean {
-    return value !== null && value !== undefined;
+  return value !== null && value !== undefined;
 }
