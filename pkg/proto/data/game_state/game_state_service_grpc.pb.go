@@ -19,7 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	GameStateService_Get_FullMethodName = "/data.game_state.GameStateService/Get"
+	GameStateService_Get_FullMethodName         = "/data.game_state.GameStateService/Get"
+	GameStateService_Update_FullMethodName      = "/data.game_state.GameStateService/Update"
+	GameStateService_UpdateRound_FullMethodName = "/data.game_state.GameStateService/UpdateRound"
 )
 
 // GameStateServiceClient is the client API for GameStateService service.
@@ -27,6 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GameStateServiceClient interface {
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
+	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
+	UpdateRound(ctx context.Context, in *UpdateRoundRequest, opts ...grpc.CallOption) (*UpdateRoundResponse, error)
 }
 
 type gameStateServiceClient struct {
@@ -46,11 +50,31 @@ func (c *gameStateServiceClient) Get(ctx context.Context, in *GetRequest, opts .
 	return out, nil
 }
 
+func (c *gameStateServiceClient) Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error) {
+	out := new(UpdateResponse)
+	err := c.cc.Invoke(ctx, GameStateService_Update_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gameStateServiceClient) UpdateRound(ctx context.Context, in *UpdateRoundRequest, opts ...grpc.CallOption) (*UpdateRoundResponse, error) {
+	out := new(UpdateRoundResponse)
+	err := c.cc.Invoke(ctx, GameStateService_UpdateRound_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GameStateServiceServer is the server API for GameStateService service.
 // All implementations must embed UnimplementedGameStateServiceServer
 // for forward compatibility
 type GameStateServiceServer interface {
 	Get(context.Context, *GetRequest) (*GetResponse, error)
+	Update(context.Context, *UpdateRequest) (*UpdateResponse, error)
+	UpdateRound(context.Context, *UpdateRoundRequest) (*UpdateRoundResponse, error)
 	mustEmbedUnimplementedGameStateServiceServer()
 }
 
@@ -60,6 +84,12 @@ type UnimplementedGameStateServiceServer struct {
 
 func (UnimplementedGameStateServiceServer) Get(context.Context, *GetRequest) (*GetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedGameStateServiceServer) Update(context.Context, *UpdateRequest) (*UpdateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Update not implemented")
+}
+func (UnimplementedGameStateServiceServer) UpdateRound(context.Context, *UpdateRoundRequest) (*UpdateRoundResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateRound not implemented")
 }
 func (UnimplementedGameStateServiceServer) mustEmbedUnimplementedGameStateServiceServer() {}
 
@@ -92,6 +122,42 @@ func _GameStateService_Get_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GameStateService_Update_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameStateServiceServer).Update(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameStateService_Update_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameStateServiceServer).Update(ctx, req.(*UpdateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GameStateService_UpdateRound_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRoundRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameStateServiceServer).UpdateRound(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameStateService_UpdateRound_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameStateServiceServer).UpdateRound(ctx, req.(*UpdateRoundRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GameStateService_ServiceDesc is the grpc.ServiceDesc for GameStateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -102,6 +168,14 @@ var GameStateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Get",
 			Handler:    _GameStateService_Get_Handler,
+		},
+		{
+			MethodName: "Update",
+			Handler:    _GameStateService_Update_Handler,
+		},
+		{
+			MethodName: "UpdateRound",
+			Handler:    _GameStateService_UpdateRound_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
