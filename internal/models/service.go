@@ -12,6 +12,11 @@ import (
 
 const defaultRunCount = 1
 
+type ServiceActionConfig struct {
+	Timeout  time.Duration `json:"timeout"`
+	RunCount int           `json:"run_count"`
+}
+
 type Service struct {
 	bun.BaseModel `bun:"services,alias:s"`
 
@@ -23,10 +28,8 @@ type Service struct {
 
 	DefaultScore float64 `bun:"default_score,notnull"`
 
-	DefaultTimeout time.Duration                      `bun:"default_timeout,notnull"`
-	ActionTimeouts map[checkerpb.Action]time.Duration `bun:"action_timeouts"`
-
-	ActionRunCounts map[checkerpb.Action]int `bun:"action_run_counts"`
+	DefaultTimeout time.Duration                             `bun:"default_timeout,notnull"`
+	Actions        map[checkerpb.Action]*ServiceActionConfig `bun:"actions,notnull"`
 
 	// TODO: vulns format.
 	// Places int
@@ -37,15 +40,15 @@ func (s *Service) String() string {
 }
 
 func (s *Service) CheckerTimeout(action checkerpb.Action) time.Duration {
-	if timeout, ok := s.ActionTimeouts[action]; ok {
-		return timeout
+	if cfg, ok := s.Actions[action]; ok {
+		return cfg.Timeout
 	}
 	return s.DefaultTimeout
 }
 
 func (s *Service) RunCount(action checkerpb.Action) int {
-	if count, ok := s.ActionRunCounts[action]; ok {
-		return count
+	if cfg, ok := s.Actions[action]; ok {
+		return cfg.RunCount
 	}
 	return defaultRunCount
 }
@@ -58,16 +61,11 @@ func (s *Service) ToProto() *servicespb.Service {
 			Type:           s.CheckerType,
 			Path:           s.CheckerPath,
 			DefaultTimeout: durationpb.New(s.DefaultTimeout),
-			ActionTimeouts: lo.MapToSlice(s.ActionTimeouts, func(action checkerpb.Action, timeout time.Duration) *servicespb.Service_Checker_ActionTimeout {
-				return &servicespb.Service_Checker_ActionTimeout{
-					Action:  action,
-					Timeout: durationpb.New(timeout),
-				}
-			}),
-			ActionRunCounts: lo.MapToSlice(s.ActionRunCounts, func(action checkerpb.Action, count int) *servicespb.Service_Checker_ActionRunCount {
-				return &servicespb.Service_Checker_ActionRunCount{
+			Actions: lo.MapToSlice(s.Actions, func(action checkerpb.Action, actionConfig *ServiceActionConfig) *servicespb.Service_Checker_Action {
+				return &servicespb.Service_Checker_Action{
 					Action:   action,
-					RunCount: int32(count),
+					RunCount: int32(actionConfig.RunCount),
+					Timeout:  durationpb.New(actionConfig.Timeout),
 				}
 			}),
 		},
@@ -84,16 +82,13 @@ func NewServiceFromProto(p *servicespb.Service) *Service {
 		CheckerType:    p.Checker.Type,
 		CheckerPath:    p.Checker.Path,
 		DefaultTimeout: p.Checker.DefaultTimeout.AsDuration(),
-		ActionTimeouts: lo.SliceToMap(
-			p.Checker.ActionTimeouts,
-			func(t *servicespb.Service_Checker_ActionTimeout) (checkerpb.Action, time.Duration) {
-				return t.Action, t.Timeout.AsDuration()
-			},
-		),
-		ActionRunCounts: lo.SliceToMap(
-			p.Checker.ActionRunCounts,
-			func(t *servicespb.Service_Checker_ActionRunCount) (checkerpb.Action, int) {
-				return t.Action, int(t.RunCount)
+		Actions: lo.SliceToMap(
+			p.Checker.Actions,
+			func(t *servicespb.Service_Checker_Action) (checkerpb.Action, *ServiceActionConfig) {
+				return t.Action, &ServiceActionConfig{
+					Timeout:  t.Timeout.AsDuration(),
+					RunCount: int(t.RunCount),
+				}
 			},
 		),
 

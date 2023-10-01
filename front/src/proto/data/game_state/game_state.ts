@@ -1,7 +1,8 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import { Duration } from "../../google/protobuf/duration";
-import { Timestamp } from "../../google/protobuf/timestamp";
+import {Duration} from "../../google/protobuf/duration";
+import {Timestamp} from "../../google/protobuf/timestamp";
+import {Version} from "../version/version";
 
 export const protobufPackage = "data.game_state";
 
@@ -36,6 +37,7 @@ export function gameModeToJSON(object: GameMode): string {
 export interface GameState {
   startTime: Date | undefined;
   endTime: Date | undefined;
+    totalRounds: number;
   paused: boolean;
   flagLifetimeRounds: number;
   roundDuration: Duration | undefined;
@@ -45,23 +47,19 @@ export interface GameState {
 }
 
 export interface GetRequest {
+    version: Version | undefined;
 }
 
 export interface GetResponse {
   gameState: GameState | undefined;
-}
-
-export interface GetRoundRequest {
-}
-
-export interface GetRoundResponse {
-  runningRound: number;
+    version: Version | undefined;
 }
 
 function createBaseGameState(): GameState {
   return {
     startTime: undefined,
     endTime: undefined,
+      totalRounds: 0,
     paused: false,
     flagLifetimeRounds: 0,
     roundDuration: undefined,
@@ -79,23 +77,26 @@ export const GameState = {
     if (message.endTime !== undefined) {
       Timestamp.encode(toTimestamp(message.endTime), writer.uint32(18).fork()).ldelim();
     }
+      if (message.totalRounds !== 0) {
+          writer.uint32(24).int32(message.totalRounds);
+      }
     if (message.paused === true) {
-      writer.uint32(24).bool(message.paused);
+        writer.uint32(32).bool(message.paused);
     }
     if (message.flagLifetimeRounds !== 0) {
-      writer.uint32(32).int32(message.flagLifetimeRounds);
+        writer.uint32(40).int32(message.flagLifetimeRounds);
     }
     if (message.roundDuration !== undefined) {
-      Duration.encode(message.roundDuration, writer.uint32(42).fork()).ldelim();
+        Duration.encode(message.roundDuration, writer.uint32(50).fork()).ldelim();
     }
     if (message.mode !== 0) {
-      writer.uint32(48).int32(message.mode);
+        writer.uint32(56).int32(message.mode);
     }
     if (message.runningRound !== 0) {
-      writer.uint32(56).int32(message.runningRound);
+        writer.uint32(64).int32(message.runningRound);
     }
     if (message.runningRoundStart !== undefined) {
-      Timestamp.encode(toTimestamp(message.runningRoundStart), writer.uint32(66).fork()).ldelim();
+        Timestamp.encode(toTimestamp(message.runningRoundStart), writer.uint32(74).fork()).ldelim();
     }
     return writer;
   },
@@ -126,38 +127,45 @@ export const GameState = {
             break;
           }
 
-          message.paused = reader.bool();
+            message.totalRounds = reader.int32();
           continue;
         case 4:
           if (tag !== 32) {
             break;
           }
 
-          message.flagLifetimeRounds = reader.int32();
+            message.paused = reader.bool();
           continue;
         case 5:
-          if (tag !== 42) {
+            if (tag !== 40) {
             break;
           }
 
-          message.roundDuration = Duration.decode(reader, reader.uint32());
+            message.flagLifetimeRounds = reader.int32();
           continue;
         case 6:
-          if (tag !== 48) {
+            if (tag !== 50) {
             break;
           }
 
-          message.mode = reader.int32() as any;
+            message.roundDuration = Duration.decode(reader, reader.uint32());
           continue;
         case 7:
           if (tag !== 56) {
             break;
           }
 
-          message.runningRound = reader.int32();
+            message.mode = reader.int32() as any;
           continue;
         case 8:
-          if (tag !== 66) {
+            if (tag !== 64) {
+                break;
+            }
+
+            message.runningRound = reader.int32();
+            continue;
+          case 9:
+              if (tag !== 74) {
             break;
           }
 
@@ -208,6 +216,7 @@ export const GameState = {
     return {
       startTime: isSet(object.startTime) ? fromJsonTimestamp(object.startTime) : undefined,
       endTime: isSet(object.endTime) ? fromJsonTimestamp(object.endTime) : undefined,
+        totalRounds: isSet(object.totalRounds) ? Number(object.totalRounds) : 0,
       paused: isSet(object.paused) ? Boolean(object.paused) : false,
       flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? Number(object.flagLifetimeRounds) : 0,
       roundDuration: isSet(object.roundDuration) ? Duration.fromJSON(object.roundDuration) : undefined,
@@ -225,6 +234,9 @@ export const GameState = {
     if (message.endTime !== undefined) {
       obj.endTime = message.endTime.toISOString();
     }
+      if (message.totalRounds !== 0) {
+          obj.totalRounds = Math.round(message.totalRounds);
+      }
     if (message.paused === true) {
       obj.paused = message.paused;
     }
@@ -253,6 +265,7 @@ export const GameState = {
     const message = createBaseGameState();
     message.startTime = object.startTime ?? undefined;
     message.endTime = object.endTime ?? undefined;
+      message.totalRounds = object.totalRounds ?? 0;
     message.paused = object.paused ?? false;
     message.flagLifetimeRounds = object.flagLifetimeRounds ?? 0;
     message.roundDuration = (object.roundDuration !== undefined && object.roundDuration !== null)
@@ -266,11 +279,14 @@ export const GameState = {
 };
 
 function createBaseGetRequest(): GetRequest {
-  return {};
+    return {version: undefined};
 }
 
 export const GetRequest = {
-  encode(_: GetRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    encode(message: GetRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+        if (message.version !== undefined) {
+            Version.encode(message.version, writer.uint32(10).fork()).ldelim();
+        }
     return writer;
   },
 
@@ -281,6 +297,13 @@ export const GetRequest = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+          case 1:
+              if (tag !== 10) {
+                  break;
+              }
+
+              message.version = Version.decode(reader, reader.uint32());
+              continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -322,26 +345,32 @@ export const GetRequest = {
     }
   },
 
-  fromJSON(_: any): GetRequest {
-    return {};
+    fromJSON(object: any): GetRequest {
+        return {version: isSet(object.version) ? Version.fromJSON(object.version) : undefined};
   },
 
-  toJSON(_: GetRequest): unknown {
+    toJSON(message: GetRequest): unknown {
     const obj: any = {};
+        if (message.version !== undefined) {
+            obj.version = Version.toJSON(message.version);
+        }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<GetRequest>, I>>(base?: I): GetRequest {
     return GetRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetRequest>, I>>(_: I): GetRequest {
+    fromPartial<I extends Exact<DeepPartial<GetRequest>, I>>(object: I): GetRequest {
     const message = createBaseGetRequest();
+        message.version = (object.version !== undefined && object.version !== null)
+            ? Version.fromPartial(object.version)
+            : undefined;
     return message;
   },
 };
 
 function createBaseGetResponse(): GetResponse {
-  return { gameState: undefined };
+    return {gameState: undefined, version: undefined};
 }
 
 export const GetResponse = {
@@ -349,6 +378,9 @@ export const GetResponse = {
     if (message.gameState !== undefined) {
       GameState.encode(message.gameState, writer.uint32(10).fork()).ldelim();
     }
+      if (message.version !== undefined) {
+          Version.encode(message.version, writer.uint32(18).fork()).ldelim();
+      }
     return writer;
   },
 
@@ -366,6 +398,13 @@ export const GetResponse = {
 
           message.gameState = GameState.decode(reader, reader.uint32());
           continue;
+          case 2:
+              if (tag !== 18) {
+                  break;
+              }
+
+              message.version = Version.decode(reader, reader.uint32());
+              continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -408,7 +447,10 @@ export const GetResponse = {
   },
 
   fromJSON(object: any): GetResponse {
-    return { gameState: isSet(object.gameState) ? GameState.fromJSON(object.gameState) : undefined };
+      return {
+          gameState: isSet(object.gameState) ? GameState.fromJSON(object.gameState) : undefined,
+          version: isSet(object.version) ? Version.fromJSON(object.version) : undefined,
+      };
   },
 
   toJSON(message: GetResponse): unknown {
@@ -416,6 +458,9 @@ export const GetResponse = {
     if (message.gameState !== undefined) {
       obj.gameState = GameState.toJSON(message.gameState);
     }
+      if (message.version !== undefined) {
+          obj.version = Version.toJSON(message.version);
+      }
     return obj;
   },
 
@@ -427,170 +472,9 @@ export const GetResponse = {
     message.gameState = (object.gameState !== undefined && object.gameState !== null)
       ? GameState.fromPartial(object.gameState)
       : undefined;
-    return message;
-  },
-};
-
-function createBaseGetRoundRequest(): GetRoundRequest {
-  return {};
-}
-
-export const GetRoundRequest = {
-  encode(_: GetRoundRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetRoundRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetRoundRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  // encodeTransform encodes a source of message objects.
-  // Transform<GetRoundRequest, Uint8Array>
-  async *encodeTransform(
-    source: AsyncIterable<GetRoundRequest | GetRoundRequest[]> | Iterable<GetRoundRequest | GetRoundRequest[]>,
-  ): AsyncIterable<Uint8Array> {
-    for await (const pkt of source) {
-      if (Array.isArray(pkt)) {
-        for (const p of pkt) {
-          yield* [GetRoundRequest.encode(p).finish()];
-        }
-      } else {
-        yield* [GetRoundRequest.encode(pkt).finish()];
-      }
-    }
-  },
-
-  // decodeTransform decodes a source of encoded messages.
-  // Transform<Uint8Array, GetRoundRequest>
-  async *decodeTransform(
-    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-  ): AsyncIterable<GetRoundRequest> {
-    for await (const pkt of source) {
-      if (Array.isArray(pkt)) {
-        for (const p of pkt) {
-          yield* [GetRoundRequest.decode(p)];
-        }
-      } else {
-        yield* [GetRoundRequest.decode(pkt)];
-      }
-    }
-  },
-
-  fromJSON(_: any): GetRoundRequest {
-    return {};
-  },
-
-  toJSON(_: GetRoundRequest): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetRoundRequest>, I>>(base?: I): GetRoundRequest {
-    return GetRoundRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetRoundRequest>, I>>(_: I): GetRoundRequest {
-    const message = createBaseGetRoundRequest();
-    return message;
-  },
-};
-
-function createBaseGetRoundResponse(): GetRoundResponse {
-  return { runningRound: 0 };
-}
-
-export const GetRoundResponse = {
-  encode(message: GetRoundResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.runningRound !== 0) {
-      writer.uint32(8).int32(message.runningRound);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetRoundResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetRoundResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.runningRound = reader.int32();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  // encodeTransform encodes a source of message objects.
-  // Transform<GetRoundResponse, Uint8Array>
-  async *encodeTransform(
-    source: AsyncIterable<GetRoundResponse | GetRoundResponse[]> | Iterable<GetRoundResponse | GetRoundResponse[]>,
-  ): AsyncIterable<Uint8Array> {
-    for await (const pkt of source) {
-      if (Array.isArray(pkt)) {
-        for (const p of pkt) {
-          yield* [GetRoundResponse.encode(p).finish()];
-        }
-      } else {
-        yield* [GetRoundResponse.encode(pkt).finish()];
-      }
-    }
-  },
-
-  // decodeTransform decodes a source of encoded messages.
-  // Transform<Uint8Array, GetRoundResponse>
-  async *decodeTransform(
-    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-  ): AsyncIterable<GetRoundResponse> {
-    for await (const pkt of source) {
-      if (Array.isArray(pkt)) {
-        for (const p of pkt) {
-          yield* [GetRoundResponse.decode(p)];
-        }
-      } else {
-        yield* [GetRoundResponse.decode(pkt)];
-      }
-    }
-  },
-
-  fromJSON(object: any): GetRoundResponse {
-    return { runningRound: isSet(object.runningRound) ? Number(object.runningRound) : 0 };
-  },
-
-  toJSON(message: GetRoundResponse): unknown {
-    const obj: any = {};
-    if (message.runningRound !== 0) {
-      obj.runningRound = Math.round(message.runningRound);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetRoundResponse>, I>>(base?: I): GetRoundResponse {
-    return GetRoundResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetRoundResponse>, I>>(object: I): GetRoundResponse {
-    const message = createBaseGetRoundResponse();
-    message.runningRound = object.runningRound ?? 0;
+      message.version = (object.version !== undefined && object.version !== null)
+          ? Version.fromPartial(object.version)
+          : undefined;
     return message;
   },
 };
