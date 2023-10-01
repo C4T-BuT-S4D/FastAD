@@ -43,14 +43,15 @@ func (c *Controller) CreateBatch(ctx context.Context, teams []*models.Team) erro
 		ctx,
 		&sql.TxOptions{},
 		func(ctx context.Context, tx bun.Tx) error {
-			if _, err := c.db.
+			if err := c.db.
 				NewInsert().
 				Model(&teams).
 				On("CONFLICT (name) DO UPDATE").
 				Set("address = EXCLUDED.address").
 				Set("token = EXCLUDED.token").
 				Set("labels = EXCLUDED.labels").
-				Exec(ctx); err != nil {
+				Returning("*").
+				Scan(ctx); err != nil {
 				return fmt.Errorf("inserting teams: %w", err)
 			}
 			if _, err := c.Versions.Increment(ctx, tx, VersionKey); err != nil {

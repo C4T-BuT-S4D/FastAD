@@ -2,6 +2,7 @@ package gamestate
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/c4t-but-s4d/fastad/internal/version"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
@@ -44,5 +45,22 @@ func (s *Service) Get(ctx context.Context, req *gspb.GetRequest) (*gspb.GetRespo
 	return &gspb.GetResponse{
 		GameState: state.ToProto(),
 		Version:   version.NewVersionProto(gotVersion),
+	}, nil
+}
+
+func (s *Service) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.UpdateResponse, error) {
+	logrus.Debugf("GameStateService/Update: %v", req)
+
+	if err := s.sanitizeUpdateRequest(req); err != nil {
+		return nil, fmt.Errorf("sanitizing request: %w", err)
+	}
+
+	gs, err := s.controller.Update(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("updating game state: %w", err)
+	}
+
+	return &gspb.UpdateResponse{
+		GameState: gs.ToProto(),
 	}, nil
 }
