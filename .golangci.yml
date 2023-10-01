@@ -7,7 +7,6 @@ linters:
   enable:
     - asciicheck
     - bodyclose
-    - deadcode
     - dogsled
     - durationcheck
     - errname
@@ -19,7 +18,6 @@ linters:
     - gomoddirectives
     - gosimple
     - govet
-    - ifshort
     - ineffassign
     - importas
     - misspell
@@ -33,7 +31,6 @@ linters:
     - unconvert
     - unparam
     - unused
-    - varcheck
     - whitespace
     - wrapcheck
 
@@ -45,6 +42,8 @@ linters-settings:
       - google.golang.org/grpc/status.Error
       - google.golang.org/grpc/status.Errorf
       - .Read(p []byte)  # most Read errors should be passed as-is, e.g. io.EOF.
+      - errors.Join
+      - fmt.Errorf
 
 issues:
   max-issues-per-linter: 0
