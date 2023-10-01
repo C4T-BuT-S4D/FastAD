@@ -2,10 +2,13 @@ package gamestate
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/internal/version"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	"github.com/samber/lo"
 	"github.com/uptrace/bun"
 )
 
@@ -31,6 +34,46 @@ func (c *Controller) Get(ctx context.Context) (*models.GameState, error) {
 		return nil, fmt.Errorf("getting game state: %w", err)
 	}
 	return &gs, nil
+}
+
+func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*models.GameState, error) {
+	gs := &models.GameState{
+		ID:                 1,
+		StartTime:          req.StartTime.AsTime(),
+		TotalRounds:        uint(req.TotalRounds),
+		Paused:             req.Paused,
+		FlagLifetimeRounds: uint(req.FlagLifetimeRounds),
+		RoundDuration:      req.RoundDuration.AsDuration(),
+	}
+
+	if req.EndTime != nil {
+		gs.EndTime = lo.ToPtr(req.EndTime.AsTime())
+	}
+
+	if err := c.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		if err := c.db.
+			NewInsert().
+			Model(gs).
+			On("CONFLICT (id) DO UPDATE").
+			Set("start_time = EXCLUDED.start_time").
+			Set("end_time = EXCLUDED.end_time").
+			Set("total_rounds = EXCLUDED.total_rounds").
+			Set("paused = EXCLUDED.paused").
+			Set("flag_lifetime_rounds = EXCLUDED.flag_lifetime_rounds").
+			Set("round_duration = EXCLUDED.round_duration").
+			Returning("*").
+			Scan(ctx); err != nil {
+			return fmt.Errorf("inserting game state: %w", err)
+		}
+		if _, err := c.Versions.Increment(ctx, tx, VersionKey); err != nil {
+			return fmt.Errorf("incrementing version: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("in transaction: %w", err)
+	}
+
+	return gs, nil
 }
 
 func (c *Controller) Migrate(ctx context.Context) error {

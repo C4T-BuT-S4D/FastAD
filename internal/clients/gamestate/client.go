@@ -1,4 +1,4 @@
-package services
+package gamestate
 
 import (
 	"context"
@@ -36,6 +36,14 @@ func (c *Client) Get(ctx context.Context) (*models.GameState, error) {
 		return nil, ErrStateUnavailable
 	}
 	return c.cache.GetState(), nil
+}
+
+func (c *Client) Update(ctx context.Context, req *gspb.UpdateRequest) (*models.GameState, error) {
+	resp, err := c.c.Update(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("updating state: %w", err)
+	}
+	return models.NewGameStateFromProto(resp.GameState), nil
 }
 
 func (c *Client) refresh(ctx context.Context) error {
