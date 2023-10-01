@@ -12,4 +12,16 @@ service GameStateService {
             get: "/api/game_state"
         };
     }
+
+    rpc Update(data.game_state.UpdateRequest) returns (data.game_state.UpdateResponse) {
+        option (google.api.http) = {
+            post: "/api/game_state"
+        };
+    }
+
+    rpc UpdateRound(data.game_state.UpdateRoundRequest) returns (data.game_state.UpdateRoundResponse) {
+        option (google.api.http) = {
+            post: "/api/game_state/round"
+        };
+    }
 }

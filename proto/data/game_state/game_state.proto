@@ -36,3 +36,31 @@ message GetResponse {
     data.game_state.GameState game_state = 1;
     data.version.Version version = 2;
 }
+
+message UpdateRequest {
+    google.protobuf.Timestamp start_time = 1;
+    google.protobuf.Timestamp end_time = 2;
+    int32 total_rounds = 3;
+
+    bool paused = 4;
+
+    int32 flag_lifetime_rounds = 5;
+    google.protobuf.Duration round_duration = 6;
+
+    data.game_state.GameMode mode = 7;
+}
+
+message UpdateResponse {
+    data.game_state.GameState game_state = 1;
+    data.version.Version version = 2;
+}
+
+message UpdateRoundRequest {
+    int32 running_round = 1;
+    google.protobuf.Timestamp running_round_start = 2;
+}
+
+message UpdateRoundResponse {
+    data.game_state.GameState game_state = 1;
+    data.version.Version version = 2;
+}

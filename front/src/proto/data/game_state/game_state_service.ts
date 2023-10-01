@@ -1,6 +1,13 @@
 /* eslint-disable */
-import type {CallContext, CallOptions} from "nice-grpc-common";
-import {GetRequest, GetResponse} from "./game_state";
+import type { CallContext, CallOptions } from "nice-grpc-common";
+import {
+  GetRequest,
+  GetResponse,
+  UpdateRequest,
+  UpdateResponse,
+  UpdateRoundRequest,
+  UpdateRoundResponse,
+} from "./game_state";
 
 export const protobufPackage = "data.game_state";
 
@@ -23,15 +30,78 @@ export const GameStateServiceDefinition = {
         },
       },
     },
+    update: {
+      name: "Update",
+      requestType: UpdateRequest,
+      requestStream: false,
+      responseType: UpdateResponse,
+      responseStream: false,
+      options: {
+        _unknownFields: {
+          578365826: [
+            new Uint8Array([17, 34, 15, 47, 97, 112, 105, 47, 103, 97, 109, 101, 95, 115, 116, 97, 116, 101]),
+          ],
+        },
+      },
+    },
+    updateRound: {
+      name: "UpdateRound",
+      requestType: UpdateRoundRequest,
+      requestStream: false,
+      responseType: UpdateRoundResponse,
+      responseStream: false,
+      options: {
+        _unknownFields: {
+          578365826: [
+            new Uint8Array([
+              23,
+              34,
+              21,
+              47,
+              97,
+              112,
+              105,
+              47,
+              103,
+              97,
+              109,
+              101,
+              95,
+              115,
+              116,
+              97,
+              116,
+              101,
+              47,
+              114,
+              111,
+              117,
+              110,
+              100,
+            ]),
+          ],
+        },
+      },
+    },
   },
 } as const;
 
 export interface GameStateServiceImplementation<CallContextExt = {}> {
   get(request: GetRequest, context: CallContext & CallContextExt): Promise<DeepPartial<GetResponse>>;
+  update(request: UpdateRequest, context: CallContext & CallContextExt): Promise<DeepPartial<UpdateResponse>>;
+  updateRound(
+    request: UpdateRoundRequest,
+    context: CallContext & CallContextExt,
+  ): Promise<DeepPartial<UpdateRoundResponse>>;
 }
 
 export interface GameStateServiceClient<CallOptionsExt = {}> {
   get(request: DeepPartial<GetRequest>, options?: CallOptions & CallOptionsExt): Promise<GetResponse>;
+  update(request: DeepPartial<UpdateRequest>, options?: CallOptions & CallOptionsExt): Promise<UpdateResponse>;
+  updateRound(
+    request: DeepPartial<UpdateRoundRequest>,
+    options?: CallOptions & CallOptionsExt,
+  ): Promise<UpdateRoundResponse>;
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
