@@ -68,6 +68,7 @@ func (s *Service) CreateBatch(ctx context.Context, req *teamspb.CreateBatchReque
 	teams := lo.Map(req.Teams, func(team *teamspb.Team, _ int) *models.Team {
 		teamModel := models.NewTeamFromProto(team)
 		teamModel.ID = 0
+		// TODO: generate token using server private key.
 		teamModel.Token = uuid.NewString()
 		return teamModel
 	})
