@@ -51,8 +51,8 @@ func (s *Service) Get(ctx context.Context, req *gspb.GetRequest) (*gspb.GetRespo
 func (s *Service) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.UpdateResponse, error) {
 	logrus.Debugf("GameStateService/Update: %v", req)
 
-	if err := s.sanitizeUpdateRequest(req); err != nil {
-		return nil, fmt.Errorf("sanitizing request: %w", err)
+	if err := s.validateUpdateRequest(req); err != nil {
+		return nil, fmt.Errorf("validating request: %w", err)
 	}
 
 	gs, err := s.controller.Update(ctx, req)

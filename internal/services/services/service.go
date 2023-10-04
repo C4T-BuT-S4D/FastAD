@@ -60,8 +60,8 @@ func (s *Service) CreateBatch(ctx context.Context, req *servicespb.CreateBatchRe
 
 	// FIXME: check admin rights.
 
-	if err := s.sanitizeCreateBatch(req); err != nil {
-		return nil, err
+	if err := s.validateCreateBatch(req); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating request: %v", err)
 	}
 
 	services := lo.Map(req.Services, func(service *servicespb.Service, _ int) *models.Service {
