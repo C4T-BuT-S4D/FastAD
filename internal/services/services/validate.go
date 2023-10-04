@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *Service) sanitizeCreateBatch(req *servicespb.CreateBatchRequest) error {
+func (s *Service) validateCreateBatch(req *servicespb.CreateBatchRequest) error {
 	if len(req.Services) == 0 {
 		return status.Errorf(codes.InvalidArgument, "services required")
 	}

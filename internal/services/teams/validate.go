@@ -6,7 +6,7 @@ import (
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
-func (s *Service) sanitizeCreateBatchRequest(req *teamspb.CreateBatchRequest) error {
+func (s *Service) validateCreateBatchRequest(req *teamspb.CreateBatchRequest) error {
 	if len(req.Teams) == 0 {
 		return fmt.Errorf("teams required")
 	}
