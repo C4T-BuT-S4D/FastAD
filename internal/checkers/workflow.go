@@ -63,8 +63,8 @@ func runCheckers(ctx workflow.Context, team *models.Team, service *models.Servic
 		ScheduleToCloseTimeout: service.CheckerTimeout(checkerpb.Action_ACTION_GET) + checkerKillDelay*2,
 	})
 
-	putCount := service.RunCount(checkerpb.Action_ACTION_PUT)
-	getCount := service.RunCount(checkerpb.Action_ACTION_GET)
+	putCount := service.GetRunCount(checkerpb.Action_ACTION_PUT)
+	getCount := service.GetRunCount(checkerpb.Action_ACTION_GET)
 
 	var checkResult *CheckActivityResult
 	putResults := make([]*PutActivityResult, 0, putCount)
