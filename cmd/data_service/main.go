@@ -48,7 +48,13 @@ func main() {
 		pgdriver.WithPassword(cfg.Postgres.Password),
 		pgdriver.WithInsecure(!cfg.Postgres.EnableSSL),
 	)
+
 	sqlDB := sql.OpenDB(pgConn)
+	sqlDB.SetMaxIdleConns(cfg.Postgres.MaxIdleConns)
+	sqlDB.SetMaxOpenConns(cfg.Postgres.MaxOpenConns)
+	sqlDB.SetConnMaxIdleTime(cfg.Postgres.ConnMaxIdleTime)
+	sqlDB.SetConnMaxLifetime(cfg.Postgres.ConnMaxLifetime)
+
 	db := bun.NewDB(sqlDB, pgdialect.New())
 
 	versionController := version.NewController(db)
