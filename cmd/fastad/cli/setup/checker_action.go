@@ -2,44 +2,26 @@ package setup
 
 import (
 	"fmt"
+	"strings"
 
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
+	"gopkg.in/yaml.v3"
 )
 
-type CheckerAction string
+type CheckerAction checkerpb.Action
 
-const (
-	CheckerActionCheck CheckerAction = "check"
-	CheckerActionPut   CheckerAction = "put"
-	CheckerActionGet   CheckerAction = "get"
-)
-
-func (a CheckerAction) String() string {
-	return string(a)
-}
-
-func (a CheckerAction) Validate() error {
-	switch a {
-	case CheckerActionCheck:
-		return nil
-	case CheckerActionPut:
-		return nil
-	case CheckerActionGet:
-		return nil
-	default:
-		return fmt.Errorf("invalid checker action: %s", a)
+func (a *CheckerAction) UnmarshalYAML(value *yaml.Node) error {
+	var s string
+	if err := value.Decode(&s); err != nil {
+		return fmt.Errorf("decoding checker action as string: %w", err)
 	}
-}
 
-func (a CheckerAction) ToProto() checkerpb.Action {
-	switch a {
-	case CheckerActionCheck:
-		return checkerpb.Action_ACTION_CHECK
-	case CheckerActionPut:
-		return checkerpb.Action_ACTION_PUT
-	case CheckerActionGet:
-		return checkerpb.Action_ACTION_GET
-	default:
-		return checkerpb.Action_ACTION_UNSPECIFIED
+	enumName := fmt.Sprintf("ACTION_%s", strings.ToUpper(s))
+	enumValue, ok := checkerpb.Action_value[enumName]
+	if !ok || enumValue == 0 {
+		return fmt.Errorf("unknown checker action: %s", s)
 	}
+
+	*a = CheckerAction(enumValue)
+	return nil
 }
