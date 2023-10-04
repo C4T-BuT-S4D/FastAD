@@ -10,11 +10,11 @@ import (
 type Team struct {
 	bun.BaseModel `bun:"teams,alias:t"`
 
-	ID      int    `bun:"id,pk,autoincrement"`
-	Name    string `bun:"name,notnull,unique"`
-	Address string `bun:"address,notnull"`
-	Token   string `bun:"token,notnull"`
-	Labels  map[string]string
+	ID      int               `bun:"id,pk,autoincrement"`
+	Name    string            `bun:"name,notnull,unique"`
+	Address string            `bun:"address,notnull"`
+	Token   string            `bun:"token,notnull"`
+	Labels  map[string]string `bun:"labels,type:jsonb,notnull"`
 }
 
 func (t *Team) String() string {
