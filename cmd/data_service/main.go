@@ -9,6 +9,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/internal/services/gamestate"
 	"github.com/c4t-but-s4d/fastad/internal/services/services"
@@ -27,18 +28,9 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 )
 
-type Postgres struct {
-	Host      string `mapstructure:"host"`
-	Port      int    `mapstructure:"port"`
-	User      string `mapstructure:"user"`
-	Password  string `mapstructure:"password"`
-	Database  string `mapstructure:"database"`
-	EnableSSL bool   `mapstructure:"enable_ssl"`
-}
-
 type Config struct {
-	ListenAddress string   `mapstructure:"listen_address"`
-	Postgres      Postgres `mapstructure:"postgres"`
+	ListenAddress string          `mapstructure:"listen_address"`
+	Postgres      config.Postgres `mapstructure:"postgres"`
 }
 
 func main() {
@@ -124,17 +116,9 @@ func setupConfig() (*Config, error) {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 
-	viper.SetDefault("listen_address", "127.0.0.1:11337")
+	viper.SetDefault("listen_address", "127.0.0.1:1337")
 
-	viper.SetDefault("postgres.host", "127.0.0.1")
-	viper.SetDefault("postgres.port", 5432)
-	viper.SetDefault("postgres.user", "local")
-	viper.SetDefault("postgres.password", "local")
-	viper.SetDefault("postgres.database", "local")
-
-	viper.SetDefault("redis.host", "127.0.0.1")
-	viper.SetDefault("redis.port", 6379)
-	viper.SetDefault("redis.db", 0)
+	config.SetDefaultPostgresConfig("postgres.")
 
 	logrus.Infof("config: %+v", viper.AllSettings())
 

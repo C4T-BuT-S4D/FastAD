@@ -81,4 +81,4 @@ static_resources:
                   address:
                     socket_address:
                       address: data-service
-                      port_value: 11337
+                      port_value: 1337
