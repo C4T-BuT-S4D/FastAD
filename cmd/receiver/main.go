@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/internal/multiproto"
 	"github.com/c4t-but-s4d/fastad/internal/pinger"
 	"github.com/c4t-but-s4d/fastad/internal/receiver"
@@ -21,7 +22,7 @@ import (
 )
 
 func main() {
-	initLogger()
+	logging.Init()
 
 	logrus.Info("Starting flag receiver")
 
@@ -52,13 +53,4 @@ func main() {
 	if err := httpServer.Shutdown(ctx); err != nil {
 		logrus.Fatalf("Shutting down http server: %v", err)
 	}
-}
-
-func initLogger() {
-	mainFormatter := &logrus.TextFormatter{}
-	mainFormatter.FullTimestamp = true
-	mainFormatter.ForceColors = true
-	mainFormatter.PadLevelText = true
-	mainFormatter.TimestampFormat = "2006-01-02 15:04:05"
-	logrus.SetFormatter(mainFormatter)
 }
