@@ -10,6 +10,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
 	"github.com/c4t-but-s4d/fastad/internal/clients/services"
 	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
+	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
@@ -117,7 +118,9 @@ func setupConfig() (*checkers.Config, error) {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
-	viper.SetDefault("data_service.address", "127.0.0.1:11337")
+	config.SetDefaultTemporalConfig("temporal")
+	config.SetDefaultDataServiceConfig("data_service")
+
 	viper.SetDefault("user_agent", "checkers_worker")
 
 	cfg := new(checkers.Config)
