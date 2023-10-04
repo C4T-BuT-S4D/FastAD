@@ -5,14 +5,14 @@ services:
       dockerfile: docker/data_service/Dockerfile
     environment:
       FASTAD_DATA_SERVICE_DEBUG: 1
-      FASTAD_DATA_SERVICE_LISTEN_ADDRESS: 0.0.0.0:11337
+      FASTAD_DATA_SERVICE_LISTEN_ADDRESS: 0.0.0.0:1337
 
       FASTAD_DATA_SERVICE_POSTGRES_USER: ${POSTGRES_USER:-fastad}
       FASTAD_DATA_SERVICE_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fastad}
       FASTAD_DATA_SERVICE_POSTGRES_DATABASE: ${POSTGRES_DB:-fastad}
       FASTAD_DATA_SERVICE_POSTGRES_HOST: postgres
     ports:
-      - "11337:11337"
+      - "127.0.0.1:1337:1337"
     depends_on:
       postgres:
         condition: service_healthy
