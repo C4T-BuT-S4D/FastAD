@@ -52,20 +52,24 @@ func (t *Ticker) RunOnce(ctx context.Context) {
 }
 
 func (t *Ticker) scheduleTasks(ctx context.Context) error {
-	workflowOptions := client.StartWorkflowOptions{
-		TaskQueue: "checkers",
-	}
-	workflowRun, err := t.temporalClient.ExecuteWorkflow(context.Background(), workflowOptions, "WorkflowDefinition", checkers.WorkflowParameters{
-		GameState: &models.GameState{
-			StartTime: time.Now(),
-			EndTime:   lo.ToPtr(time.Now()),
-
-			FlagLifetimeRounds: 10,
-			RoundDuration:      time.Second * 10,
-
-			RunningRound: 1,
+	workflowRun, err := t.temporalClient.ExecuteWorkflow(
+		context.Background(),
+		client.StartWorkflowOptions{
+			TaskQueue: "checkers",
 		},
-	})
+		"WorkflowDefinition",
+		checkers.WorkflowParameters{
+			GameState: &models.GameState{
+				StartTime: time.Now(),
+				EndTime:   lo.ToPtr(time.Now()),
+
+				FlagLifetimeRounds: 10,
+				RoundDuration:      time.Second * 10,
+
+				RunningRound: 1,
+			},
+		},
+	)
 	if err != nil {
 		return fmt.Errorf("executing workflow: %v", err)
 	}
