@@ -2,34 +2,26 @@ package setup
 
 import (
 	"fmt"
+	"strings"
 
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	"gopkg.in/yaml.v3"
 )
 
-type GameMode string
+type GameMode gspb.GameMode
 
-const (
-	GameModeClassic GameMode = "classic"
-)
-
-func (g GameMode) String() string {
-	return string(g)
-}
-
-func (g GameMode) Validate() error {
-	switch g {
-	case GameModeClassic:
-		return nil
-	default:
-		return fmt.Errorf("invalid game mode: %s", g)
+func (g *GameMode) UnmarshalYAML(value *yaml.Node) error {
+	var s string
+	if err := value.Decode(&s); err != nil {
+		return fmt.Errorf("decoding game mode as string: %w", err)
 	}
-}
 
-func (g GameMode) ToProto() gspb.GameMode {
-	switch g {
-	case GameModeClassic:
-		return gspb.GameMode_GAME_MODE_CLASSIC
-	default:
-		return gspb.GameMode_GAME_MODE_UNSPECIFIED
+	enumName := fmt.Sprintf("GAME_MODE_%s", strings.ToUpper(s))
+	enumValue, ok := gspb.GameMode_value[enumName]
+	if !ok || enumValue == 0 {
+		return fmt.Errorf("unknown game mode: %s", s)
 	}
+
+	*g = GameMode(enumValue)
+	return nil
 }

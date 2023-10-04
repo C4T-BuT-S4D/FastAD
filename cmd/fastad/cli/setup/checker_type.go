@@ -2,34 +2,31 @@ package setup
 
 import (
 	"fmt"
+	"strings"
 
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
+	"gopkg.in/yaml.v3"
 )
 
-type CheckerType string
+type CheckerType checkerpb.Type
 
-const (
-	CheckerTypeLegacy CheckerType = "legacy"
-)
+func (t *CheckerType) UnmarshalYAML(value *yaml.Node) error {
+	var s string
+	if err := value.Decode(&s); err != nil {
+		return fmt.Errorf("decoding checker type as string: %w", err)
+	}
 
-func (a CheckerType) String() string {
-	return string(a)
-}
-
-func (a CheckerType) Validate() error {
-	switch a {
-	case CheckerTypeLegacy:
+	if s == "" {
+		*t = CheckerType(checkerpb.Type_TYPE_LEGACY)
 		return nil
-	default:
-		return fmt.Errorf("invalid checker type: %s", a)
 	}
-}
 
-func (a CheckerType) ToProto() checkerpb.Type {
-	switch a {
-	case CheckerTypeLegacy:
-		return checkerpb.Type_TYPE_LEGACY
-	default:
-		return checkerpb.Type_TYPE_UNSPECIFIED
+	enumName := fmt.Sprintf("TYPE_%s", strings.ToUpper(s))
+	enumValue, ok := checkerpb.Type_value[enumName]
+	if !ok || enumValue == 0 {
+		return fmt.Errorf("unknown checker type: %s", s)
 	}
+
+	*t = CheckerType(enumValue)
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
@@ -30,14 +31,6 @@ func (g *Game) Validate() error {
 	if g.EndTime != nil && g.EndTime.Before(g.StartTime) {
 		return fmt.Errorf("end_time is before start_time")
 	}
-
-	if g.Mode == "" {
-		g.Mode = GameModeClassic
-	}
-	if err := g.Mode.Validate(); err != nil {
-		return fmt.Errorf("mode: %w", err)
-	}
-
 	return nil
 }
 
@@ -49,7 +42,7 @@ func (g *Game) ToUpdateRequestProto() *gspb.UpdateRequest {
 		FlagLifetimeRounds: uint32(g.FlagLifetimeRounds),
 		RoundDuration:      durationpb.New(g.RoundDuration),
 
-		Mode: g.Mode.ToProto(),
+		Mode: gspb.GameMode(g.Mode),
 	}
 
 	if g.EndTime != nil {
@@ -97,26 +90,14 @@ type Checker struct {
 }
 
 func (c *Checker) Validate() error {
-	if c.Type == "" {
-		c.Type = CheckerTypeLegacy
+	if c.Type == CheckerType(checkerpb.Type_TYPE_UNSPECIFIED) {
+		c.Type = CheckerType(checkerpb.Type_TYPE_LEGACY)
 	}
-
-	if err := c.Type.Validate(); err != nil {
-		return fmt.Errorf("type: %w", err)
-	}
-
 	if c.Path == "" {
 		return fmt.Errorf("path required")
 	}
-
 	if c.DefaultTimeout == 0 {
 		return fmt.Errorf("default_timeout required")
-	}
-
-	for action := range c.Actions {
-		if err := action.Validate(); err != nil {
-			return fmt.Errorf("action %s: %w", action, err)
-		}
 	}
 	return nil
 }
@@ -149,14 +130,14 @@ func (s *Service) ToProto() *servicespb.Service {
 		Name:         s.Name,
 		DefaultScore: s.DefaultScore,
 		Checker: &servicespb.Service_Checker{
-			Type:           s.Checker.Type.ToProto(),
+			Type:           checkerpb.Type(s.Checker.Type),
 			Path:           s.Checker.Path,
 			DefaultTimeout: durationpb.New(s.Checker.DefaultTimeout),
 			Actions: lo.MapToSlice(
 				s.Checker.Actions,
 				func(action CheckerAction, actionConfig CheckerActionConfig) *servicespb.Service_Checker_Action {
 					return &servicespb.Service_Checker_Action{
-						Action:   action.ToProto(),
+						Action:   checkerpb.Action(action),
 						RunCount: int32(actionConfig.Count),
 						Timeout:  durationpb.New(actionConfig.Timeout),
 					}
