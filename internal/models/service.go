@@ -29,7 +29,7 @@ type Service struct {
 	DefaultScore float64 `bun:"default_score,notnull"`
 
 	DefaultTimeout time.Duration                             `bun:"default_timeout,notnull"`
-	Actions        map[checkerpb.Action]*ServiceActionConfig `bun:"actions,notnull"`
+	Actions        map[checkerpb.Action]*ServiceActionConfig `bun:"actions,type:jsonb,notnull"`
 
 	// TODO: vulns format.
 	// Places int
