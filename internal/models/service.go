@@ -46,7 +46,7 @@ func (s *Service) CheckerTimeout(action checkerpb.Action) time.Duration {
 	return s.DefaultTimeout
 }
 
-func (s *Service) RunCount(action checkerpb.Action) int {
+func (s *Service) GetRunCount(action checkerpb.Action) int {
 	if cfg, ok := s.Actions[action]; ok {
 		return cfg.RunCount
 	}
