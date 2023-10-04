@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *Service) sanitizeUpdateRequest(req *gspb.UpdateRequest) error {
+func (s *Service) validateUpdateRequest(req *gspb.UpdateRequest) error {
 	if req.StartTime == nil {
 		return status.Error(codes.InvalidArgument, "start_time required")
 	}

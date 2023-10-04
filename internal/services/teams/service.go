@@ -61,8 +61,8 @@ func (s *Service) CreateBatch(ctx context.Context, req *teamspb.CreateBatchReque
 
 	// FIXME: check admin rights.
 
-	if err := s.sanitizeCreateBatchRequest(req); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "invalid request: %v", err)
+	if err := s.validateCreateBatchRequest(req); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating request: %v", err)
 	}
 
 	teams := lo.Map(req.Teams, func(team *teamspb.Team, _ int) *models.Team {
