@@ -3,11 +3,12 @@ package models
 import (
 	"time"
 
-	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
-	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	"github.com/samber/lo"
 	"github.com/uptrace/bun"
 	"google.golang.org/protobuf/types/known/durationpb"
+
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 )
 
 const defaultRunCount = 1

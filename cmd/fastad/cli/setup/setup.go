@@ -4,6 +4,11 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/samber/lo"
+	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
+	"gopkg.in/yaml.v3"
+
 	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/internal/clients/services"
@@ -12,13 +17,9 @@ import (
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
-	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
-	"gopkg.in/yaml.v3"
 )
 
-func NewSetupCommand(*common.CommandContext) *cli.Command {
+func NewSetupCommand(_ *common.CommandContext) *cli.Command {
 	return &cli.Command{
 		Name: "setup",
 		Flags: []cli.Flag{

@@ -3,8 +3,9 @@ package models
 import (
 	"fmt"
 
-	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/uptrace/bun"
+
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
 type Team struct {

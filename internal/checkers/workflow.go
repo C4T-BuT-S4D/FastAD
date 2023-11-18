@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"go.temporal.io/sdk/workflow"
+
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
-	"go.temporal.io/sdk/workflow"
 )
 
 type WorkflowParameters struct {

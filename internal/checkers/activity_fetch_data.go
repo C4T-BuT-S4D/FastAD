@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/sirupsen/logrus"
+
+	"github.com/c4t-but-s4d/fastad/internal/models"
 )
 
 type ActivityFetchDataParameters struct {

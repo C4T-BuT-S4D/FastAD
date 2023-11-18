@@ -5,11 +5,12 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/samber/lo"
+	"github.com/uptrace/bun"
+
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/internal/version"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
-	"github.com/samber/lo"
-	"github.com/uptrace/bun"
 )
 
 const VersionKey = "game_state"

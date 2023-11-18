@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	"gopkg.in/yaml.v3"
+
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 )
 
 type GameMode gspb.GameMode

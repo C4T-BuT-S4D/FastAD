@@ -8,14 +8,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/c4t-but-s4d/fastad/internal/config"
-	"github.com/c4t-but-s4d/fastad/internal/logging"
-	"github.com/c4t-but-s4d/fastad/internal/ticker"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/client"
+
+	"github.com/c4t-but-s4d/fastad/internal/config"
+	"github.com/c4t-but-s4d/fastad/internal/logging"
+	"github.com/c4t-but-s4d/fastad/internal/ticker"
 )
 
 func main() {

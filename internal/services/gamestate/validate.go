@@ -1,9 +1,10 @@
 package gamestate
 
 import (
-	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 )
 
 func (s *Service) validateUpdateRequest(req *gspb.UpdateRequest) error {

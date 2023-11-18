@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/samber/lo"
+	"google.golang.org/protobuf/proto"
+
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
-	"github.com/samber/lo"
-	"google.golang.org/protobuf/proto"
 )
 
 type Client struct {

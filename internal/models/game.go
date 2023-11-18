@@ -3,11 +3,12 @@ package models
 import (
 	"time"
 
-	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	"github.com/samber/lo"
 	"github.com/uptrace/bun"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 )
 
 type GameState struct {

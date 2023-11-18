@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/c4t-but-s4d/fastad/internal/checkers"
-	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 	"go.temporal.io/sdk/client"
+
+	"github.com/c4t-but-s4d/fastad/internal/checkers"
+	"github.com/c4t-but-s4d/fastad/internal/models"
 )
 
 type Ticker struct {

@@ -3,10 +3,10 @@ package receiver
 import (
 	"context"
 
-	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
-
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 )
 
 func New() *Service {

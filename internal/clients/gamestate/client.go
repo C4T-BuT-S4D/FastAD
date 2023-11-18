@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"sync"
 
+	"google.golang.org/protobuf/proto"
+
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
-	"google.golang.org/protobuf/proto"
 )
 
 var ErrStateUnavailable = errors.New("game state is unavailable")

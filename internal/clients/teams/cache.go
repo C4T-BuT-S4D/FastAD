@@ -3,8 +3,9 @@ package teams
 import (
 	"sync"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/samber/lo"
+
+	"github.com/c4t-but-s4d/fastad/internal/models"
 )
 
 type Cache struct {

@@ -1,8 +1,6 @@
 package models
 
-import (
-	"github.com/uptrace/bun"
-)
+import "github.com/uptrace/bun"
 
 type Version struct {
 	bun.BaseModel `bun:"versions,alias:v"`

@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	"gopkg.in/yaml.v3"
+
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
 
 type CheckerType checkerpb.Type
