@@ -1,8 +1,6 @@
 package ticker
 
-import (
-	"github.com/c4t-but-s4d/fastad/internal/config"
-)
+import "github.com/c4t-but-s4d/fastad/internal/config"
 
 type Config struct {
 	Postgres config.Postgres `mapstructure:"postgres"`

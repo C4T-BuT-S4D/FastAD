@@ -7,13 +7,6 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/c4t-but-s4d/fastad/internal/checkers"
-	"github.com/c4t-but-s4d/fastad/internal/clients/services"
-	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
-	"github.com/c4t-but-s4d/fastad/internal/config"
-	"github.com/c4t-but-s4d/fastad/internal/logging"
-	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
-	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -23,6 +16,14 @@ import (
 	"go.temporal.io/sdk/worker"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/c4t-but-s4d/fastad/internal/checkers"
+	"github.com/c4t-but-s4d/fastad/internal/clients/services"
+	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
+	"github.com/c4t-but-s4d/fastad/internal/config"
+	"github.com/c4t-but-s4d/fastad/internal/logging"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
 func main() {

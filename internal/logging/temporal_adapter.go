@@ -3,9 +3,8 @@ package logging
 import (
 	"github.com/sirupsen/logrus"
 	"go.temporal.io/sdk/log"
-	"logur.dev/logur"
-
 	logrusadapter "logur.dev/adapter/logrus"
+	"logur.dev/logur"
 )
 
 func NewTemporalAdapter(logger *logrus.Entry) log.Logger {

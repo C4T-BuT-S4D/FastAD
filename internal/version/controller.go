@@ -6,8 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/uptrace/bun"
+
+	"github.com/c4t-but-s4d/fastad/internal/models"
 )
 
 type Controller struct {

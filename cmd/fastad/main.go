@@ -6,10 +6,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
-	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/setup"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+
+	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
+	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/setup"
 )
 
 func main() {

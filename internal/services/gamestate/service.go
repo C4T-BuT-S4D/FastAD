@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/c4t-but-s4d/fastad/internal/version"
-	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/c4t-but-s4d/fastad/internal/version"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 )
 
 type Service struct {

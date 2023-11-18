@@ -3,14 +3,15 @@ package teams
 import (
 	"context"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
-	"github.com/c4t-but-s4d/fastad/internal/version"
-	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	"github.com/google/uuid"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/c4t-but-s4d/fastad/internal/models"
+	"github.com/c4t-but-s4d/fastad/internal/version"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
 type Service struct {

@@ -3,8 +3,9 @@ package checkers
 import (
 	"context"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/sirupsen/logrus"
+
+	"github.com/c4t-but-s4d/fastad/internal/models"
 )
 
 type LastActivityParameters struct {

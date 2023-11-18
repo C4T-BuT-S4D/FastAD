@@ -5,9 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/uptrace/bun"
+
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/internal/version"
-	"github.com/uptrace/bun"
 )
 
 const VersionKey = "teams"

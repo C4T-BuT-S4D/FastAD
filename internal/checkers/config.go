@@ -1,8 +1,6 @@
 package checkers
 
-import (
-	"github.com/c4t-but-s4d/fastad/internal/config"
-)
+import "github.com/c4t-but-s4d/fastad/internal/config"
 
 type DataService struct {
 	Address string `mapstructure:"address"`

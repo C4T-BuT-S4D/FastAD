@@ -9,16 +9,16 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/internal/multiproto"
 	"github.com/c4t-but-s4d/fastad/internal/pinger"
 	"github.com/c4t-but-s4d/fastad/internal/receiver"
 	pingerpb "github.com/c4t-but-s4d/fastad/pkg/proto/pinger"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
-
-	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func main() {

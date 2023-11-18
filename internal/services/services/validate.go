@@ -1,10 +1,11 @@
 package services
 
 import (
-	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
-	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 )
 
 func (s *Service) validateCreateBatch(req *servicespb.CreateBatchRequest) error {

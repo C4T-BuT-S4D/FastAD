@@ -3,9 +3,10 @@ package checkers
 import (
 	"context"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
-	"github.com/sirupsen/logrus"
 )
 
 type CheckActivityParameters struct {

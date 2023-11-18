@@ -3,13 +3,14 @@ package services
 import (
 	"context"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
-	"github.com/c4t-but-s4d/fastad/internal/version"
-	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/c4t-but-s4d/fastad/internal/models"
+	"github.com/c4t-but-s4d/fastad/internal/version"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 )
 
 type Service struct {

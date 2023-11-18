@@ -10,6 +10,10 @@ lint-go:
 lint-front:
 	cd front && yarn lint
 
+.PHONY: goimports
+goimports:
+	gofancyimports fix --local github.com/c4t-but-s4d/fastad -w $(shell find . -type f -name '*.go' -not -path "./pkg/proto/*")
+
 .PHONY: proto
 proto: lint-proto
 	cd proto && buf generate && buf build --as-file-descriptor-set -o descriptor.pb

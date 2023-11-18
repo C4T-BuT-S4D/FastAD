@@ -1,8 +1,9 @@
 package models
 
 import (
-	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	"github.com/uptrace/bun"
+
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
 
 type CheckerExecution struct {
