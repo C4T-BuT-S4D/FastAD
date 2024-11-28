@@ -81,7 +81,7 @@ func runCheckers(ctx workflow.Context, team *models.Team, service *models.Servic
 	if checkResult.Verdict.IsUp() {
 		getResultsChan := workflow.NewBufferedChannel(ctx, 3)
 
-		for i := 0; i < getCount; i++ {
+		for range getCount {
 			workflow.Go(getActivityCtx, func(ctx workflow.Context) {
 				var getResult *GetActivityResult
 				if err := workflow.ExecuteActivity(
@@ -106,7 +106,7 @@ func runCheckers(ctx workflow.Context, team *models.Team, service *models.Servic
 			})
 		}
 
-		for i := 0; i < getCount; i++ {
+		for range getCount {
 			var getResult *GetActivityResult
 			getResultsChan.Receive(ctx, &getResult)
 			getResults = append(getResults, getResult)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -31,7 +30,7 @@ func (s *Service) Get(ctx context.Context, req *gspb.GetRequest) (*gspb.GetRespo
 		return nil, status.Errorf(codes.Internal, "getting version: %v", err)
 	}
 
-	requestedVersion := req.GetVersion().GetVersion()
+	requestedVersion := int(req.GetVersion().GetVersion())
 	if requestedVersion > gotVersion {
 		return nil, status.Errorf(codes.FailedPrecondition, "requested version is greater than current")
 	}
@@ -66,7 +65,7 @@ func (s *Service) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.Up
 
 	return &gspb.UpdateResponse{
 		GameState: gs.ToProto(),
-		Version:   &versionpb.Version{Version: newVersion},
+		Version:   version.NewVersionProto(newVersion),
 	}, nil
 }
 
@@ -86,6 +85,6 @@ func (s *Service) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest)
 
 	return &gspb.UpdateRoundResponse{
 		GameState: gs.ToProto(),
-		Version:   &versionpb.Version{Version: newVersion},
+		Version:   version.NewVersionProto(newVersion),
 	}, nil
 }

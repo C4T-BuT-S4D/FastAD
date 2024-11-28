@@ -19,7 +19,7 @@ func NewController(db *bun.DB) *Controller {
 	return &Controller{db: db}
 }
 
-func (c *Controller) Get(ctx context.Context, name string) (int32, error) {
+func (c *Controller) Get(ctx context.Context, name string) (int, error) {
 	var v models.Version
 	err := c.db.
 		NewSelect().
@@ -35,7 +35,7 @@ func (c *Controller) Get(ctx context.Context, name string) (int32, error) {
 	return v.Version, nil
 }
 
-func (c *Controller) Increment(ctx context.Context, tx bun.Tx, name string) (int32, error) {
+func (c *Controller) Increment(ctx context.Context, tx bun.Tx, name string) (int, error) {
 	v := &models.Version{
 		Name:    name,
 		Version: 1,

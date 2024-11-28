@@ -60,11 +60,11 @@ func (t *Scheduler) scheduleTasks(ctx context.Context) error {
 		checkers.WorkflowParameters{},
 	)
 	if err != nil {
-		return fmt.Errorf("executing workflow: %v", err)
+		return fmt.Errorf("executing workflow: %w", err)
 	}
 
 	if err := workflowRun.Get(ctx, nil); err != nil {
-		return fmt.Errorf("waiting for workflow: %v", err)
+		return fmt.Errorf("waiting for workflow: %w", err)
 	}
 
 	return nil

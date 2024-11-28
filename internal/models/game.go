@@ -18,29 +18,29 @@ type GameState struct {
 
 	StartTime   time.Time  `bun:"start_time,notnull"`
 	EndTime     *time.Time `bun:"end_time"`
-	TotalRounds uint       `bun:"total_rounds"`
+	TotalRounds uint64     `bun:"total_rounds"`
 
 	Paused bool `bun:"paused"`
 
-	FlagLifetimeRounds uint          `bun:"flag_lifetime_rounds,notnull"`
+	FlagLifetimeRounds uint64        `bun:"flag_lifetime_rounds,notnull"`
 	RoundDuration      time.Duration `bun:"round_duration,notnull"`
 
 	// TODO: game_mode.
 
-	RunningRound      uint      `bun:"running_round"`
+	RunningRound      uint64    `bun:"running_round"`
 	RunningRoundStart time.Time `bun:"running_round_start"`
 }
 
 func (gs *GameState) ToProto() *gspb.GameState {
 	res := &gspb.GameState{
 		StartTime:   timestamppb.New(gs.StartTime),
-		TotalRounds: uint32(gs.TotalRounds),
+		TotalRounds: gs.TotalRounds,
 		Paused:      gs.Paused,
 
-		FlagLifetimeRounds: uint32(gs.FlagLifetimeRounds),
+		FlagLifetimeRounds: gs.FlagLifetimeRounds,
 		RoundDuration:      durationpb.New(gs.RoundDuration),
 
-		RunningRound:      uint32(gs.RunningRound),
+		RunningRound:      gs.RunningRound,
 		RunningRoundStart: timestamppb.New(gs.RunningRoundStart),
 	}
 	if gs.EndTime != nil {
@@ -52,13 +52,13 @@ func (gs *GameState) ToProto() *gspb.GameState {
 func NewGameStateFromProto(p *gspb.GameState) *GameState {
 	res := &GameState{
 		StartTime:   p.StartTime.AsTime(),
-		TotalRounds: uint(p.TotalRounds),
+		TotalRounds: p.TotalRounds,
 		Paused:      p.Paused,
 
-		FlagLifetimeRounds: uint(p.FlagLifetimeRounds),
+		FlagLifetimeRounds: p.FlagLifetimeRounds,
 		RoundDuration:      p.RoundDuration.AsDuration(),
 
-		RunningRound:      uint(p.RunningRound),
+		RunningRound:      p.RunningRound,
 		RunningRoundStart: p.RunningRoundStart.AsTime(),
 	}
 	if p.EndTime != nil {

@@ -12,7 +12,7 @@ const (
 	ActivityGetName       = "ActivityGet"
 	ActivityLastName      = "ActivityLast"
 
-	// Round-related activities
+	// Round-related activities.
 
 	// ActivityPrepareRoundStateName is an activity name for preparing round state.
 	ActivityPrepareRoundStateName = "ActivityPrepareRoundState"

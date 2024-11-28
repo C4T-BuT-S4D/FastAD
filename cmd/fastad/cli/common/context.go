@@ -1,4 +1,3 @@
 package common
 
-type CommandContext struct {
-}
+type CommandContext struct{}

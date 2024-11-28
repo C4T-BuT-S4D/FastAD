@@ -56,7 +56,7 @@ func (s *Service) GetRunCount(action checkerpb.Action) int {
 
 func (s *Service) ToProto() *servicespb.Service {
 	return &servicespb.Service{
-		Id:   int32(s.ID),
+		Id:   int64(s.ID),
 		Name: s.Name,
 		Checker: &servicespb.Service_Checker{
 			Type:           s.CheckerType,
@@ -65,7 +65,7 @@ func (s *Service) ToProto() *servicespb.Service {
 			Actions: lo.MapToSlice(s.Actions, func(action checkerpb.Action, actionConfig *ServiceActionConfig) *servicespb.Service_Checker_Action {
 				return &servicespb.Service_Checker_Action{
 					Action:   action,
-					RunCount: int32(actionConfig.RunCount),
+					RunCount: int64(actionConfig.RunCount),
 					Timeout:  durationpb.New(actionConfig.Timeout),
 				}
 			}),
