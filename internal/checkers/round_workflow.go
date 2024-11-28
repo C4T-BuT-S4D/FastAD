@@ -10,7 +10,7 @@ import (
 
 type RoundWorkflowParameters struct{}
 
-func RoundWorkflowDefinition(ctx workflow.Context, params RoundWorkflowParameters) error {
+func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) error {
 	logger := workflow.GetLogger(ctx)
 	logger.Info("starting workflow")
 
@@ -91,10 +91,9 @@ func RoundWorkflowDefinition(ctx workflow.Context, params RoundWorkflowParameter
 
 			putResultsChan.Send(ctx, putResult)
 		})
-
 	}
 
-	var putResults []*PutActivityResult
+	putResults := make([]*PutActivityResult, 0, putsCount)
 	for range putsCount {
 		var putResult *PutActivityResult
 		putResultsChan.Receive(ctx, &putResult)
