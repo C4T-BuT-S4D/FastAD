@@ -16,7 +16,7 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
-	"github.com/c4t-but-s4d/fastad/internal/ticker"
+	"github.com/c4t-but-s4d/fastad/internal/scheduler"
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 		HostPort: cfg.Temporal.Address,
 		Logger: logging.NewTemporalAdapter(
 			logrus.WithFields(logrus.Fields{
-				"component": "ticker",
+				"component": "scheduler",
 			}),
 		),
 	})
@@ -40,7 +40,7 @@ func main() {
 	}
 	defer temporalClient.Close()
 
-	t := ticker.NewTicker(time.Second*10, temporalClient)
+	t := scheduler.New(time.Second*10, temporalClient)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
@@ -48,7 +48,7 @@ func main() {
 	t.Run(ctx)
 }
 
-func setupConfig() (*ticker.Config, error) {
+func setupConfig() (*scheduler.Config, error) {
 	pflag.BoolP("debug", "v", false, "Enable verbose logging")
 	pflag.Parse()
 
@@ -63,7 +63,7 @@ func setupConfig() (*ticker.Config, error) {
 	config.SetDefaultPostgresConfig("postgres")
 	config.SetDefaultTemporalConfig("temporal")
 
-	cfg := new(ticker.Config)
+	cfg := new(scheduler.Config)
 	if err := viper.Unmarshal(
 		cfg,
 		viper.DecodeHook(

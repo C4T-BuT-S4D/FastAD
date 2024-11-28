@@ -11,4 +11,5 @@ type Config struct {
 
 	DataService DataService     `mapstructure:"data_service"`
 	Temporal    config.Temporal `mapstructure:"temporal"`
+	Postgres    config.Postgres `mapstructure:"postgres"`
 }

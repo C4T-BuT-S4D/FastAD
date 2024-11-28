@@ -37,7 +37,7 @@ func (c *Controller) Get(ctx context.Context) (*models.GameState, error) {
 	return &gs, nil
 }
 
-func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*models.GameState, error) {
+func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*models.GameState, int32, error) {
 	gs := &models.GameState{
 		ID:                 1,
 		StartTime:          req.StartTime.AsTime(),
@@ -51,6 +51,7 @@ func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*mode
 		gs.EndTime = lo.ToPtr(req.EndTime.AsTime())
 	}
 
+	var newVersion int32
 	if err := c.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		if err := c.db.
 			NewInsert().
@@ -66,15 +67,50 @@ func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*mode
 			Scan(ctx); err != nil {
 			return fmt.Errorf("inserting game state: %w", err)
 		}
-		if _, err := c.Versions.Increment(ctx, tx, VersionKey); err != nil {
+
+		var err error
+		if newVersion, err = c.Versions.Increment(ctx, tx, VersionKey); err != nil {
 			return fmt.Errorf("incrementing version: %w", err)
 		}
 		return nil
 	}); err != nil {
-		return nil, fmt.Errorf("in transaction: %w", err)
+		return nil, 0, fmt.Errorf("in transaction: %w", err)
 	}
 
-	return gs, nil
+	return gs, newVersion, nil
+}
+
+func (c *Controller) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*models.GameState, int32, error) {
+
+	gs := &models.GameState{
+		ID:                1,
+		RunningRound:      uint(req.RunningRound),
+		RunningRoundStart: req.RunningRoundStart.AsTime(),
+	}
+
+	var newVersion int32
+	if err := c.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		if err := c.db.
+			NewInsert().
+			Model(gs).
+			On("CONFLICT (id) DO UPDATE").
+			Set("running_round = EXCLUDED.running_round").
+			Set("running_round_start = EXCLUDED.running_round_start").
+			Returning("*").
+			Scan(ctx); err != nil {
+			return fmt.Errorf("updating game state: %w", err)
+		}
+
+		var err error
+		if newVersion, err = c.Versions.Increment(ctx, tx, VersionKey); err != nil {
+			return fmt.Errorf("incrementing version: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return nil, 0, fmt.Errorf("in transaction: %w", err)
+	}
+
+	return gs, newVersion, nil
 }
 
 func (c *Controller) Migrate(ctx context.Context) error {

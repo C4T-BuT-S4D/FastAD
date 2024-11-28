@@ -23,10 +23,11 @@ type Postgres struct {
 
 func SetDefaultPostgresConfig(prefix string) {
 	viper.SetDefault(fmt.Sprintf("%s.host", prefix), "127.0.0.1")
-	viper.SetDefault(fmt.Sprintf("%s.port", prefix), 5432)
-	viper.SetDefault(fmt.Sprintf("%s.user", prefix), "local")
-	viper.SetDefault(fmt.Sprintf("%s.password", prefix), "local")
-	viper.SetDefault(fmt.Sprintf("%s.database", prefix), "local")
+	viper.SetDefault(fmt.Sprintf("%s.port", prefix), 5433)
+	viper.SetDefault(fmt.Sprintf("%s.user", prefix), "fastad")
+	viper.SetDefault(fmt.Sprintf("%s.password", prefix), "fastad")
+	viper.SetDefault(fmt.Sprintf("%s.database", prefix), "fastad")
+	viper.SetDefault(fmt.Sprintf("%s.enable_ssl", prefix), false)
 
 	viper.SetDefault(fmt.Sprintf("%s.max_idle_conns", prefix), 10)
 	viper.SetDefault(fmt.Sprintf("%s.max_open_conns", prefix), 10)

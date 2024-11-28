@@ -9,19 +9,24 @@ import (
 	"github.com/c4t-but-s4d/fastad/internal/models"
 )
 
-type ActivityFetchDataParameters struct {
-	GameState *models.GameState
-}
+type ActivityFetchDataParameters struct{}
 
 type ActivityFetchDataResult struct {
-	Teams    []*models.Team
-	Services []*models.Service
+	GameState *models.GameState
+	Teams     []*models.Team
+	Services  []*models.Service
 }
 
 func (s *ActivityState) ActivityFetchDataDefinition(
 	ctx context.Context,
 	_ *ActivityFetchDataParameters,
 ) (*ActivityFetchDataResult, error) {
+	gs, err := s.gameStateClient.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting game state: %w", err)
+	}
+	logrus.Infof("fetched game state: %v", gs)
+
 	teams, err := s.teamsClient.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting teams: %w", err)
@@ -35,7 +40,8 @@ func (s *ActivityState) ActivityFetchDataDefinition(
 	logrus.Infof("fetched services: %v", services)
 
 	return &ActivityFetchDataResult{
-		Teams:    teams,
-		Services: services,
+		GameState: gs,
+		Teams:     teams,
+		Services:  services,
 	}, nil
 }

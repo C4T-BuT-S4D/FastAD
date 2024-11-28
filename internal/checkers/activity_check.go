@@ -16,7 +16,7 @@ type CheckActivityParameters struct {
 }
 
 type CheckActivityResult struct {
-	Verdict *models.CheckerVerdict
+	Verdict *Verdict
 }
 
 func (s *ActivityState) CheckActivityDefinition(ctx context.Context, params *CheckActivityParameters) (*CheckActivityResult, error) {

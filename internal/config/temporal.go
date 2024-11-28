@@ -11,5 +11,5 @@ type Temporal struct {
 }
 
 func SetDefaultTemporalConfig(prefix string) {
-	viper.SetDefault(fmt.Sprintf("%s.address", prefix), "temporal-server:7233")
+	viper.SetDefault(fmt.Sprintf("%s.address", prefix), "127.0.0.1:7233")
 }

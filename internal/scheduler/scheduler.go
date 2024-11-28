@@ -1,33 +1,31 @@
-package ticker
+package scheduler
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 	"go.temporal.io/sdk/client"
 
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
-	"github.com/c4t-but-s4d/fastad/internal/models"
 )
 
-type Ticker struct {
+type Scheduler struct {
 	checkInterval time.Duration
 
 	temporalClient client.Client
 }
 
-func NewTicker(checkInterval time.Duration, temporalClient client.Client) *Ticker {
-	return &Ticker{
+func New(checkInterval time.Duration, temporalClient client.Client) *Scheduler {
+	return &Scheduler{
 		checkInterval: checkInterval,
 
 		temporalClient: temporalClient,
 	}
 }
 
-func (t *Ticker) Run(ctx context.Context) {
+func (t *Scheduler) Run(ctx context.Context) {
 	t.RunOnce(ctx)
 
 	ticker := time.NewTicker(t.checkInterval)
@@ -42,7 +40,7 @@ func (t *Ticker) Run(ctx context.Context) {
 	}
 }
 
-func (t *Ticker) RunOnce(ctx context.Context) {
+func (t *Scheduler) RunOnce(ctx context.Context) {
 	// TODO: check interval/game mode/etc changed.
 
 	if err := t.scheduleTasks(ctx); err != nil {
@@ -52,24 +50,14 @@ func (t *Ticker) RunOnce(ctx context.Context) {
 	}
 }
 
-func (t *Ticker) scheduleTasks(ctx context.Context) error {
+func (t *Scheduler) scheduleTasks(ctx context.Context) error {
 	workflowRun, err := t.temporalClient.ExecuteWorkflow(
 		context.Background(),
 		client.StartWorkflowOptions{
 			TaskQueue: "checkers",
 		},
-		"WorkflowDefinition",
-		checkers.WorkflowParameters{
-			GameState: &models.GameState{
-				StartTime: time.Now(),
-				EndTime:   lo.ToPtr(time.Now()),
-
-				FlagLifetimeRounds: 10,
-				RoundDuration:      time.Second * 10,
-
-				RunningRound: 1,
-			},
-		},
+		"RoundWorkflowDefinition",
+		checkers.WorkflowParameters{},
 	)
 	if err != nil {
 		return fmt.Errorf("executing workflow: %v", err)
