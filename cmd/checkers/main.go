@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
+	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	"github.com/creasty/defaults"
 	"github.com/mitchellh/mapstructure"
@@ -69,10 +70,10 @@ func main() {
 	db := bun.NewDB(sqlDB, pgdialect.New())
 	logging.AddBunQueryHook(db)
 
-	dataServiceConn, err := grpc.NewClient(
+	dataServiceConn, err := grpctools.Dial(
 		cfg.DataService.Address,
+		cfg.UserAgent,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUserAgent(cfg.UserAgent),
 	)
 	if err != nil {
 		logrus.WithError(err).Fatal("unable to connect to data service")

@@ -17,7 +17,7 @@ func Dial(address, userAgent string, opts ...grpc.DialOption) (*grpc.ClientConn,
 			grpc.UseCompressor(gzip.Name),
 		),
 	)
-	conn, err := grpc.Dial(address, opts...)
+	conn, err := grpc.NewClient(address, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("dialing %s: %w", address, err)
 	}

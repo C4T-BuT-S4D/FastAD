@@ -81,7 +81,6 @@ func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*mode
 }
 
 func (c *Controller) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*models.GameState, int32, error) {
-
 	gs := &models.GameState{
 		ID:                1,
 		RunningRound:      uint(req.RunningRound),
