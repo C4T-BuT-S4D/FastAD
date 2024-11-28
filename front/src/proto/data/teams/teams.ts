@@ -5,13 +5,13 @@
 // source: data/teams/teams.proto
 
 /* eslint-disable */
-import {BinaryReader, BinaryWriter} from "@bufbuild/protobuf/wire";
-import {Version} from "../version/version";
+import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
+import { Version } from "../version/version";
 
 export const protobufPackage = "data.teams";
 
 export interface Team {
-    id: bigint;
+  id: bigint;
   name: string;
   address: string;
   token: string;
@@ -41,16 +41,16 @@ export interface CreateBatchResponse {
 }
 
 function createBaseTeam(): Team {
-    return {id: 0n, name: "", address: "", token: "", labels: {}};
+  return { id: 0n, name: "", address: "", token: "", labels: {} };
 }
 
 export const Team: MessageFns<Team> = {
   encode(message: Team, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-      if (message.id !== 0n) {
-          if (BigInt.asIntN(64, message.id) !== message.id) {
-              throw new globalThis.Error("value provided for field message.id of type int64 too large");
-          }
-          writer.uint32(8).int64(message.id);
+    if (message.id !== 0n) {
+      if (BigInt.asIntN(64, message.id) !== message.id) {
+        throw new globalThis.Error("value provided for field message.id of type int64 too large");
+      }
+      writer.uint32(8).int64(message.id);
     }
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
@@ -79,7 +79,7 @@ export const Team: MessageFns<Team> = {
             break;
           }
 
-            message.id = reader.int64() as bigint;
+          message.id = reader.int64() as bigint;
           continue;
         }
         case 2: {
@@ -158,7 +158,7 @@ export const Team: MessageFns<Team> = {
 
   fromJSON(object: any): Team {
     return {
-        id: isSet(object.id) ? BigInt(object.id) : 0n,
+      id: isSet(object.id) ? BigInt(object.id) : 0n,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       address: isSet(object.address) ? globalThis.String(object.address) : "",
       token: isSet(object.token) ? globalThis.String(object.token) : "",
@@ -173,8 +173,8 @@ export const Team: MessageFns<Team> = {
 
   toJSON(message: Team): unknown {
     const obj: any = {};
-      if (message.id !== 0n) {
-          obj.id = message.id.toString();
+    if (message.id !== 0n) {
+      obj.id = message.id.toString();
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -202,7 +202,7 @@ export const Team: MessageFns<Team> = {
   },
   fromPartial<I extends Exact<DeepPartial<Team>, I>>(object: I): Team {
     const message = createBaseTeam();
-      message.id = object.id ?? 0n;
+    message.id = object.id ?? 0n;
     message.name = object.name ?? "";
     message.address = object.address ?? "";
     message.token = object.token ?? "";
