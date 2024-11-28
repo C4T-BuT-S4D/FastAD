@@ -8,13 +8,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/creasty/defaults"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"go.temporal.io/sdk/client"
 
-	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/internal/scheduler"
 )
@@ -52,19 +52,20 @@ func setupConfig() (*scheduler.Config, error) {
 	pflag.BoolP("debug", "v", false, "Enable verbose logging")
 	pflag.Parse()
 
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+	v := viper.NewWithOptions(viper.ExperimentalBindStruct())
+
+	if err := v.BindPFlags(pflag.CommandLine); err != nil {
 		return nil, fmt.Errorf("binding pflags: %w", err)
 	}
 
-	viper.SetEnvPrefix("FASTAD_TICKER")
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-
-	config.SetDefaultPostgresConfig("postgres")
-	config.SetDefaultTemporalConfig("temporal")
+	v.SetEnvPrefix("FASTAD_TICKER")
+	v.AutomaticEnv()
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
 	cfg := new(scheduler.Config)
-	if err := viper.Unmarshal(
+	defaults.MustSet(cfg)
+
+	if err := v.Unmarshal(
 		cfg,
 		viper.DecodeHook(
 			mapstructure.ComposeDecodeHookFunc(

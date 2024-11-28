@@ -19,6 +19,7 @@ import (
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
+	"github.com/creasty/defaults"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -29,7 +30,7 @@ import (
 )
 
 type Config struct {
-	ListenAddress string          `mapstructure:"listen_address"`
+	ListenAddress string          `mapstructure:"listen_address" default:"127.0.0.1:1337"`
 	Postgres      config.Postgres `mapstructure:"postgres"`
 }
 
@@ -116,19 +117,20 @@ func main() {
 func setupConfig() (*Config, error) {
 	pflag.BoolP("debug", "v", false, "Enable verbose logging")
 	pflag.Parse()
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+
+	v := viper.NewWithOptions(viper.ExperimentalBindStruct())
+
+	if err := v.BindPFlags(pflag.CommandLine); err != nil {
 		return nil, fmt.Errorf("binding pflags: %w", err)
 	}
-	viper.SetEnvPrefix("FASTAD_DATA_SERVICE")
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
-
-	viper.SetDefault("listen_address", "127.0.0.1:1337")
-
-	config.SetDefaultPostgresConfig("postgres")
+	v.SetEnvPrefix("FASTAD_DATA_SERVICE")
+	v.AutomaticEnv()
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 
 	cfg := new(Config)
-	if err := viper.Unmarshal(
+	defaults.MustSet(cfg)
+
+	if err := v.Unmarshal(
 		cfg,
 		viper.DecodeHook(
 			mapstructure.ComposeDecodeHookFunc(
