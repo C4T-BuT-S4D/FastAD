@@ -33,12 +33,12 @@ func NewActivityState(
 	teamsClient *teams.Client,
 	servicesClient *services.Client,
 	gameStateClient *gamestate.Client,
-	checkersCntroller *Controller,
+	checkersController *Controller,
 ) *ActivityState {
 	return &ActivityState{
 		teamsClient:        teamsClient,
 		servicesClient:     servicesClient,
 		gameStateClient:    gameStateClient,
-		checkersController: checkersCntroller,
+		checkersController: checkersController,
 	}
 }

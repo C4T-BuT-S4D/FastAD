@@ -5,15 +5,15 @@
 // source: data/services/services.proto
 
 /* eslint-disable */
-import {BinaryReader, BinaryWriter} from "@bufbuild/protobuf/wire";
-import {Action, actionFromJSON, actionToJSON, Type, typeFromJSON, typeToJSON} from "../../checker/checker";
-import {Duration} from "../../google/protobuf/duration";
-import {Version} from "../version/version";
+import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
+import { Action, actionFromJSON, actionToJSON, Type, typeFromJSON, typeToJSON } from "../../checker/checker";
+import { Duration } from "../../google/protobuf/duration";
+import { Version } from "../version/version";
 
 export const protobufPackage = "data.services";
 
 export interface Service {
-    id: bigint;
+  id: bigint;
   name: string;
   checker: Service_Checker | undefined;
   defaultScore: number;
@@ -29,7 +29,7 @@ export interface Service_Checker {
 export interface Service_Checker_Action {
   action: Action;
   timeout: Duration | undefined;
-    runCount: bigint;
+  runCount: bigint;
 }
 
 export interface ListRequest {
@@ -50,16 +50,16 @@ export interface CreateBatchResponse {
 }
 
 function createBaseService(): Service {
-    return {id: 0n, name: "", checker: undefined, defaultScore: 0};
+  return { id: 0n, name: "", checker: undefined, defaultScore: 0 };
 }
 
 export const Service: MessageFns<Service> = {
   encode(message: Service, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-      if (message.id !== 0n) {
-          if (BigInt.asIntN(64, message.id) !== message.id) {
-              throw new globalThis.Error("value provided for field message.id of type int64 too large");
-          }
-          writer.uint32(8).int64(message.id);
+    if (message.id !== 0n) {
+      if (BigInt.asIntN(64, message.id) !== message.id) {
+        throw new globalThis.Error("value provided for field message.id of type int64 too large");
+      }
+      writer.uint32(8).int64(message.id);
     }
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
@@ -85,7 +85,7 @@ export const Service: MessageFns<Service> = {
             break;
           }
 
-            message.id = reader.int64() as bigint;
+          message.id = reader.int64() as bigint;
           continue;
         }
         case 2: {
@@ -155,7 +155,7 @@ export const Service: MessageFns<Service> = {
 
   fromJSON(object: any): Service {
     return {
-        id: isSet(object.id) ? BigInt(object.id) : 0n,
+      id: isSet(object.id) ? BigInt(object.id) : 0n,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       checker: isSet(object.checker) ? Service_Checker.fromJSON(object.checker) : undefined,
       defaultScore: isSet(object.defaultScore) ? globalThis.Number(object.defaultScore) : 0,
@@ -164,8 +164,8 @@ export const Service: MessageFns<Service> = {
 
   toJSON(message: Service): unknown {
     const obj: any = {};
-      if (message.id !== 0n) {
-          obj.id = message.id.toString();
+    if (message.id !== 0n) {
+      obj.id = message.id.toString();
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -184,7 +184,7 @@ export const Service: MessageFns<Service> = {
   },
   fromPartial<I extends Exact<DeepPartial<Service>, I>>(object: I): Service {
     const message = createBaseService();
-      message.id = object.id ?? 0n;
+    message.id = object.id ?? 0n;
     message.name = object.name ?? "";
     message.checker = (object.checker !== undefined && object.checker !== null)
       ? Service_Checker.fromPartial(object.checker)
@@ -339,7 +339,7 @@ export const Service_Checker: MessageFns<Service_Checker> = {
 };
 
 function createBaseService_Checker_Action(): Service_Checker_Action {
-    return {action: 0, timeout: undefined, runCount: 0n};
+  return { action: 0, timeout: undefined, runCount: 0n };
 }
 
 export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
@@ -350,11 +350,11 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
     if (message.timeout !== undefined) {
       Duration.encode(message.timeout, writer.uint32(18).fork()).join();
     }
-      if (message.runCount !== 0n) {
-          if (BigInt.asIntN(64, message.runCount) !== message.runCount) {
-              throw new globalThis.Error("value provided for field message.runCount of type int64 too large");
-          }
-          writer.uint32(24).int64(message.runCount);
+    if (message.runCount !== 0n) {
+      if (BigInt.asIntN(64, message.runCount) !== message.runCount) {
+        throw new globalThis.Error("value provided for field message.runCount of type int64 too large");
+      }
+      writer.uint32(24).int64(message.runCount);
     }
     return writer;
   },
@@ -387,7 +387,7 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
             break;
           }
 
-            message.runCount = reader.int64() as bigint;
+          message.runCount = reader.int64() as bigint;
           continue;
         }
       }
@@ -437,7 +437,7 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
     return {
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
       timeout: isSet(object.timeout) ? Duration.fromJSON(object.timeout) : undefined,
-        runCount: isSet(object.runCount) ? BigInt(object.runCount) : 0n,
+      runCount: isSet(object.runCount) ? BigInt(object.runCount) : 0n,
     };
   },
 
@@ -449,8 +449,8 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
     if (message.timeout !== undefined) {
       obj.timeout = Duration.toJSON(message.timeout);
     }
-      if (message.runCount !== 0n) {
-          obj.runCount = message.runCount.toString();
+    if (message.runCount !== 0n) {
+      obj.runCount = message.runCount.toString();
     }
     return obj;
   },
@@ -464,7 +464,7 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
     message.timeout = (object.timeout !== undefined && object.timeout !== null)
       ? Duration.fromPartial(object.timeout)
       : undefined;
-      message.runCount = object.runCount ?? 0n;
+    message.runCount = object.runCount ?? 0n;
     return message;
   },
 };
