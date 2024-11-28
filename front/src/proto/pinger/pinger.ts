@@ -20,12 +20,12 @@ function createBasePingRequest(): PingRequest {
 }
 
 export const PingRequest: MessageFns<PingRequest> = {
-    encode(_: PingRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(_: PingRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): PingRequest {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): PingRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePingRequest();
     while (reader.pos < end) {
@@ -35,7 +35,7 @@ export const PingRequest: MessageFns<PingRequest> = {
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -46,12 +46,12 @@ export const PingRequest: MessageFns<PingRequest> = {
     source: AsyncIterable<PingRequest | PingRequest[]> | Iterable<PingRequest | PingRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [PingRequest.encode(p).finish()];
         }
       } else {
-            yield* [PingRequest.encode(pkt as any).finish()];
+        yield* [PingRequest.encode(pkt as any).finish()];
       }
     }
   },
@@ -62,12 +62,12 @@ export const PingRequest: MessageFns<PingRequest> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<PingRequest> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [PingRequest.decode(p)];
         }
       } else {
-            yield* [PingRequest.decode(pkt as any)];
+        yield* [PingRequest.decode(pkt as any)];
       }
     }
   },
@@ -95,12 +95,12 @@ function createBasePingResponse(): PingResponse {
 }
 
 export const PingResponse: MessageFns<PingResponse> = {
-    encode(_: PingResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(_: PingResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): PingResponse {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): PingResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePingResponse();
     while (reader.pos < end) {
@@ -110,7 +110,7 @@ export const PingResponse: MessageFns<PingResponse> = {
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -121,12 +121,12 @@ export const PingResponse: MessageFns<PingResponse> = {
     source: AsyncIterable<PingResponse | PingResponse[]> | Iterable<PingResponse | PingResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [PingResponse.encode(p).finish()];
         }
       } else {
-            yield* [PingResponse.encode(pkt as any).finish()];
+        yield* [PingResponse.encode(pkt as any).finish()];
       }
     }
   },
@@ -137,12 +137,12 @@ export const PingResponse: MessageFns<PingResponse> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<PingResponse> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [PingResponse.decode(p)];
         }
       } else {
-            yield* [PingResponse.decode(pkt as any)];
+        yield* [PingResponse.decode(pkt as any)];
       }
     }
   },
@@ -168,8 +168,8 @@ export const PingResponse: MessageFns<PingResponse> = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-    : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-        : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
@@ -179,21 +179,14 @@ export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 export interface MessageFns<T> {
-    encode(message: T, writer?: BinaryWriter): BinaryWriter;
-
-    decode(input: BinaryReader | Uint8Array, length?: number): T;
-
-    encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
-
-    decodeTransform(
-        source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-    ): AsyncIterable<T>;
-
-    fromJSON(object: any): T;
-
-    toJSON(message: T): unknown;
-
-    create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
-
-    fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
+  encode(message: T, writer?: BinaryWriter): BinaryWriter;
+  decode(input: BinaryReader | Uint8Array, length?: number): T;
+  encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
+  decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<T>;
+  fromJSON(object: any): T;
+  toJSON(message: T): unknown;
+  create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
+  fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
 }

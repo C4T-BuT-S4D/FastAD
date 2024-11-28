@@ -54,7 +54,7 @@ function createBaseService(): Service {
 }
 
 export const Service: MessageFns<Service> = {
-    encode(message: Service, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: Service, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.id !== 0) {
       writer.uint32(8).int32(message.id);
     }
@@ -62,7 +62,7 @@ export const Service: MessageFns<Service> = {
       writer.uint32(18).string(message.name);
     }
     if (message.checker !== undefined) {
-        Service_Checker.encode(message.checker, writer.uint32(26).fork()).join();
+      Service_Checker.encode(message.checker, writer.uint32(26).fork()).join();
     }
     if (message.defaultScore !== 0) {
       writer.uint32(33).double(message.defaultScore);
@@ -70,50 +70,50 @@ export const Service: MessageFns<Service> = {
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): Service {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): Service {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseService();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 8) {
             break;
           }
 
           message.id = reader.int32();
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.name = reader.string();
           continue;
-          }
-          case 3: {
+        }
+        case 3: {
           if (tag !== 26) {
             break;
           }
 
           message.checker = Service_Checker.decode(reader, reader.uint32());
           continue;
-          }
-          case 4: {
+        }
+        case 4: {
           if (tag !== 33) {
             break;
           }
 
           message.defaultScore = reader.double();
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -124,12 +124,12 @@ export const Service: MessageFns<Service> = {
     source: AsyncIterable<Service | Service[]> | Iterable<Service | Service[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Service.encode(p).finish()];
         }
       } else {
-            yield* [Service.encode(pkt as any).finish()];
+        yield* [Service.encode(pkt as any).finish()];
       }
     }
   },
@@ -140,22 +140,22 @@ export const Service: MessageFns<Service> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Service> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Service.decode(p)];
         }
       } else {
-            yield* [Service.decode(pkt as any)];
+        yield* [Service.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): Service {
     return {
-        id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-        name: isSet(object.name) ? globalThis.String(object.name) : "",
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
       checker: isSet(object.checker) ? Service_Checker.fromJSON(object.checker) : undefined,
-        defaultScore: isSet(object.defaultScore) ? globalThis.Number(object.defaultScore) : 0,
+      defaultScore: isSet(object.defaultScore) ? globalThis.Number(object.defaultScore) : 0,
     };
   },
 
@@ -196,7 +196,7 @@ function createBaseService_Checker(): Service_Checker {
 }
 
 export const Service_Checker: MessageFns<Service_Checker> = {
-    encode(message: Service_Checker, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: Service_Checker, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
     }
@@ -204,58 +204,58 @@ export const Service_Checker: MessageFns<Service_Checker> = {
       writer.uint32(18).string(message.path);
     }
     if (message.defaultTimeout !== undefined) {
-        Duration.encode(message.defaultTimeout, writer.uint32(26).fork()).join();
+      Duration.encode(message.defaultTimeout, writer.uint32(26).fork()).join();
     }
     for (const v of message.actions) {
-        Service_Checker_Action.encode(v!, writer.uint32(34).fork()).join();
+      Service_Checker_Action.encode(v!, writer.uint32(34).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): Service_Checker {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): Service_Checker {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseService_Checker();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 8) {
             break;
           }
 
           message.type = reader.int32() as any;
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.path = reader.string();
           continue;
-          }
-          case 3: {
+        }
+        case 3: {
           if (tag !== 26) {
             break;
           }
 
           message.defaultTimeout = Duration.decode(reader, reader.uint32());
           continue;
-          }
-          case 4: {
+        }
+        case 4: {
           if (tag !== 34) {
             break;
           }
 
           message.actions.push(Service_Checker_Action.decode(reader, reader.uint32()));
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -266,12 +266,12 @@ export const Service_Checker: MessageFns<Service_Checker> = {
     source: AsyncIterable<Service_Checker | Service_Checker[]> | Iterable<Service_Checker | Service_Checker[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Service_Checker.encode(p).finish()];
         }
       } else {
-            yield* [Service_Checker.encode(pkt as any).finish()];
+        yield* [Service_Checker.encode(pkt as any).finish()];
       }
     }
   },
@@ -282,12 +282,12 @@ export const Service_Checker: MessageFns<Service_Checker> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Service_Checker> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Service_Checker.decode(p)];
         }
       } else {
-            yield* [Service_Checker.decode(pkt as any)];
+        yield* [Service_Checker.decode(pkt as any)];
       }
     }
   },
@@ -295,11 +295,11 @@ export const Service_Checker: MessageFns<Service_Checker> = {
   fromJSON(object: any): Service_Checker {
     return {
       type: isSet(object.type) ? typeFromJSON(object.type) : 0,
-        path: isSet(object.path) ? globalThis.String(object.path) : "",
+      path: isSet(object.path) ? globalThis.String(object.path) : "",
       defaultTimeout: isSet(object.defaultTimeout) ? Duration.fromJSON(object.defaultTimeout) : undefined,
-        actions: globalThis.Array.isArray(object?.actions)
-            ? object.actions.map((e: any) => Service_Checker_Action.fromJSON(e))
-            : [],
+      actions: globalThis.Array.isArray(object?.actions)
+        ? object.actions.map((e: any) => Service_Checker_Action.fromJSON(e))
+        : [],
     };
   },
 
@@ -340,12 +340,12 @@ function createBaseService_Checker_Action(): Service_Checker_Action {
 }
 
 export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
-    encode(message: Service_Checker_Action, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: Service_Checker_Action, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.action !== 0) {
       writer.uint32(8).int32(message.action);
     }
     if (message.timeout !== undefined) {
-        Duration.encode(message.timeout, writer.uint32(18).fork()).join();
+      Duration.encode(message.timeout, writer.uint32(18).fork()).join();
     }
     if (message.runCount !== 0) {
       writer.uint32(24).int32(message.runCount);
@@ -353,42 +353,42 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): Service_Checker_Action {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): Service_Checker_Action {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseService_Checker_Action();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 8) {
             break;
           }
 
           message.action = reader.int32() as any;
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.timeout = Duration.decode(reader, reader.uint32());
           continue;
-          }
-          case 3: {
+        }
+        case 3: {
           if (tag !== 24) {
             break;
           }
 
           message.runCount = reader.int32();
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -401,12 +401,12 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
       | Iterable<Service_Checker_Action | Service_Checker_Action[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Service_Checker_Action.encode(p).finish()];
         }
       } else {
-            yield* [Service_Checker_Action.encode(pkt as any).finish()];
+        yield* [Service_Checker_Action.encode(pkt as any).finish()];
       }
     }
   },
@@ -417,12 +417,12 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Service_Checker_Action> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Service_Checker_Action.decode(p)];
         }
       } else {
-            yield* [Service_Checker_Action.decode(pkt as any)];
+        yield* [Service_Checker_Action.decode(pkt as any)];
       }
     }
   },
@@ -431,7 +431,7 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
     return {
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
       timeout: isSet(object.timeout) ? Duration.fromJSON(object.timeout) : undefined,
-        runCount: isSet(object.runCount) ? globalThis.Number(object.runCount) : 0,
+      runCount: isSet(object.runCount) ? globalThis.Number(object.runCount) : 0,
     };
   },
 
@@ -468,33 +468,33 @@ function createBaseListRequest(): ListRequest {
 }
 
 export const ListRequest: MessageFns<ListRequest> = {
-    encode(message: ListRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: ListRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.version !== undefined) {
-        Version.encode(message.version, writer.uint32(10).fork()).join();
+      Version.encode(message.version, writer.uint32(10).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): ListRequest {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): ListRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseListRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.version = Version.decode(reader, reader.uint32());
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -505,12 +505,12 @@ export const ListRequest: MessageFns<ListRequest> = {
     source: AsyncIterable<ListRequest | ListRequest[]> | Iterable<ListRequest | ListRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [ListRequest.encode(p).finish()];
         }
       } else {
-            yield* [ListRequest.encode(pkt as any).finish()];
+        yield* [ListRequest.encode(pkt as any).finish()];
       }
     }
   },
@@ -521,12 +521,12 @@ export const ListRequest: MessageFns<ListRequest> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<ListRequest> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [ListRequest.decode(p)];
         }
       } else {
-            yield* [ListRequest.decode(pkt as any)];
+        yield* [ListRequest.decode(pkt as any)];
       }
     }
   },
@@ -560,44 +560,44 @@ function createBaseListResponse(): ListResponse {
 }
 
 export const ListResponse: MessageFns<ListResponse> = {
-    encode(message: ListResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: ListResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.services) {
-        Service.encode(v!, writer.uint32(10).fork()).join();
+      Service.encode(v!, writer.uint32(10).fork()).join();
     }
     if (message.version !== undefined) {
-        Version.encode(message.version, writer.uint32(18).fork()).join();
+      Version.encode(message.version, writer.uint32(18).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): ListResponse {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): ListResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseListResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.services.push(Service.decode(reader, reader.uint32()));
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.version = Version.decode(reader, reader.uint32());
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -608,12 +608,12 @@ export const ListResponse: MessageFns<ListResponse> = {
     source: AsyncIterable<ListResponse | ListResponse[]> | Iterable<ListResponse | ListResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [ListResponse.encode(p).finish()];
         }
       } else {
-            yield* [ListResponse.encode(pkt as any).finish()];
+        yield* [ListResponse.encode(pkt as any).finish()];
       }
     }
   },
@@ -624,19 +624,19 @@ export const ListResponse: MessageFns<ListResponse> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<ListResponse> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [ListResponse.decode(p)];
         }
       } else {
-            yield* [ListResponse.decode(pkt as any)];
+        yield* [ListResponse.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): ListResponse {
     return {
-        services: globalThis.Array.isArray(object?.services) ? object.services.map((e: any) => Service.fromJSON(e)) : [],
+      services: globalThis.Array.isArray(object?.services) ? object.services.map((e: any) => Service.fromJSON(e)) : [],
       version: isSet(object.version) ? Version.fromJSON(object.version) : undefined,
     };
   },
@@ -670,33 +670,33 @@ function createBaseCreateBatchRequest(): CreateBatchRequest {
 }
 
 export const CreateBatchRequest: MessageFns<CreateBatchRequest> = {
-    encode(message: CreateBatchRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: CreateBatchRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.services) {
-        Service.encode(v!, writer.uint32(10).fork()).join();
+      Service.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): CreateBatchRequest {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateBatchRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateBatchRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.services.push(Service.decode(reader, reader.uint32()));
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -709,12 +709,12 @@ export const CreateBatchRequest: MessageFns<CreateBatchRequest> = {
       | Iterable<CreateBatchRequest | CreateBatchRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [CreateBatchRequest.encode(p).finish()];
         }
       } else {
-            yield* [CreateBatchRequest.encode(pkt as any).finish()];
+        yield* [CreateBatchRequest.encode(pkt as any).finish()];
       }
     }
   },
@@ -725,20 +725,20 @@ export const CreateBatchRequest: MessageFns<CreateBatchRequest> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<CreateBatchRequest> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [CreateBatchRequest.decode(p)];
         }
       } else {
-            yield* [CreateBatchRequest.decode(pkt as any)];
+        yield* [CreateBatchRequest.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): CreateBatchRequest {
-      return {
-          services: globalThis.Array.isArray(object?.services) ? object.services.map((e: any) => Service.fromJSON(e)) : [],
-      };
+    return {
+      services: globalThis.Array.isArray(object?.services) ? object.services.map((e: any) => Service.fromJSON(e)) : [],
+    };
   },
 
   toJSON(message: CreateBatchRequest): unknown {
@@ -764,33 +764,33 @@ function createBaseCreateBatchResponse(): CreateBatchResponse {
 }
 
 export const CreateBatchResponse: MessageFns<CreateBatchResponse> = {
-    encode(message: CreateBatchResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: CreateBatchResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.services) {
-        Service.encode(v!, writer.uint32(10).fork()).join();
+      Service.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): CreateBatchResponse {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateBatchResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateBatchResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.services.push(Service.decode(reader, reader.uint32()));
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -803,12 +803,12 @@ export const CreateBatchResponse: MessageFns<CreateBatchResponse> = {
       | Iterable<CreateBatchResponse | CreateBatchResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [CreateBatchResponse.encode(p).finish()];
         }
       } else {
-            yield* [CreateBatchResponse.encode(pkt as any).finish()];
+        yield* [CreateBatchResponse.encode(pkt as any).finish()];
       }
     }
   },
@@ -819,20 +819,20 @@ export const CreateBatchResponse: MessageFns<CreateBatchResponse> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<CreateBatchResponse> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [CreateBatchResponse.decode(p)];
         }
       } else {
-            yield* [CreateBatchResponse.decode(pkt as any)];
+        yield* [CreateBatchResponse.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): CreateBatchResponse {
-      return {
-          services: globalThis.Array.isArray(object?.services) ? object.services.map((e: any) => Service.fromJSON(e)) : [],
-      };
+    return {
+      services: globalThis.Array.isArray(object?.services) ? object.services.map((e: any) => Service.fromJSON(e)) : [],
+    };
   },
 
   toJSON(message: CreateBatchResponse): unknown {
@@ -856,8 +856,8 @@ export const CreateBatchResponse: MessageFns<CreateBatchResponse> = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-    : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-        : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
@@ -871,21 +871,14 @@ function isSet(value: any): boolean {
 }
 
 export interface MessageFns<T> {
-    encode(message: T, writer?: BinaryWriter): BinaryWriter;
-
-    decode(input: BinaryReader | Uint8Array, length?: number): T;
-
-    encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
-
-    decodeTransform(
-        source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-    ): AsyncIterable<T>;
-
-    fromJSON(object: any): T;
-
-    toJSON(message: T): unknown;
-
-    create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
-
-    fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
+  encode(message: T, writer?: BinaryWriter): BinaryWriter;
+  decode(input: BinaryReader | Uint8Array, length?: number): T;
+  encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
+  decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<T>;
+  fromJSON(object: any): T;
+  toJSON(message: T): unknown;
+  create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
+  fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
 }

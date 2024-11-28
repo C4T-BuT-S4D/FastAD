@@ -45,7 +45,7 @@ function createBaseTeam(): Team {
 }
 
 export const Team: MessageFns<Team> = {
-    encode(message: Team, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: Team, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.id !== 0) {
       writer.uint32(8).int32(message.id);
     }
@@ -59,51 +59,51 @@ export const Team: MessageFns<Team> = {
       writer.uint32(34).string(message.token);
     }
     Object.entries(message.labels).forEach(([key, value]) => {
-        Team_LabelsEntry.encode({ key: key as any, value }, writer.uint32(42).fork()).join();
+      Team_LabelsEntry.encode({ key: key as any, value }, writer.uint32(42).fork()).join();
     });
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): Team {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): Team {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseTeam();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 8) {
             break;
           }
 
           message.id = reader.int32();
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.name = reader.string();
           continue;
-          }
-          case 3: {
+        }
+        case 3: {
           if (tag !== 26) {
             break;
           }
 
           message.address = reader.string();
           continue;
-          }
-          case 4: {
+        }
+        case 4: {
           if (tag !== 34) {
             break;
           }
 
           message.token = reader.string();
           continue;
-          }
-          case 5: {
+        }
+        case 5: {
           if (tag !== 42) {
             break;
           }
@@ -113,12 +113,12 @@ export const Team: MessageFns<Team> = {
             message.labels[entry5.key] = entry5.value;
           }
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -127,12 +127,12 @@ export const Team: MessageFns<Team> = {
   // Transform<Team, Uint8Array>
   async *encodeTransform(source: AsyncIterable<Team | Team[]> | Iterable<Team | Team[]>): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Team.encode(p).finish()];
         }
       } else {
-            yield* [Team.encode(pkt as any).finish()];
+        yield* [Team.encode(pkt as any).finish()];
       }
     }
   },
@@ -143,22 +143,22 @@ export const Team: MessageFns<Team> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Team> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Team.decode(p)];
         }
       } else {
-            yield* [Team.decode(pkt as any)];
+        yield* [Team.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): Team {
     return {
-        id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-        name: isSet(object.name) ? globalThis.String(object.name) : "",
-        address: isSet(object.address) ? globalThis.String(object.address) : "",
-        token: isSet(object.token) ? globalThis.String(object.token) : "",
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      token: isSet(object.token) ? globalThis.String(object.token) : "",
       labels: isObject(object.labels)
         ? Object.entries(object.labels).reduce<{ [key: string]: string }>((acc, [key, value]) => {
           acc[key] = String(value);
@@ -205,7 +205,7 @@ export const Team: MessageFns<Team> = {
     message.token = object.token ?? "";
     message.labels = Object.entries(object.labels ?? {}).reduce<{ [key: string]: string }>((acc, [key, value]) => {
       if (value !== undefined) {
-          acc[key] = globalThis.String(value);
+        acc[key] = globalThis.String(value);
       }
       return acc;
     }, {});
@@ -218,7 +218,7 @@ function createBaseTeam_LabelsEntry(): Team_LabelsEntry {
 }
 
 export const Team_LabelsEntry: MessageFns<Team_LabelsEntry> = {
-    encode(message: Team_LabelsEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: Team_LabelsEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
@@ -228,34 +228,34 @@ export const Team_LabelsEntry: MessageFns<Team_LabelsEntry> = {
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): Team_LabelsEntry {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): Team_LabelsEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseTeam_LabelsEntry();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.key = reader.string();
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.value = reader.string();
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -266,12 +266,12 @@ export const Team_LabelsEntry: MessageFns<Team_LabelsEntry> = {
     source: AsyncIterable<Team_LabelsEntry | Team_LabelsEntry[]> | Iterable<Team_LabelsEntry | Team_LabelsEntry[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Team_LabelsEntry.encode(p).finish()];
         }
       } else {
-            yield* [Team_LabelsEntry.encode(pkt as any).finish()];
+        yield* [Team_LabelsEntry.encode(pkt as any).finish()];
       }
     }
   },
@@ -282,21 +282,21 @@ export const Team_LabelsEntry: MessageFns<Team_LabelsEntry> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Team_LabelsEntry> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Team_LabelsEntry.decode(p)];
         }
       } else {
-            yield* [Team_LabelsEntry.decode(pkt as any)];
+        yield* [Team_LabelsEntry.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): Team_LabelsEntry {
-      return {
-          key: isSet(object.key) ? globalThis.String(object.key) : "",
-          value: isSet(object.value) ? globalThis.String(object.value) : "",
-      };
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? globalThis.String(object.value) : "",
+    };
   },
 
   toJSON(message: Team_LabelsEntry): unknown {
@@ -326,33 +326,33 @@ function createBaseListRequest(): ListRequest {
 }
 
 export const ListRequest: MessageFns<ListRequest> = {
-    encode(message: ListRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: ListRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.version !== undefined) {
-        Version.encode(message.version, writer.uint32(10).fork()).join();
+      Version.encode(message.version, writer.uint32(10).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): ListRequest {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): ListRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseListRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.version = Version.decode(reader, reader.uint32());
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -363,12 +363,12 @@ export const ListRequest: MessageFns<ListRequest> = {
     source: AsyncIterable<ListRequest | ListRequest[]> | Iterable<ListRequest | ListRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [ListRequest.encode(p).finish()];
         }
       } else {
-            yield* [ListRequest.encode(pkt as any).finish()];
+        yield* [ListRequest.encode(pkt as any).finish()];
       }
     }
   },
@@ -379,12 +379,12 @@ export const ListRequest: MessageFns<ListRequest> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<ListRequest> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [ListRequest.decode(p)];
         }
       } else {
-            yield* [ListRequest.decode(pkt as any)];
+        yield* [ListRequest.decode(pkt as any)];
       }
     }
   },
@@ -418,44 +418,44 @@ function createBaseListResponse(): ListResponse {
 }
 
 export const ListResponse: MessageFns<ListResponse> = {
-    encode(message: ListResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: ListResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.teams) {
-        Team.encode(v!, writer.uint32(10).fork()).join();
+      Team.encode(v!, writer.uint32(10).fork()).join();
     }
     if (message.version !== undefined) {
-        Version.encode(message.version, writer.uint32(18).fork()).join();
+      Version.encode(message.version, writer.uint32(18).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): ListResponse {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): ListResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseListResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.teams.push(Team.decode(reader, reader.uint32()));
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.version = Version.decode(reader, reader.uint32());
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -466,12 +466,12 @@ export const ListResponse: MessageFns<ListResponse> = {
     source: AsyncIterable<ListResponse | ListResponse[]> | Iterable<ListResponse | ListResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [ListResponse.encode(p).finish()];
         }
       } else {
-            yield* [ListResponse.encode(pkt as any).finish()];
+        yield* [ListResponse.encode(pkt as any).finish()];
       }
     }
   },
@@ -482,19 +482,19 @@ export const ListResponse: MessageFns<ListResponse> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<ListResponse> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [ListResponse.decode(p)];
         }
       } else {
-            yield* [ListResponse.decode(pkt as any)];
+        yield* [ListResponse.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): ListResponse {
     return {
-        teams: globalThis.Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : [],
+      teams: globalThis.Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : [],
       version: isSet(object.version) ? Version.fromJSON(object.version) : undefined,
     };
   },
@@ -528,33 +528,33 @@ function createBaseCreateBatchRequest(): CreateBatchRequest {
 }
 
 export const CreateBatchRequest: MessageFns<CreateBatchRequest> = {
-    encode(message: CreateBatchRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: CreateBatchRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.teams) {
-        Team.encode(v!, writer.uint32(10).fork()).join();
+      Team.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): CreateBatchRequest {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateBatchRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateBatchRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.teams.push(Team.decode(reader, reader.uint32()));
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -567,12 +567,12 @@ export const CreateBatchRequest: MessageFns<CreateBatchRequest> = {
       | Iterable<CreateBatchRequest | CreateBatchRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [CreateBatchRequest.encode(p).finish()];
         }
       } else {
-            yield* [CreateBatchRequest.encode(pkt as any).finish()];
+        yield* [CreateBatchRequest.encode(pkt as any).finish()];
       }
     }
   },
@@ -583,18 +583,18 @@ export const CreateBatchRequest: MessageFns<CreateBatchRequest> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<CreateBatchRequest> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [CreateBatchRequest.decode(p)];
         }
       } else {
-            yield* [CreateBatchRequest.decode(pkt as any)];
+        yield* [CreateBatchRequest.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): CreateBatchRequest {
-      return { teams: globalThis.Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : [] };
+    return { teams: globalThis.Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : [] };
   },
 
   toJSON(message: CreateBatchRequest): unknown {
@@ -620,33 +620,33 @@ function createBaseCreateBatchResponse(): CreateBatchResponse {
 }
 
 export const CreateBatchResponse: MessageFns<CreateBatchResponse> = {
-    encode(message: CreateBatchResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: CreateBatchResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.teams) {
-        Team.encode(v!, writer.uint32(10).fork()).join();
+      Team.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): CreateBatchResponse {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateBatchResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateBatchResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.teams.push(Team.decode(reader, reader.uint32()));
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -659,12 +659,12 @@ export const CreateBatchResponse: MessageFns<CreateBatchResponse> = {
       | Iterable<CreateBatchResponse | CreateBatchResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [CreateBatchResponse.encode(p).finish()];
         }
       } else {
-            yield* [CreateBatchResponse.encode(pkt as any).finish()];
+        yield* [CreateBatchResponse.encode(pkt as any).finish()];
       }
     }
   },
@@ -675,18 +675,18 @@ export const CreateBatchResponse: MessageFns<CreateBatchResponse> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<CreateBatchResponse> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [CreateBatchResponse.decode(p)];
         }
       } else {
-            yield* [CreateBatchResponse.decode(pkt as any)];
+        yield* [CreateBatchResponse.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): CreateBatchResponse {
-      return { teams: globalThis.Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : [] };
+    return { teams: globalThis.Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : [] };
   },
 
   toJSON(message: CreateBatchResponse): unknown {
@@ -710,8 +710,8 @@ export const CreateBatchResponse: MessageFns<CreateBatchResponse> = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-    : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-        : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
@@ -729,21 +729,14 @@ function isSet(value: any): boolean {
 }
 
 export interface MessageFns<T> {
-    encode(message: T, writer?: BinaryWriter): BinaryWriter;
-
-    decode(input: BinaryReader | Uint8Array, length?: number): T;
-
-    encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
-
-    decodeTransform(
-        source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-    ): AsyncIterable<T>;
-
-    fromJSON(object: any): T;
-
-    toJSON(message: T): unknown;
-
-    create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
-
-    fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
+  encode(message: T, writer?: BinaryWriter): BinaryWriter;
+  decode(input: BinaryReader | Uint8Array, length?: number): T;
+  encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
+  decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<T>;
+  fromJSON(object: any): T;
+  toJSON(message: T): unknown;
+  create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
+  fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
 }

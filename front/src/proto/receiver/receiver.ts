@@ -31,11 +31,11 @@ export const FlagResponse_Verdict = {
 export type FlagResponse_Verdict = typeof FlagResponse_Verdict[keyof typeof FlagResponse_Verdict];
 
 export namespace FlagResponse_Verdict {
-    export type VERDICT_UNSPECIFIED = typeof FlagResponse_Verdict.VERDICT_UNSPECIFIED;
-    export type VERDICT_ACCEPTED = typeof FlagResponse_Verdict.VERDICT_ACCEPTED;
-    export type VERDICT_OWN = typeof FlagResponse_Verdict.VERDICT_OWN;
-    export type VERDICT_OLD = typeof FlagResponse_Verdict.VERDICT_OLD;
-    export type VERDICT_INVALID = typeof FlagResponse_Verdict.VERDICT_INVALID;
+  export type VERDICT_UNSPECIFIED = typeof FlagResponse_Verdict.VERDICT_UNSPECIFIED;
+  export type VERDICT_ACCEPTED = typeof FlagResponse_Verdict.VERDICT_ACCEPTED;
+  export type VERDICT_OWN = typeof FlagResponse_Verdict.VERDICT_OWN;
+  export type VERDICT_OLD = typeof FlagResponse_Verdict.VERDICT_OLD;
+  export type VERDICT_INVALID = typeof FlagResponse_Verdict.VERDICT_INVALID;
 }
 
 export function flagResponse_VerdictFromJSON(object: any): FlagResponse_Verdict {
@@ -56,7 +56,7 @@ export function flagResponse_VerdictFromJSON(object: any): FlagResponse_Verdict 
     case "VERDICT_INVALID":
       return FlagResponse_Verdict.VERDICT_INVALID;
     default:
-        throw new globalThis.Error("Unrecognized enum value " + object + " for enum FlagResponse_Verdict");
+      throw new globalThis.Error("Unrecognized enum value " + object + " for enum FlagResponse_Verdict");
   }
 }
 
@@ -73,7 +73,7 @@ export function flagResponse_VerdictToJSON(object: FlagResponse_Verdict): string
     case FlagResponse_Verdict.VERDICT_INVALID:
       return "VERDICT_INVALID";
     default:
-        throw new globalThis.Error("Unrecognized enum value " + object + " for enum FlagResponse_Verdict");
+      throw new globalThis.Error("Unrecognized enum value " + object + " for enum FlagResponse_Verdict");
   }
 }
 
@@ -86,33 +86,33 @@ function createBaseSubmitFlagsRequest(): SubmitFlagsRequest {
 }
 
 export const SubmitFlagsRequest: MessageFns<SubmitFlagsRequest> = {
-    encode(message: SubmitFlagsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: SubmitFlagsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.flags) {
       writer.uint32(10).string(v!);
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): SubmitFlagsRequest {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): SubmitFlagsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSubmitFlagsRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.flags.push(reader.string());
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -125,12 +125,12 @@ export const SubmitFlagsRequest: MessageFns<SubmitFlagsRequest> = {
       | Iterable<SubmitFlagsRequest | SubmitFlagsRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [SubmitFlagsRequest.encode(p).finish()];
         }
       } else {
-            yield* [SubmitFlagsRequest.encode(pkt as any).finish()];
+        yield* [SubmitFlagsRequest.encode(pkt as any).finish()];
       }
     }
   },
@@ -141,18 +141,18 @@ export const SubmitFlagsRequest: MessageFns<SubmitFlagsRequest> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<SubmitFlagsRequest> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [SubmitFlagsRequest.decode(p)];
         }
       } else {
-            yield* [SubmitFlagsRequest.decode(pkt as any)];
+        yield* [SubmitFlagsRequest.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): SubmitFlagsRequest {
-      return { flags: globalThis.Array.isArray(object?.flags) ? object.flags.map((e: any) => globalThis.String(e)) : [] };
+    return { flags: globalThis.Array.isArray(object?.flags) ? object.flags.map((e: any) => globalThis.String(e)) : [] };
   },
 
   toJSON(message: SubmitFlagsRequest): unknown {
@@ -178,7 +178,7 @@ function createBaseFlagResponse(): FlagResponse {
 }
 
 export const FlagResponse: MessageFns<FlagResponse> = {
-    encode(message: FlagResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: FlagResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.flag !== "") {
       writer.uint32(10).string(message.flag);
     }
@@ -194,50 +194,50 @@ export const FlagResponse: MessageFns<FlagResponse> = {
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): FlagResponse {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): FlagResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseFlagResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.flag = reader.string();
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 16) {
             break;
           }
 
           message.verdict = reader.int32() as any;
           continue;
-          }
-          case 3: {
+        }
+        case 3: {
           if (tag !== 26) {
             break;
           }
 
           message.message = reader.string();
           continue;
-          }
-          case 4: {
+        }
+        case 4: {
           if (tag !== 33) {
             break;
           }
 
           message.flagPoints = reader.double();
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -248,12 +248,12 @@ export const FlagResponse: MessageFns<FlagResponse> = {
     source: AsyncIterable<FlagResponse | FlagResponse[]> | Iterable<FlagResponse | FlagResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [FlagResponse.encode(p).finish()];
         }
       } else {
-            yield* [FlagResponse.encode(pkt as any).finish()];
+        yield* [FlagResponse.encode(pkt as any).finish()];
       }
     }
   },
@@ -264,22 +264,22 @@ export const FlagResponse: MessageFns<FlagResponse> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<FlagResponse> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [FlagResponse.decode(p)];
         }
       } else {
-            yield* [FlagResponse.decode(pkt as any)];
+        yield* [FlagResponse.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): FlagResponse {
     return {
-        flag: isSet(object.flag) ? globalThis.String(object.flag) : "",
+      flag: isSet(object.flag) ? globalThis.String(object.flag) : "",
       verdict: isSet(object.verdict) ? flagResponse_VerdictFromJSON(object.verdict) : 0,
-        message: isSet(object.message) ? globalThis.String(object.message) : "",
-        flagPoints: isSet(object.flagPoints) ? globalThis.Number(object.flagPoints) : 0,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      flagPoints: isSet(object.flagPoints) ? globalThis.Number(object.flagPoints) : 0,
     };
   },
 
@@ -318,33 +318,33 @@ function createBaseSubmitFlagsResponse(): SubmitFlagsResponse {
 }
 
 export const SubmitFlagsResponse: MessageFns<SubmitFlagsResponse> = {
-    encode(message: SubmitFlagsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: SubmitFlagsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.responses) {
-        FlagResponse.encode(v!, writer.uint32(10).fork()).join();
+      FlagResponse.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): SubmitFlagsResponse {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): SubmitFlagsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSubmitFlagsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.responses.push(FlagResponse.decode(reader, reader.uint32()));
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -357,12 +357,12 @@ export const SubmitFlagsResponse: MessageFns<SubmitFlagsResponse> = {
       | Iterable<SubmitFlagsResponse | SubmitFlagsResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [SubmitFlagsResponse.encode(p).finish()];
         }
       } else {
-            yield* [SubmitFlagsResponse.encode(pkt as any).finish()];
+        yield* [SubmitFlagsResponse.encode(pkt as any).finish()];
       }
     }
   },
@@ -373,21 +373,21 @@ export const SubmitFlagsResponse: MessageFns<SubmitFlagsResponse> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<SubmitFlagsResponse> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [SubmitFlagsResponse.decode(p)];
         }
       } else {
-            yield* [SubmitFlagsResponse.decode(pkt as any)];
+        yield* [SubmitFlagsResponse.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): SubmitFlagsResponse {
     return {
-        responses: globalThis.Array.isArray(object?.responses)
-            ? object.responses.map((e: any) => FlagResponse.fromJSON(e))
-            : [],
+      responses: globalThis.Array.isArray(object?.responses)
+        ? object.responses.map((e: any) => FlagResponse.fromJSON(e))
+        : [],
     };
   },
 
@@ -412,8 +412,8 @@ export const SubmitFlagsResponse: MessageFns<SubmitFlagsResponse> = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-    : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-        : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
@@ -427,21 +427,14 @@ function isSet(value: any): boolean {
 }
 
 export interface MessageFns<T> {
-    encode(message: T, writer?: BinaryWriter): BinaryWriter;
-
-    decode(input: BinaryReader | Uint8Array, length?: number): T;
-
-    encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
-
-    decodeTransform(
-        source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-    ): AsyncIterable<T>;
-
-    fromJSON(object: any): T;
-
-    toJSON(message: T): unknown;
-
-    create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
-
-    fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
+  encode(message: T, writer?: BinaryWriter): BinaryWriter;
+  decode(input: BinaryReader | Uint8Array, length?: number): T;
+  encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
+  decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<T>;
+  fromJSON(object: any): T;
+  toJSON(message: T): unknown;
+  create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
+  fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
 }

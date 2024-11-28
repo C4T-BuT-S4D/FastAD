@@ -117,16 +117,16 @@ export interface Timestamp {
 }
 
 function createBaseTimestamp(): Timestamp {
-    return { seconds: 0n, nanos: 0 };
+  return { seconds: 0n, nanos: 0 };
 }
 
 export const Timestamp: MessageFns<Timestamp> = {
-    encode(message: Timestamp, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-        if (message.seconds !== 0n) {
-            if (BigInt.asIntN(64, message.seconds) !== message.seconds) {
-                throw new globalThis.Error("value provided for field message.seconds of type int64 too large");
-            }
-            writer.uint32(8).int64(message.seconds);
+  encode(message: Timestamp, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.seconds !== 0n) {
+      if (BigInt.asIntN(64, message.seconds) !== message.seconds) {
+        throw new globalThis.Error("value provided for field message.seconds of type int64 too large");
+      }
+      writer.uint32(8).int64(message.seconds);
     }
     if (message.nanos !== 0) {
       writer.uint32(16).int32(message.nanos);
@@ -134,34 +134,34 @@ export const Timestamp: MessageFns<Timestamp> = {
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): Timestamp {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): Timestamp {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseTimestamp();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 8) {
             break;
           }
 
-              message.seconds = reader.int64() as bigint;
+          message.seconds = reader.int64() as bigint;
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 16) {
             break;
           }
 
           message.nanos = reader.int32();
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -172,12 +172,12 @@ export const Timestamp: MessageFns<Timestamp> = {
     source: AsyncIterable<Timestamp | Timestamp[]> | Iterable<Timestamp | Timestamp[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Timestamp.encode(p).finish()];
         }
       } else {
-            yield* [Timestamp.encode(pkt as any).finish()];
+        yield* [Timestamp.encode(pkt as any).finish()];
       }
     }
   },
@@ -188,26 +188,26 @@ export const Timestamp: MessageFns<Timestamp> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<Timestamp> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [Timestamp.decode(p)];
         }
       } else {
-            yield* [Timestamp.decode(pkt as any)];
+        yield* [Timestamp.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): Timestamp {
     return {
-        seconds: isSet(object.seconds) ? BigInt(object.seconds) : 0n,
-        nanos: isSet(object.nanos) ? globalThis.Number(object.nanos) : 0,
+      seconds: isSet(object.seconds) ? BigInt(object.seconds) : 0n,
+      nanos: isSet(object.nanos) ? globalThis.Number(object.nanos) : 0,
     };
   },
 
   toJSON(message: Timestamp): unknown {
     const obj: any = {};
-      if (message.seconds !== 0n) {
+    if (message.seconds !== 0n) {
       obj.seconds = message.seconds.toString();
     }
     if (message.nanos !== 0) {
@@ -221,7 +221,7 @@ export const Timestamp: MessageFns<Timestamp> = {
   },
   fromPartial<I extends Exact<DeepPartial<Timestamp>, I>>(object: I): Timestamp {
     const message = createBaseTimestamp();
-      message.seconds = object.seconds ?? 0n;
+    message.seconds = object.seconds ?? 0n;
     message.nanos = object.nanos ?? 0;
     return message;
   },
@@ -230,8 +230,8 @@ export const Timestamp: MessageFns<Timestamp> = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-    : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-        : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
@@ -245,21 +245,14 @@ function isSet(value: any): boolean {
 }
 
 export interface MessageFns<T> {
-    encode(message: T, writer?: BinaryWriter): BinaryWriter;
-
-    decode(input: BinaryReader | Uint8Array, length?: number): T;
-
-    encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
-
-    decodeTransform(
-        source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-    ): AsyncIterable<T>;
-
-    fromJSON(object: any): T;
-
-    toJSON(message: T): unknown;
-
-    create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
-
-    fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
+  encode(message: T, writer?: BinaryWriter): BinaryWriter;
+  decode(input: BinaryReader | Uint8Array, length?: number): T;
+  encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
+  decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<T>;
+  fromJSON(object: any): T;
+  toJSON(message: T): unknown;
+  create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
+  fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
 }
