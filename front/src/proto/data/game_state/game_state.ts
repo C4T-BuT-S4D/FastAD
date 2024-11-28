@@ -17,8 +17,8 @@ export const GameMode = { GAME_MODE_UNSPECIFIED: 0, GAME_MODE_CLASSIC: 1 } as co
 export type GameMode = typeof GameMode[keyof typeof GameMode];
 
 export namespace GameMode {
-    export type GAME_MODE_UNSPECIFIED = typeof GameMode.GAME_MODE_UNSPECIFIED;
-    export type GAME_MODE_CLASSIC = typeof GameMode.GAME_MODE_CLASSIC;
+  export type GAME_MODE_UNSPECIFIED = typeof GameMode.GAME_MODE_UNSPECIFIED;
+  export type GAME_MODE_CLASSIC = typeof GameMode.GAME_MODE_CLASSIC;
 }
 
 export function gameModeFromJSON(object: any): GameMode {
@@ -30,7 +30,7 @@ export function gameModeFromJSON(object: any): GameMode {
     case "GAME_MODE_CLASSIC":
       return GameMode.GAME_MODE_CLASSIC;
     default:
-        throw new globalThis.Error("Unrecognized enum value " + object + " for enum GameMode");
+      throw new globalThis.Error("Unrecognized enum value " + object + " for enum GameMode");
   }
 }
 
@@ -41,7 +41,7 @@ export function gameModeToJSON(object: GameMode): string {
     case GameMode.GAME_MODE_CLASSIC:
       return "GAME_MODE_CLASSIC";
     default:
-        throw new globalThis.Error("Unrecognized enum value " + object + " for enum GameMode");
+      throw new globalThis.Error("Unrecognized enum value " + object + " for enum GameMode");
   }
 }
 
@@ -106,24 +106,24 @@ function createBaseGameState(): GameState {
 }
 
 export const GameState: MessageFns<GameState> = {
-    encode(message: GameState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: GameState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.startTime !== undefined) {
-        Timestamp.encode(toTimestamp(message.startTime), writer.uint32(10).fork()).join();
+      Timestamp.encode(toTimestamp(message.startTime), writer.uint32(10).fork()).join();
     }
     if (message.endTime !== undefined) {
-        Timestamp.encode(toTimestamp(message.endTime), writer.uint32(18).fork()).join();
+      Timestamp.encode(toTimestamp(message.endTime), writer.uint32(18).fork()).join();
     }
     if (message.totalRounds !== 0) {
       writer.uint32(24).uint32(message.totalRounds);
     }
-        if (message.paused !== false) {
+    if (message.paused !== false) {
       writer.uint32(32).bool(message.paused);
     }
     if (message.flagLifetimeRounds !== 0) {
       writer.uint32(40).uint32(message.flagLifetimeRounds);
     }
     if (message.roundDuration !== undefined) {
-        Duration.encode(message.roundDuration, writer.uint32(50).fork()).join();
+      Duration.encode(message.roundDuration, writer.uint32(50).fork()).join();
     }
     if (message.mode !== 0) {
       writer.uint32(56).int32(message.mode);
@@ -132,95 +132,95 @@ export const GameState: MessageFns<GameState> = {
       writer.uint32(64).uint32(message.runningRound);
     }
     if (message.runningRoundStart !== undefined) {
-        Timestamp.encode(toTimestamp(message.runningRoundStart), writer.uint32(74).fork()).join();
+      Timestamp.encode(toTimestamp(message.runningRoundStart), writer.uint32(74).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): GameState {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): GameState {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGameState();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.startTime = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.endTime = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
-          }
-          case 3: {
+        }
+        case 3: {
           if (tag !== 24) {
             break;
           }
 
           message.totalRounds = reader.uint32();
           continue;
-          }
-          case 4: {
+        }
+        case 4: {
           if (tag !== 32) {
             break;
           }
 
           message.paused = reader.bool();
           continue;
-          }
-          case 5: {
+        }
+        case 5: {
           if (tag !== 40) {
             break;
           }
 
           message.flagLifetimeRounds = reader.uint32();
           continue;
-          }
-          case 6: {
+        }
+        case 6: {
           if (tag !== 50) {
             break;
           }
 
           message.roundDuration = Duration.decode(reader, reader.uint32());
           continue;
-          }
-          case 7: {
+        }
+        case 7: {
           if (tag !== 56) {
             break;
           }
 
           message.mode = reader.int32() as any;
           continue;
-          }
-          case 8: {
+        }
+        case 8: {
           if (tag !== 64) {
             break;
           }
 
           message.runningRound = reader.uint32();
           continue;
-          }
-          case 9: {
+        }
+        case 9: {
           if (tag !== 74) {
             break;
           }
 
           message.runningRoundStart = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -231,12 +231,12 @@ export const GameState: MessageFns<GameState> = {
     source: AsyncIterable<GameState | GameState[]> | Iterable<GameState | GameState[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [GameState.encode(p).finish()];
         }
       } else {
-            yield* [GameState.encode(pkt as any).finish()];
+        yield* [GameState.encode(pkt as any).finish()];
       }
     }
   },
@@ -247,12 +247,12 @@ export const GameState: MessageFns<GameState> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<GameState> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [GameState.decode(p)];
         }
       } else {
-            yield* [GameState.decode(pkt as any)];
+        yield* [GameState.decode(pkt as any)];
       }
     }
   },
@@ -261,12 +261,12 @@ export const GameState: MessageFns<GameState> = {
     return {
       startTime: isSet(object.startTime) ? fromJsonTimestamp(object.startTime) : undefined,
       endTime: isSet(object.endTime) ? fromJsonTimestamp(object.endTime) : undefined,
-        totalRounds: isSet(object.totalRounds) ? globalThis.Number(object.totalRounds) : 0,
-        paused: isSet(object.paused) ? globalThis.Boolean(object.paused) : false,
-        flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? globalThis.Number(object.flagLifetimeRounds) : 0,
+      totalRounds: isSet(object.totalRounds) ? globalThis.Number(object.totalRounds) : 0,
+      paused: isSet(object.paused) ? globalThis.Boolean(object.paused) : false,
+      flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? globalThis.Number(object.flagLifetimeRounds) : 0,
       roundDuration: isSet(object.roundDuration) ? Duration.fromJSON(object.roundDuration) : undefined,
       mode: isSet(object.mode) ? gameModeFromJSON(object.mode) : 0,
-        runningRound: isSet(object.runningRound) ? globalThis.Number(object.runningRound) : 0,
+      runningRound: isSet(object.runningRound) ? globalThis.Number(object.runningRound) : 0,
       runningRoundStart: isSet(object.runningRoundStart) ? fromJsonTimestamp(object.runningRoundStart) : undefined,
     };
   },
@@ -282,7 +282,7 @@ export const GameState: MessageFns<GameState> = {
     if (message.totalRounds !== 0) {
       obj.totalRounds = Math.round(message.totalRounds);
     }
-      if (message.paused !== false) {
+    if (message.paused !== false) {
       obj.paused = message.paused;
     }
     if (message.flagLifetimeRounds !== 0) {
@@ -328,33 +328,33 @@ function createBaseGetRequest(): GetRequest {
 }
 
 export const GetRequest: MessageFns<GetRequest> = {
-    encode(message: GetRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: GetRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.version !== undefined) {
-        Version.encode(message.version, writer.uint32(10).fork()).join();
+      Version.encode(message.version, writer.uint32(10).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): GetRequest {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): GetRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGetRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.version = Version.decode(reader, reader.uint32());
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -365,12 +365,12 @@ export const GetRequest: MessageFns<GetRequest> = {
     source: AsyncIterable<GetRequest | GetRequest[]> | Iterable<GetRequest | GetRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [GetRequest.encode(p).finish()];
         }
       } else {
-            yield* [GetRequest.encode(pkt as any).finish()];
+        yield* [GetRequest.encode(pkt as any).finish()];
       }
     }
   },
@@ -381,12 +381,12 @@ export const GetRequest: MessageFns<GetRequest> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<GetRequest> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [GetRequest.decode(p)];
         }
       } else {
-            yield* [GetRequest.decode(pkt as any)];
+        yield* [GetRequest.decode(pkt as any)];
       }
     }
   },
@@ -420,44 +420,44 @@ function createBaseGetResponse(): GetResponse {
 }
 
 export const GetResponse: MessageFns<GetResponse> = {
-    encode(message: GetResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: GetResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.gameState !== undefined) {
-        GameState.encode(message.gameState, writer.uint32(10).fork()).join();
+      GameState.encode(message.gameState, writer.uint32(10).fork()).join();
     }
     if (message.version !== undefined) {
-        Version.encode(message.version, writer.uint32(18).fork()).join();
+      Version.encode(message.version, writer.uint32(18).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): GetResponse {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): GetResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGetResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.gameState = GameState.decode(reader, reader.uint32());
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.version = Version.decode(reader, reader.uint32());
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -468,12 +468,12 @@ export const GetResponse: MessageFns<GetResponse> = {
     source: AsyncIterable<GetResponse | GetResponse[]> | Iterable<GetResponse | GetResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [GetResponse.encode(p).finish()];
         }
       } else {
-            yield* [GetResponse.encode(pkt as any).finish()];
+        yield* [GetResponse.encode(pkt as any).finish()];
       }
     }
   },
@@ -484,12 +484,12 @@ export const GetResponse: MessageFns<GetResponse> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<GetResponse> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [GetResponse.decode(p)];
         }
       } else {
-            yield* [GetResponse.decode(pkt as any)];
+        yield* [GetResponse.decode(pkt as any)];
       }
     }
   },
@@ -540,24 +540,24 @@ function createBaseUpdateRequest(): UpdateRequest {
 }
 
 export const UpdateRequest: MessageFns<UpdateRequest> = {
-    encode(message: UpdateRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: UpdateRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.startTime !== undefined) {
-        Timestamp.encode(toTimestamp(message.startTime), writer.uint32(10).fork()).join();
+      Timestamp.encode(toTimestamp(message.startTime), writer.uint32(10).fork()).join();
     }
     if (message.endTime !== undefined) {
-        Timestamp.encode(toTimestamp(message.endTime), writer.uint32(18).fork()).join();
+      Timestamp.encode(toTimestamp(message.endTime), writer.uint32(18).fork()).join();
     }
     if (message.totalRounds !== 0) {
       writer.uint32(24).uint32(message.totalRounds);
     }
-        if (message.paused !== false) {
+    if (message.paused !== false) {
       writer.uint32(32).bool(message.paused);
     }
     if (message.flagLifetimeRounds !== 0) {
       writer.uint32(40).uint32(message.flagLifetimeRounds);
     }
     if (message.roundDuration !== undefined) {
-        Duration.encode(message.roundDuration, writer.uint32(50).fork()).join();
+      Duration.encode(message.roundDuration, writer.uint32(50).fork()).join();
     }
     if (message.mode !== 0) {
       writer.uint32(56).int32(message.mode);
@@ -565,74 +565,74 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): UpdateRequest {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.startTime = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.endTime = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
-          }
-          case 3: {
+        }
+        case 3: {
           if (tag !== 24) {
             break;
           }
 
           message.totalRounds = reader.uint32();
           continue;
-          }
-          case 4: {
+        }
+        case 4: {
           if (tag !== 32) {
             break;
           }
 
           message.paused = reader.bool();
           continue;
-          }
-          case 5: {
+        }
+        case 5: {
           if (tag !== 40) {
             break;
           }
 
           message.flagLifetimeRounds = reader.uint32();
           continue;
-          }
-          case 6: {
+        }
+        case 6: {
           if (tag !== 50) {
             break;
           }
 
           message.roundDuration = Duration.decode(reader, reader.uint32());
           continue;
-          }
-          case 7: {
+        }
+        case 7: {
           if (tag !== 56) {
             break;
           }
 
           message.mode = reader.int32() as any;
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -643,12 +643,12 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     source: AsyncIterable<UpdateRequest | UpdateRequest[]> | Iterable<UpdateRequest | UpdateRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [UpdateRequest.encode(p).finish()];
         }
       } else {
-            yield* [UpdateRequest.encode(pkt as any).finish()];
+        yield* [UpdateRequest.encode(pkt as any).finish()];
       }
     }
   },
@@ -659,12 +659,12 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<UpdateRequest> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [UpdateRequest.decode(p)];
         }
       } else {
-            yield* [UpdateRequest.decode(pkt as any)];
+        yield* [UpdateRequest.decode(pkt as any)];
       }
     }
   },
@@ -673,9 +673,9 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     return {
       startTime: isSet(object.startTime) ? fromJsonTimestamp(object.startTime) : undefined,
       endTime: isSet(object.endTime) ? fromJsonTimestamp(object.endTime) : undefined,
-        totalRounds: isSet(object.totalRounds) ? globalThis.Number(object.totalRounds) : 0,
-        paused: isSet(object.paused) ? globalThis.Boolean(object.paused) : false,
-        flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? globalThis.Number(object.flagLifetimeRounds) : 0,
+      totalRounds: isSet(object.totalRounds) ? globalThis.Number(object.totalRounds) : 0,
+      paused: isSet(object.paused) ? globalThis.Boolean(object.paused) : false,
+      flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? globalThis.Number(object.flagLifetimeRounds) : 0,
       roundDuration: isSet(object.roundDuration) ? Duration.fromJSON(object.roundDuration) : undefined,
       mode: isSet(object.mode) ? gameModeFromJSON(object.mode) : 0,
     };
@@ -692,7 +692,7 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     if (message.totalRounds !== 0) {
       obj.totalRounds = Math.round(message.totalRounds);
     }
-      if (message.paused !== false) {
+    if (message.paused !== false) {
       obj.paused = message.paused;
     }
     if (message.flagLifetimeRounds !== 0) {
@@ -730,44 +730,44 @@ function createBaseUpdateResponse(): UpdateResponse {
 }
 
 export const UpdateResponse: MessageFns<UpdateResponse> = {
-    encode(message: UpdateResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: UpdateResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.gameState !== undefined) {
-        GameState.encode(message.gameState, writer.uint32(10).fork()).join();
+      GameState.encode(message.gameState, writer.uint32(10).fork()).join();
     }
     if (message.version !== undefined) {
-        Version.encode(message.version, writer.uint32(18).fork()).join();
+      Version.encode(message.version, writer.uint32(18).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): UpdateResponse {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.gameState = GameState.decode(reader, reader.uint32());
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.version = Version.decode(reader, reader.uint32());
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -778,12 +778,12 @@ export const UpdateResponse: MessageFns<UpdateResponse> = {
     source: AsyncIterable<UpdateResponse | UpdateResponse[]> | Iterable<UpdateResponse | UpdateResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [UpdateResponse.encode(p).finish()];
         }
       } else {
-            yield* [UpdateResponse.encode(pkt as any).finish()];
+        yield* [UpdateResponse.encode(pkt as any).finish()];
       }
     }
   },
@@ -794,12 +794,12 @@ export const UpdateResponse: MessageFns<UpdateResponse> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<UpdateResponse> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [UpdateResponse.decode(p)];
         }
       } else {
-            yield* [UpdateResponse.decode(pkt as any)];
+        yield* [UpdateResponse.decode(pkt as any)];
       }
     }
   },
@@ -842,44 +842,44 @@ function createBaseUpdateRoundRequest(): UpdateRoundRequest {
 }
 
 export const UpdateRoundRequest: MessageFns<UpdateRoundRequest> = {
-    encode(message: UpdateRoundRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: UpdateRoundRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.runningRound !== 0) {
-        writer.uint32(8).uint32(message.runningRound);
+      writer.uint32(8).uint32(message.runningRound);
     }
     if (message.runningRoundStart !== undefined) {
-        Timestamp.encode(toTimestamp(message.runningRoundStart), writer.uint32(18).fork()).join();
+      Timestamp.encode(toTimestamp(message.runningRoundStart), writer.uint32(18).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): UpdateRoundRequest {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateRoundRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateRoundRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 8) {
             break;
           }
 
-              message.runningRound = reader.uint32();
+          message.runningRound = reader.uint32();
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.runningRoundStart = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -892,12 +892,12 @@ export const UpdateRoundRequest: MessageFns<UpdateRoundRequest> = {
       | Iterable<UpdateRoundRequest | UpdateRoundRequest[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [UpdateRoundRequest.encode(p).finish()];
         }
       } else {
-            yield* [UpdateRoundRequest.encode(pkt as any).finish()];
+        yield* [UpdateRoundRequest.encode(pkt as any).finish()];
       }
     }
   },
@@ -908,19 +908,19 @@ export const UpdateRoundRequest: MessageFns<UpdateRoundRequest> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<UpdateRoundRequest> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [UpdateRoundRequest.decode(p)];
         }
       } else {
-            yield* [UpdateRoundRequest.decode(pkt as any)];
+        yield* [UpdateRoundRequest.decode(pkt as any)];
       }
     }
   },
 
   fromJSON(object: any): UpdateRoundRequest {
     return {
-        runningRound: isSet(object.runningRound) ? globalThis.Number(object.runningRound) : 0,
+      runningRound: isSet(object.runningRound) ? globalThis.Number(object.runningRound) : 0,
       runningRoundStart: isSet(object.runningRoundStart) ? fromJsonTimestamp(object.runningRoundStart) : undefined,
     };
   },
@@ -952,44 +952,44 @@ function createBaseUpdateRoundResponse(): UpdateRoundResponse {
 }
 
 export const UpdateRoundResponse: MessageFns<UpdateRoundResponse> = {
-    encode(message: UpdateRoundResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+  encode(message: UpdateRoundResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.gameState !== undefined) {
-        GameState.encode(message.gameState, writer.uint32(10).fork()).join();
+      GameState.encode(message.gameState, writer.uint32(10).fork()).join();
     }
     if (message.version !== undefined) {
-        Version.encode(message.version, writer.uint32(18).fork()).join();
+      Version.encode(message.version, writer.uint32(18).fork()).join();
     }
     return writer;
   },
 
-    decode(input: BinaryReader | Uint8Array, length?: number): UpdateRoundResponse {
-        const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateRoundResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateRoundResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-          case 1: {
+        case 1: {
           if (tag !== 10) {
             break;
           }
 
           message.gameState = GameState.decode(reader, reader.uint32());
           continue;
-          }
-          case 2: {
+        }
+        case 2: {
           if (tag !== 18) {
             break;
           }
 
           message.version = Version.decode(reader, reader.uint32());
           continue;
-          }
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
       }
-        reader.skip(tag & 7);
+      reader.skip(tag & 7);
     }
     return message;
   },
@@ -1002,12 +1002,12 @@ export const UpdateRoundResponse: MessageFns<UpdateRoundResponse> = {
       | Iterable<UpdateRoundResponse | UpdateRoundResponse[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [UpdateRoundResponse.encode(p).finish()];
         }
       } else {
-            yield* [UpdateRoundResponse.encode(pkt as any).finish()];
+        yield* [UpdateRoundResponse.encode(pkt as any).finish()];
       }
     }
   },
@@ -1018,12 +1018,12 @@ export const UpdateRoundResponse: MessageFns<UpdateRoundResponse> = {
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
   ): AsyncIterable<UpdateRoundResponse> {
     for await (const pkt of source) {
-        if (globalThis.Array.isArray(pkt)) {
-            for (const p of (pkt as any)) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
           yield* [UpdateRoundResponse.decode(p)];
         }
       } else {
-            yield* [UpdateRoundResponse.decode(pkt as any)];
+        yield* [UpdateRoundResponse.decode(pkt as any)];
       }
     }
   },
@@ -1064,8 +1064,8 @@ export const UpdateRoundResponse: MessageFns<UpdateRoundResponse> = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-    : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-        : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
@@ -1081,16 +1081,16 @@ function toTimestamp(date: Date): Timestamp {
 }
 
 function fromTimestamp(t: Timestamp): Date {
-    let millis = (globalThis.Number(t.seconds.toString()) || 0) * 1_000;
+  let millis = (globalThis.Number(t.seconds.toString()) || 0) * 1_000;
   millis += (t.nanos || 0) / 1_000_000;
-    return new globalThis.Date(millis);
+  return new globalThis.Date(millis);
 }
 
 function fromJsonTimestamp(o: any): Date {
-    if (o instanceof globalThis.Date) {
+  if (o instanceof globalThis.Date) {
     return o;
   } else if (typeof o === "string") {
-        return new globalThis.Date(o);
+    return new globalThis.Date(o);
   } else {
     return fromTimestamp(Timestamp.fromJSON(o));
   }
@@ -1101,21 +1101,14 @@ function isSet(value: any): boolean {
 }
 
 export interface MessageFns<T> {
-    encode(message: T, writer?: BinaryWriter): BinaryWriter;
-
-    decode(input: BinaryReader | Uint8Array, length?: number): T;
-
-    encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
-
-    decodeTransform(
-        source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-    ): AsyncIterable<T>;
-
-    fromJSON(object: any): T;
-
-    toJSON(message: T): unknown;
-
-    create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
-
-    fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
+  encode(message: T, writer?: BinaryWriter): BinaryWriter;
+  decode(input: BinaryReader | Uint8Array, length?: number): T;
+  encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
+  decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<T>;
+  fromJSON(object: any): T;
+  toJSON(message: T): unknown;
+  create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
+  fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
 }
