@@ -1,4 +1,4 @@
-package ticker
+package scheduler
 
 import "github.com/c4t-but-s4d/fastad/internal/config"
 

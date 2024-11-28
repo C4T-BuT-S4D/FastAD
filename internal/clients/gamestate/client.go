@@ -47,6 +47,14 @@ func (c *Client) Update(ctx context.Context, req *gspb.UpdateRequest) (*models.G
 	return models.NewGameStateFromProto(resp.GameState), nil
 }
 
+func (c *Client) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*models.GameState, error) {
+	resp, err := c.c.UpdateRound(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("updating round: %w", err)
+	}
+	return models.NewGameStateFromProto(resp.GameState), nil
+}
+
 func (c *Client) refresh(ctx context.Context) error {
 	c.refreshMu.Lock()
 	defer c.refreshMu.Unlock()

@@ -1,18 +1,22 @@
-version: v1
+version: v2
 managed:
   enabled: true
-  go_package_prefix:
-    default: github.com/c4t-but-s4d/fastad/pkg/proto
+  override:
+  - file_option: go_package_prefix
+    value: "github.com/c4t-but-s4d/fastad/pkg/proto"
+  disable:
+  - module: buf.build/googleapis/googleapis
+    file_option: go_package_prefix
 plugins:
-  - plugin: buf.build/protocolbuffers/go
+- remote: buf.build/protocolbuffers/go
     out: ../pkg/proto
     opt:
       - paths=source_relative
-  - plugin: buf.build/grpc/go
+- remote: buf.build/grpc/go
     out: ../pkg/proto
     opt:
       - paths=source_relative
-  - plugin: buf.build/community/stephenh-ts-proto
+- remote: buf.build/community/stephenh-ts-proto
     out: ../front/src/proto
     opt:
       - env=browser

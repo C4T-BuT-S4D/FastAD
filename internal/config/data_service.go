@@ -11,5 +11,5 @@ type DataService struct {
 }
 
 func SetDefaultDataServiceConfig(prefix string) {
-	viper.SetDefault(fmt.Sprintf("%s.address", prefix), "data-service:1337")
+	viper.SetDefault(fmt.Sprintf("%s.address", prefix), "127.0.0.1:1337")
 }

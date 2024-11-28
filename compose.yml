@@ -29,7 +29,7 @@ services:
     command: /usr/local/bin/envoy -c /etc/envoy/envoy.yaml --service-cluster envoy --service-node envoy --log-level debug
 
   postgres:
-    image: postgres:15.4-alpine
+    image: postgres:17.2-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-fastad}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fastad}

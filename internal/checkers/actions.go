@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
 
@@ -27,7 +26,7 @@ const checkerKillDelay = time.Second * 3
 func RunCheckAction(
 	ctx context.Context,
 	params *CheckActivityParameters,
-) *models.CheckerVerdict {
+) *Verdict {
 	// TODO: some form of configuration.
 	checkerPath := filepath.Join("checkers", params.Service.CheckerPath)
 	return RunAction(
@@ -42,30 +41,28 @@ func RunCheckAction(
 func RunPutAction(
 	ctx context.Context,
 	params *PutActivityParameters,
-	flag *models.Flag,
-) *models.CheckerVerdict {
+) *Verdict {
 	// TODO: some form of configuration.
-	checkerPath := filepath.Join("checkers", params.Service.CheckerPath)
+	checkerPath := filepath.Join("checkers", params.FlagInfo.Service.CheckerPath)
 	return RunAction(
 		ctx,
 		checkerPath,
 		checkerpb.Action_ACTION_PUT,
 		[]string{
 			putAction,
-			params.Team.Address,
-			flag.Private,
-			flag.Flag,
+			params.FlagInfo.Team.Address,
+			params.FlagInfo.Flag.Private,
+			params.FlagInfo.Flag.Flag,
 			"1",
 		},
-		params.Service.CheckerTimeout(checkerpb.Action_ACTION_PUT),
+		params.FlagInfo.Service.CheckerTimeout(checkerpb.Action_ACTION_PUT),
 	)
 }
 
 func RunGetAction(
 	ctx context.Context,
 	params *GetActivityParameters,
-	flag *models.Flag,
-) *models.CheckerVerdict {
+) *Verdict {
 	// TODO: some form of configuration.
 	checkerPath := filepath.Join("checkers", params.Service.CheckerPath)
 	return RunAction(
@@ -75,8 +72,8 @@ func RunGetAction(
 		[]string{
 			getAction,
 			params.Team.Address,
-			flag.Private,
-			flag.Flag,
+			params.Flag.Private,
+			params.Flag.Flag,
 			"1",
 		},
 		params.Service.CheckerTimeout(checkerpb.Action_ACTION_GET),
@@ -89,7 +86,7 @@ func RunAction(
 	action checkerpb.Action,
 	args []string,
 	softTimeout time.Duration,
-) *models.CheckerVerdict {
+) *Verdict {
 	ctx, cancel := context.WithTimeout(ctx, softTimeout)
 	defer cancel()
 
@@ -109,7 +106,7 @@ func RunAction(
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	verdict := &models.CheckerVerdict{
+	verdict := &Verdict{
 		Action:  action,
 		Command: cmd.String(),
 	}

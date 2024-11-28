@@ -25,3 +25,13 @@ func (s *Service) validateUpdateRequest(req *gspb.UpdateRequest) error {
 	}
 	return nil
 }
+
+func (s *Service) validateUpdateRoundRequest(req *gspb.UpdateRoundRequest) error {
+	if req.RunningRound == 0 {
+		return status.Error(codes.InvalidArgument, "running_round required")
+	}
+	if req.RunningRoundStart == nil {
+		return status.Error(codes.InvalidArgument, "running_round_start required")
+	}
+	return nil
+}

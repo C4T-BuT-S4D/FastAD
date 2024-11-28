@@ -56,7 +56,7 @@ message UpdateResponse {
 }
 
 message UpdateRoundRequest {
-    int32 running_round = 1;
+    uint32 running_round = 1;
     google.protobuf.Timestamp running_round_start = 2;
 }
 

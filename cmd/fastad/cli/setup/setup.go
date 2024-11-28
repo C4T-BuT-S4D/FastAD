@@ -32,7 +32,7 @@ func NewSetupCommand(_ *common.CommandContext) *cli.Command {
 			&cli.StringFlag{
 				Name:  "api-address",
 				Usage: "fastad api address",
-				Value: "localhost:8080",
+				Value: "127.0.0.1:1337",
 			},
 		},
 		Action: func(c *cli.Context) error {

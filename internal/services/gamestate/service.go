@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -52,16 +53,39 @@ func (s *Service) Get(ctx context.Context, req *gspb.GetRequest) (*gspb.GetRespo
 func (s *Service) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.UpdateResponse, error) {
 	logrus.Debugf("GameStateService/Update: %v", req)
 
+	// FiXME: security.
+
 	if err := s.validateUpdateRequest(req); err != nil {
 		return nil, fmt.Errorf("validating request: %w", err)
 	}
 
-	gs, err := s.controller.Update(ctx, req)
+	gs, newVersion, err := s.controller.Update(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("updating game state: %w", err)
 	}
 
 	return &gspb.UpdateResponse{
 		GameState: gs.ToProto(),
+		Version:   &versionpb.Version{Version: newVersion},
+	}, nil
+}
+
+func (s *Service) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*gspb.UpdateRoundResponse, error) {
+	logrus.Debugf("GameStateService/UpdateRound: %v", req)
+
+	// FiXME: security.
+
+	if err := s.validateUpdateRoundRequest(req); err != nil {
+		return nil, fmt.Errorf("validating request: %w", err)
+	}
+
+	gs, newVersion, err := s.controller.UpdateRound(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("updating round: %w", err)
+	}
+
+	return &gspb.UpdateRoundResponse{
+		GameState: gs.ToProto(),
+		Version:   &versionpb.Version{Version: newVersion},
 	}, nil
 }

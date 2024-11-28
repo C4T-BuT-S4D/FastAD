@@ -2,7 +2,6 @@ package checkers
 
 import (
 	"context"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -14,10 +13,11 @@ type GetActivityParameters struct {
 	GameState *models.GameState
 	Team      *models.Team
 	Service   *models.Service
+	Flag      *models.Flag
 }
 
 type GetActivityResult struct {
-	Verdict *models.CheckerVerdict
+	Verdict *Verdict
 }
 
 func (s *ActivityState) GetActivityDefinition(ctx context.Context, params *GetActivityParameters) (*GetActivityResult, error) {
@@ -27,13 +27,8 @@ func (s *ActivityState) GetActivityDefinition(ctx context.Context, params *GetAc
 		"action":  checkerpb.Action_ACTION_GET,
 	})
 
-	flag := &models.Flag{
-		Flag:    strings.Repeat("A", 31) + "=",
-		Private: "some-flag-id",
-	}
-
 	logger.Info("starting")
-	verdict := RunGetAction(ctx, params, flag)
+	verdict := RunGetAction(ctx, params)
 	logger.Infof("finished: %v", verdict)
 
 	return &GetActivityResult{Verdict: verdict}, nil
