@@ -9,6 +9,7 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	"github.com/creasty/defaults"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
@@ -25,7 +26,6 @@ import (
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
 	"github.com/c4t-but-s4d/fastad/internal/clients/services"
 	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
-	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
@@ -153,21 +153,22 @@ func main() {
 func setupConfig() (*checkers.Config, error) {
 	pflag.BoolP("debug", "v", false, "Enable verbose logging")
 	pflag.Parse()
-	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
+
+	v := viper.NewWithOptions(viper.ExperimentalBindStruct())
+
+	if err := v.BindPFlags(pflag.CommandLine); err != nil {
 		return nil, fmt.Errorf("binding pflags: %w", err)
 	}
-	viper.SetEnvPrefix("FASTAD_CHECKERS")
-	viper.AutomaticEnv()
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	v.SetEnvPrefix("FASTAD_CHECKERS")
+	v.AutomaticEnv()
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
-	config.SetDefaultTemporalConfig("temporal")
-	config.SetDefaultDataServiceConfig("data_service")
-	config.SetDefaultPostgresConfig("postgres")
-
-	viper.SetDefault("user_agent", "checkers_worker")
+	v.SetDefault("user_agent", "checkers_worker")
 
 	cfg := new(checkers.Config)
-	if err := viper.Unmarshal(
+	defaults.MustSet(cfg)
+
+	if err := v.Unmarshal(
 		cfg,
 		viper.DecodeHook(
 			mapstructure.ComposeDecodeHookFunc(
