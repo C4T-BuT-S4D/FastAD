@@ -32,8 +32,9 @@ func main() {
 	reflection.Register(grpcServer)
 
 	httpServer := &http.Server{
-		Addr:    "0.0.0.0:8002",
-		Handler: multiproto.NewHandler(grpcServer),
+		Addr:              "0.0.0.0:8002",
+		Handler:           multiproto.NewHandler(grpcServer),
+		ReadHeaderTimeout: time.Second * 10,
 	}
 
 	go func() {

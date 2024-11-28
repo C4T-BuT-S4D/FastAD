@@ -15,16 +15,16 @@ enum GameMode {
 message GameState {
     google.protobuf.Timestamp start_time = 1;
     google.protobuf.Timestamp end_time = 2;
-    uint32 total_rounds = 3;
+    uint64 total_rounds = 3;
 
     bool paused = 4;
 
-    uint32 flag_lifetime_rounds = 5;
+    uint64 flag_lifetime_rounds = 5;
     google.protobuf.Duration round_duration = 6;
 
     data.game_state.GameMode mode = 7;
 
-    uint32 running_round = 8;
+    uint64 running_round = 8;
     google.protobuf.Timestamp running_round_start = 9;
 }
 
@@ -40,11 +40,11 @@ message GetResponse {
 message UpdateRequest {
     google.protobuf.Timestamp start_time = 1;
     google.protobuf.Timestamp end_time = 2;
-    uint32 total_rounds = 3;
+    uint64 total_rounds = 3;
 
     bool paused = 4;
 
-    uint32 flag_lifetime_rounds = 5;
+    uint64 flag_lifetime_rounds = 5;
     google.protobuf.Duration round_duration = 6;
 
     data.game_state.GameMode mode = 7;
@@ -56,7 +56,7 @@ message UpdateResponse {
 }
 
 message UpdateRoundRequest {
-    uint32 running_round = 1;
+    uint64 running_round = 1;
     google.protobuf.Timestamp running_round_start = 2;
 }
 

@@ -5,10 +5,10 @@
 // source: data/game_state/game_state.proto
 
 /* eslint-disable */
-import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Duration } from "../../google/protobuf/duration";
-import { Timestamp } from "../../google/protobuf/timestamp";
-import { Version } from "../version/version";
+import {BinaryReader, BinaryWriter} from "@bufbuild/protobuf/wire";
+import {Duration} from "../../google/protobuf/duration";
+import {Timestamp} from "../../google/protobuf/timestamp";
+import {Version} from "../version/version";
 
 export const protobufPackage = "data.game_state";
 
@@ -48,12 +48,12 @@ export function gameModeToJSON(object: GameMode): string {
 export interface GameState {
   startTime: Date | undefined;
   endTime: Date | undefined;
-  totalRounds: number;
+    totalRounds: bigint;
   paused: boolean;
-  flagLifetimeRounds: number;
+    flagLifetimeRounds: bigint;
   roundDuration: Duration | undefined;
   mode: GameMode;
-  runningRound: number;
+    runningRound: bigint;
   runningRoundStart: Date | undefined;
 }
 
@@ -69,9 +69,9 @@ export interface GetResponse {
 export interface UpdateRequest {
   startTime: Date | undefined;
   endTime: Date | undefined;
-  totalRounds: number;
+    totalRounds: bigint;
   paused: boolean;
-  flagLifetimeRounds: number;
+    flagLifetimeRounds: bigint;
   roundDuration: Duration | undefined;
   mode: GameMode;
 }
@@ -82,7 +82,7 @@ export interface UpdateResponse {
 }
 
 export interface UpdateRoundRequest {
-  runningRound: number;
+    runningRound: bigint;
   runningRoundStart: Date | undefined;
 }
 
@@ -95,12 +95,12 @@ function createBaseGameState(): GameState {
   return {
     startTime: undefined,
     endTime: undefined,
-    totalRounds: 0,
+      totalRounds: 0n,
     paused: false,
-    flagLifetimeRounds: 0,
+      flagLifetimeRounds: 0n,
     roundDuration: undefined,
     mode: 0,
-    runningRound: 0,
+      runningRound: 0n,
     runningRoundStart: undefined,
   };
 }
@@ -113,14 +113,20 @@ export const GameState: MessageFns<GameState> = {
     if (message.endTime !== undefined) {
       Timestamp.encode(toTimestamp(message.endTime), writer.uint32(18).fork()).join();
     }
-    if (message.totalRounds !== 0) {
-      writer.uint32(24).uint32(message.totalRounds);
+      if (message.totalRounds !== 0n) {
+          if (BigInt.asUintN(64, message.totalRounds) !== message.totalRounds) {
+              throw new globalThis.Error("value provided for field message.totalRounds of type uint64 too large");
+          }
+          writer.uint32(24).uint64(message.totalRounds);
     }
     if (message.paused !== false) {
       writer.uint32(32).bool(message.paused);
     }
-    if (message.flagLifetimeRounds !== 0) {
-      writer.uint32(40).uint32(message.flagLifetimeRounds);
+      if (message.flagLifetimeRounds !== 0n) {
+          if (BigInt.asUintN(64, message.flagLifetimeRounds) !== message.flagLifetimeRounds) {
+              throw new globalThis.Error("value provided for field message.flagLifetimeRounds of type uint64 too large");
+          }
+          writer.uint32(40).uint64(message.flagLifetimeRounds);
     }
     if (message.roundDuration !== undefined) {
       Duration.encode(message.roundDuration, writer.uint32(50).fork()).join();
@@ -128,8 +134,11 @@ export const GameState: MessageFns<GameState> = {
     if (message.mode !== 0) {
       writer.uint32(56).int32(message.mode);
     }
-    if (message.runningRound !== 0) {
-      writer.uint32(64).uint32(message.runningRound);
+      if (message.runningRound !== 0n) {
+          if (BigInt.asUintN(64, message.runningRound) !== message.runningRound) {
+              throw new globalThis.Error("value provided for field message.runningRound of type uint64 too large");
+          }
+          writer.uint32(64).uint64(message.runningRound);
     }
     if (message.runningRoundStart !== undefined) {
       Timestamp.encode(toTimestamp(message.runningRoundStart), writer.uint32(74).fork()).join();
@@ -165,7 +174,7 @@ export const GameState: MessageFns<GameState> = {
             break;
           }
 
-          message.totalRounds = reader.uint32();
+            message.totalRounds = reader.uint64() as bigint;
           continue;
         }
         case 4: {
@@ -181,7 +190,7 @@ export const GameState: MessageFns<GameState> = {
             break;
           }
 
-          message.flagLifetimeRounds = reader.uint32();
+            message.flagLifetimeRounds = reader.uint64() as bigint;
           continue;
         }
         case 6: {
@@ -205,7 +214,7 @@ export const GameState: MessageFns<GameState> = {
             break;
           }
 
-          message.runningRound = reader.uint32();
+            message.runningRound = reader.uint64() as bigint;
           continue;
         }
         case 9: {
@@ -261,12 +270,12 @@ export const GameState: MessageFns<GameState> = {
     return {
       startTime: isSet(object.startTime) ? fromJsonTimestamp(object.startTime) : undefined,
       endTime: isSet(object.endTime) ? fromJsonTimestamp(object.endTime) : undefined,
-      totalRounds: isSet(object.totalRounds) ? globalThis.Number(object.totalRounds) : 0,
+        totalRounds: isSet(object.totalRounds) ? BigInt(object.totalRounds) : 0n,
       paused: isSet(object.paused) ? globalThis.Boolean(object.paused) : false,
-      flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? globalThis.Number(object.flagLifetimeRounds) : 0,
+        flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? BigInt(object.flagLifetimeRounds) : 0n,
       roundDuration: isSet(object.roundDuration) ? Duration.fromJSON(object.roundDuration) : undefined,
       mode: isSet(object.mode) ? gameModeFromJSON(object.mode) : 0,
-      runningRound: isSet(object.runningRound) ? globalThis.Number(object.runningRound) : 0,
+        runningRound: isSet(object.runningRound) ? BigInt(object.runningRound) : 0n,
       runningRoundStart: isSet(object.runningRoundStart) ? fromJsonTimestamp(object.runningRoundStart) : undefined,
     };
   },
@@ -279,14 +288,14 @@ export const GameState: MessageFns<GameState> = {
     if (message.endTime !== undefined) {
       obj.endTime = message.endTime.toISOString();
     }
-    if (message.totalRounds !== 0) {
-      obj.totalRounds = Math.round(message.totalRounds);
+      if (message.totalRounds !== 0n) {
+          obj.totalRounds = message.totalRounds.toString();
     }
     if (message.paused !== false) {
       obj.paused = message.paused;
     }
-    if (message.flagLifetimeRounds !== 0) {
-      obj.flagLifetimeRounds = Math.round(message.flagLifetimeRounds);
+      if (message.flagLifetimeRounds !== 0n) {
+          obj.flagLifetimeRounds = message.flagLifetimeRounds.toString();
     }
     if (message.roundDuration !== undefined) {
       obj.roundDuration = Duration.toJSON(message.roundDuration);
@@ -294,8 +303,8 @@ export const GameState: MessageFns<GameState> = {
     if (message.mode !== 0) {
       obj.mode = gameModeToJSON(message.mode);
     }
-    if (message.runningRound !== 0) {
-      obj.runningRound = Math.round(message.runningRound);
+      if (message.runningRound !== 0n) {
+          obj.runningRound = message.runningRound.toString();
     }
     if (message.runningRoundStart !== undefined) {
       obj.runningRoundStart = message.runningRoundStart.toISOString();
@@ -310,14 +319,14 @@ export const GameState: MessageFns<GameState> = {
     const message = createBaseGameState();
     message.startTime = object.startTime ?? undefined;
     message.endTime = object.endTime ?? undefined;
-    message.totalRounds = object.totalRounds ?? 0;
+      message.totalRounds = object.totalRounds ?? 0n;
     message.paused = object.paused ?? false;
-    message.flagLifetimeRounds = object.flagLifetimeRounds ?? 0;
+      message.flagLifetimeRounds = object.flagLifetimeRounds ?? 0n;
     message.roundDuration = (object.roundDuration !== undefined && object.roundDuration !== null)
       ? Duration.fromPartial(object.roundDuration)
       : undefined;
     message.mode = object.mode ?? 0;
-    message.runningRound = object.runningRound ?? 0;
+      message.runningRound = object.runningRound ?? 0n;
     message.runningRoundStart = object.runningRoundStart ?? undefined;
     return message;
   },
@@ -531,9 +540,9 @@ function createBaseUpdateRequest(): UpdateRequest {
   return {
     startTime: undefined,
     endTime: undefined,
-    totalRounds: 0,
+      totalRounds: 0n,
     paused: false,
-    flagLifetimeRounds: 0,
+      flagLifetimeRounds: 0n,
     roundDuration: undefined,
     mode: 0,
   };
@@ -547,14 +556,20 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     if (message.endTime !== undefined) {
       Timestamp.encode(toTimestamp(message.endTime), writer.uint32(18).fork()).join();
     }
-    if (message.totalRounds !== 0) {
-      writer.uint32(24).uint32(message.totalRounds);
+      if (message.totalRounds !== 0n) {
+          if (BigInt.asUintN(64, message.totalRounds) !== message.totalRounds) {
+              throw new globalThis.Error("value provided for field message.totalRounds of type uint64 too large");
+          }
+          writer.uint32(24).uint64(message.totalRounds);
     }
     if (message.paused !== false) {
       writer.uint32(32).bool(message.paused);
     }
-    if (message.flagLifetimeRounds !== 0) {
-      writer.uint32(40).uint32(message.flagLifetimeRounds);
+      if (message.flagLifetimeRounds !== 0n) {
+          if (BigInt.asUintN(64, message.flagLifetimeRounds) !== message.flagLifetimeRounds) {
+              throw new globalThis.Error("value provided for field message.flagLifetimeRounds of type uint64 too large");
+          }
+          writer.uint32(40).uint64(message.flagLifetimeRounds);
     }
     if (message.roundDuration !== undefined) {
       Duration.encode(message.roundDuration, writer.uint32(50).fork()).join();
@@ -593,7 +608,7 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
             break;
           }
 
-          message.totalRounds = reader.uint32();
+            message.totalRounds = reader.uint64() as bigint;
           continue;
         }
         case 4: {
@@ -609,7 +624,7 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
             break;
           }
 
-          message.flagLifetimeRounds = reader.uint32();
+            message.flagLifetimeRounds = reader.uint64() as bigint;
           continue;
         }
         case 6: {
@@ -673,9 +688,9 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     return {
       startTime: isSet(object.startTime) ? fromJsonTimestamp(object.startTime) : undefined,
       endTime: isSet(object.endTime) ? fromJsonTimestamp(object.endTime) : undefined,
-      totalRounds: isSet(object.totalRounds) ? globalThis.Number(object.totalRounds) : 0,
+        totalRounds: isSet(object.totalRounds) ? BigInt(object.totalRounds) : 0n,
       paused: isSet(object.paused) ? globalThis.Boolean(object.paused) : false,
-      flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? globalThis.Number(object.flagLifetimeRounds) : 0,
+        flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? BigInt(object.flagLifetimeRounds) : 0n,
       roundDuration: isSet(object.roundDuration) ? Duration.fromJSON(object.roundDuration) : undefined,
       mode: isSet(object.mode) ? gameModeFromJSON(object.mode) : 0,
     };
@@ -689,14 +704,14 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     if (message.endTime !== undefined) {
       obj.endTime = message.endTime.toISOString();
     }
-    if (message.totalRounds !== 0) {
-      obj.totalRounds = Math.round(message.totalRounds);
+      if (message.totalRounds !== 0n) {
+          obj.totalRounds = message.totalRounds.toString();
     }
     if (message.paused !== false) {
       obj.paused = message.paused;
     }
-    if (message.flagLifetimeRounds !== 0) {
-      obj.flagLifetimeRounds = Math.round(message.flagLifetimeRounds);
+      if (message.flagLifetimeRounds !== 0n) {
+          obj.flagLifetimeRounds = message.flagLifetimeRounds.toString();
     }
     if (message.roundDuration !== undefined) {
       obj.roundDuration = Duration.toJSON(message.roundDuration);
@@ -714,9 +729,9 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     const message = createBaseUpdateRequest();
     message.startTime = object.startTime ?? undefined;
     message.endTime = object.endTime ?? undefined;
-    message.totalRounds = object.totalRounds ?? 0;
+      message.totalRounds = object.totalRounds ?? 0n;
     message.paused = object.paused ?? false;
-    message.flagLifetimeRounds = object.flagLifetimeRounds ?? 0;
+      message.flagLifetimeRounds = object.flagLifetimeRounds ?? 0n;
     message.roundDuration = (object.roundDuration !== undefined && object.roundDuration !== null)
       ? Duration.fromPartial(object.roundDuration)
       : undefined;
@@ -838,13 +853,16 @@ export const UpdateResponse: MessageFns<UpdateResponse> = {
 };
 
 function createBaseUpdateRoundRequest(): UpdateRoundRequest {
-  return { runningRound: 0, runningRoundStart: undefined };
+    return {runningRound: 0n, runningRoundStart: undefined};
 }
 
 export const UpdateRoundRequest: MessageFns<UpdateRoundRequest> = {
   encode(message: UpdateRoundRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.runningRound !== 0) {
-      writer.uint32(8).uint32(message.runningRound);
+      if (message.runningRound !== 0n) {
+          if (BigInt.asUintN(64, message.runningRound) !== message.runningRound) {
+              throw new globalThis.Error("value provided for field message.runningRound of type uint64 too large");
+          }
+          writer.uint32(8).uint64(message.runningRound);
     }
     if (message.runningRoundStart !== undefined) {
       Timestamp.encode(toTimestamp(message.runningRoundStart), writer.uint32(18).fork()).join();
@@ -864,7 +882,7 @@ export const UpdateRoundRequest: MessageFns<UpdateRoundRequest> = {
             break;
           }
 
-          message.runningRound = reader.uint32();
+            message.runningRound = reader.uint64() as bigint;
           continue;
         }
         case 2: {
@@ -920,15 +938,15 @@ export const UpdateRoundRequest: MessageFns<UpdateRoundRequest> = {
 
   fromJSON(object: any): UpdateRoundRequest {
     return {
-      runningRound: isSet(object.runningRound) ? globalThis.Number(object.runningRound) : 0,
+        runningRound: isSet(object.runningRound) ? BigInt(object.runningRound) : 0n,
       runningRoundStart: isSet(object.runningRoundStart) ? fromJsonTimestamp(object.runningRoundStart) : undefined,
     };
   },
 
   toJSON(message: UpdateRoundRequest): unknown {
     const obj: any = {};
-    if (message.runningRound !== 0) {
-      obj.runningRound = Math.round(message.runningRound);
+      if (message.runningRound !== 0n) {
+          obj.runningRound = message.runningRound.toString();
     }
     if (message.runningRoundStart !== undefined) {
       obj.runningRoundStart = message.runningRoundStart.toISOString();
@@ -941,7 +959,7 @@ export const UpdateRoundRequest: MessageFns<UpdateRoundRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<UpdateRoundRequest>, I>>(object: I): UpdateRoundRequest {
     const message = createBaseUpdateRoundRequest();
-    message.runningRound = object.runningRound ?? 0;
+      message.runningRound = object.runningRound ?? 0n;
     message.runningRoundStart = object.runningRoundStart ?? undefined;
     return message;
   },

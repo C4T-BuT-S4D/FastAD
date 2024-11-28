@@ -24,7 +24,7 @@ func (t *Team) String() string {
 
 func (t *Team) ToProto() *teamspb.Team {
 	return &teamspb.Team{
-		Id:      int32(t.ID),
+		Id:      int64(t.ID),
 		Name:    t.Name,
 		Address: t.Address,
 		Token:   t.Token,

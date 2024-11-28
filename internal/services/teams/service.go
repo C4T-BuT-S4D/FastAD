@@ -2,6 +2,7 @@ package teams
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
@@ -36,7 +37,7 @@ func (s *Service) List(ctx context.Context, req *teamspb.ListRequest) (*teamspb.
 		return nil, status.Errorf(codes.Internal, "getting version: %v", err)
 	}
 
-	requestedVersion := req.GetVersion().GetVersion()
+	requestedVersion := int(req.GetVersion().GetVersion())
 	if requestedVersion > gotVersion {
 		return nil, status.Errorf(codes.FailedPrecondition, "requested version is greater than current")
 	}
@@ -63,7 +64,7 @@ func (s *Service) CreateBatch(ctx context.Context, req *teamspb.CreateBatchReque
 	// FIXME: check admin rights.
 
 	if err := s.validateCreateBatchRequest(req); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "validating request: %v", err)
+		return nil, fmt.Errorf("validating request: %w", err)
 	}
 
 	teams := lo.Map(req.Teams, func(team *teamspb.Team, _ int) *models.Team {

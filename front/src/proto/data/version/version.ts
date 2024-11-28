@@ -5,22 +5,25 @@
 // source: data/version/version.proto
 
 /* eslint-disable */
-import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
+import {BinaryReader, BinaryWriter} from "@bufbuild/protobuf/wire";
 
 export const protobufPackage = "data.version";
 
 export interface Version {
-  version: number;
+    version: bigint;
 }
 
 function createBaseVersion(): Version {
-  return { version: 0 };
+    return {version: 0n};
 }
 
 export const Version: MessageFns<Version> = {
   encode(message: Version, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.version !== 0) {
-      writer.uint32(8).int32(message.version);
+      if (message.version !== 0n) {
+          if (BigInt.asIntN(64, message.version) !== message.version) {
+              throw new globalThis.Error("value provided for field message.version of type int64 too large");
+          }
+          writer.uint32(8).int64(message.version);
     }
     return writer;
   },
@@ -37,7 +40,7 @@ export const Version: MessageFns<Version> = {
             break;
           }
 
-          message.version = reader.int32();
+            message.version = reader.int64() as bigint;
           continue;
         }
       }
@@ -82,13 +85,13 @@ export const Version: MessageFns<Version> = {
   },
 
   fromJSON(object: any): Version {
-    return { version: isSet(object.version) ? globalThis.Number(object.version) : 0 };
+      return {version: isSet(object.version) ? BigInt(object.version) : 0n};
   },
 
   toJSON(message: Version): unknown {
     const obj: any = {};
-    if (message.version !== 0) {
-      obj.version = Math.round(message.version);
+      if (message.version !== 0n) {
+          obj.version = message.version.toString();
     }
     return obj;
   },
@@ -98,7 +101,7 @@ export const Version: MessageFns<Version> = {
   },
   fromPartial<I extends Exact<DeepPartial<Version>, I>>(object: I): Version {
     const message = createBaseVersion();
-    message.version = object.version ?? 0;
+      message.version = object.version ?? 0n;
     return message;
   },
 };

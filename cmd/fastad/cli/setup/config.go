@@ -1,6 +1,7 @@
 package setup
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -17,9 +18,9 @@ import (
 type Game struct {
 	StartTime   time.Time  `yaml:"start_time"`
 	EndTime     *time.Time `yaml:"end_time"`
-	TotalRounds uint       `yaml:"total_rounds"`
+	TotalRounds uint32     `yaml:"total_rounds"`
 
-	FlagLifetimeRounds uint          `yaml:"flag_lifetime_rounds"`
+	FlagLifetimeRounds uint32        `yaml:"flag_lifetime_rounds"`
 	RoundDuration      time.Duration `yaml:"round_duration"`
 
 	Mode GameMode `yaml:"mode"`
@@ -27,10 +28,10 @@ type Game struct {
 
 func (g *Game) Validate() error {
 	if g.StartTime.IsZero() {
-		return fmt.Errorf("start_time required")
+		return errors.New("start_time required")
 	}
 	if g.EndTime != nil && g.EndTime.Before(g.StartTime) {
-		return fmt.Errorf("end_time is before start_time")
+		return errors.New("end_time is before start_time")
 	}
 	return nil
 }
@@ -38,9 +39,9 @@ func (g *Game) Validate() error {
 func (g *Game) ToUpdateRequestProto() *gspb.UpdateRequest {
 	res := &gspb.UpdateRequest{
 		StartTime:   timestamppb.New(g.StartTime),
-		TotalRounds: uint32(g.TotalRounds),
+		TotalRounds: uint64(g.TotalRounds),
 
-		FlagLifetimeRounds: uint32(g.FlagLifetimeRounds),
+		FlagLifetimeRounds: uint64(g.FlagLifetimeRounds),
 		RoundDuration:      durationpb.New(g.RoundDuration),
 
 		Mode: gspb.GameMode(g.Mode),
@@ -61,10 +62,10 @@ type Team struct {
 
 func (t *Team) Validate() error {
 	if t.Name == "" {
-		return fmt.Errorf("name required")
+		return errors.New("name required")
 	}
 	if t.Address == "" {
-		return fmt.Errorf("address required")
+		return errors.New("address required")
 	}
 	return nil
 }
@@ -95,10 +96,10 @@ func (c *Checker) Validate() error {
 		c.Type = CheckerType(checkerpb.Type_TYPE_LEGACY)
 	}
 	if c.Path == "" {
-		return fmt.Errorf("path required")
+		return errors.New("path required")
 	}
 	if c.DefaultTimeout == 0 {
-		return fmt.Errorf("default_timeout required")
+		return errors.New("default_timeout required")
 	}
 	return nil
 }
@@ -112,10 +113,10 @@ type Service struct {
 
 func (s *Service) Validate() error {
 	if s.Name == "" {
-		return fmt.Errorf("name required")
+		return errors.New("name required")
 	}
 	if s.DefaultScore == 0 {
-		return fmt.Errorf("default_score required")
+		return errors.New("default_score required")
 	}
 	if s.Checker == nil {
 		s.Checker = &Checker{}
@@ -139,7 +140,7 @@ func (s *Service) ToProto() *servicespb.Service {
 				func(action CheckerAction, actionConfig CheckerActionConfig) *servicespb.Service_Checker_Action {
 					return &servicespb.Service_Checker_Action{
 						Action:   checkerpb.Action(action),
-						RunCount: int32(actionConfig.Count),
+						RunCount: int64(actionConfig.Count),
 						Timeout:  durationpb.New(actionConfig.Timeout),
 					}
 				},

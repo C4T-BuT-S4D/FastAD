@@ -35,7 +35,7 @@ func (s *Service) List(ctx context.Context, req *servicespb.ListRequest) (*servi
 		return nil, status.Errorf(codes.Internal, "getting version: %v", err)
 	}
 
-	requestedVersion := req.GetVersion().GetVersion()
+	requestedVersion := int(req.GetVersion().GetVersion())
 	if requestedVersion > gotVersion {
 		return nil, status.Errorf(codes.FailedPrecondition, "requested version is greater than current")
 	}

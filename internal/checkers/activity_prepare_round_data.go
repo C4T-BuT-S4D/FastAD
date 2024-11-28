@@ -7,11 +7,12 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
-	"github.com/sirupsen/logrus"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type PrepareRoundActivityParameters struct {
@@ -91,7 +92,7 @@ func (s *ActivityState) prepareRoundPutState(
 	logger.Infof("inserted %d flags: %+v", len(flagModels), flagModels[0])
 
 	if _, err := s.gameStateClient.UpdateRound(ctx, &gspb.UpdateRoundRequest{
-		RunningRound:      uint32(params.GameState.RunningRound),
+		RunningRound:      params.GameState.RunningRound,
 		RunningRoundStart: timestamppb.New(params.GameState.RunningRoundStart),
 	}); err != nil {
 		return nil, fmt.Errorf("updating round: %w", err)
@@ -103,7 +104,7 @@ func (s *ActivityState) prepareRoundPutState(
 func generateFlag(service *models.Service) string {
 	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	const length = 30
-	result := make([]byte, length)
+	var result [length]byte
 
 	for i := range result {
 		randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
@@ -113,5 +114,5 @@ func generateFlag(service *models.Service) string {
 		result[i] = charset[randomIndex.Int64()]
 	}
 
-	return strings.ToUpper(service.Name[:1]) + string(result) + "="
+	return strings.ToUpper(service.Name[:1]) + string(result[:]) + "="
 }

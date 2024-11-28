@@ -37,13 +37,13 @@ func (c *Controller) Get(ctx context.Context) (*models.GameState, error) {
 	return &gs, nil
 }
 
-func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*models.GameState, int32, error) {
+func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*models.GameState, int, error) {
 	gs := &models.GameState{
 		ID:                 1,
 		StartTime:          req.StartTime.AsTime(),
-		TotalRounds:        uint(req.TotalRounds),
+		TotalRounds:        req.TotalRounds,
 		Paused:             req.Paused,
-		FlagLifetimeRounds: uint(req.FlagLifetimeRounds),
+		FlagLifetimeRounds: req.FlagLifetimeRounds,
 		RoundDuration:      req.RoundDuration.AsDuration(),
 	}
 
@@ -51,7 +51,7 @@ func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*mode
 		gs.EndTime = lo.ToPtr(req.EndTime.AsTime())
 	}
 
-	var newVersion int32
+	var newVersion int
 	if err := c.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		if err := c.db.
 			NewInsert().
@@ -80,14 +80,14 @@ func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*mode
 	return gs, newVersion, nil
 }
 
-func (c *Controller) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*models.GameState, int32, error) {
+func (c *Controller) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*models.GameState, int, error) {
 	gs := &models.GameState{
 		ID:                1,
-		RunningRound:      uint(req.RunningRound),
+		RunningRound:      req.RunningRound,
 		RunningRoundStart: req.RunningRoundStart.AsTime(),
 	}
 
-	var newVersion int32
+	var newVersion int
 	if err := c.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		if err := c.db.
 			NewInsert().
