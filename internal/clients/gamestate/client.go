@@ -55,6 +55,10 @@ func (c *Client) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) 
 	return models.NewGameStateFromProto(resp.GameState), nil
 }
 
+func (c *Client) RawClient() gspb.GameStateServiceClient {
+	return c.c
+}
+
 func (c *Client) refresh(ctx context.Context) error {
 	c.refreshMu.Lock()
 	defer c.refreshMu.Unlock()
