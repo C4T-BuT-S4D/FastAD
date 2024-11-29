@@ -22,11 +22,11 @@ func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) er
 	}
 	laoCtx := workflow.WithLocalActivityOptions(ctx, lao)
 
-	var fetchDataResult *ActivityFetchDataResult
+	var fetchDataResult *FetchDataActivityResult
 	if err := workflow.ExecuteLocalActivity(
 		laoCtx,
-		ActivityFetchDataName,
-		&ActivityFetchDataParameters{},
+		FetchDataActivityName,
+		&FetchDataActivityParameters{},
 	).Get(ctx, &fetchDataResult); err != nil {
 		logger.Error("running fetch data activity", "error", err)
 		return fmt.Errorf("fetch data: %w", err)
@@ -48,7 +48,7 @@ func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) er
 	var prepareStateResult *PrepareRoundActivityResult
 	if err := workflow.ExecuteLocalActivity(
 		laoCtx,
-		ActivityPrepareRoundStateName,
+		PrepareRoundActivityName,
 		&PrepareRoundActivityParameters{
 			GameState: fetchDataResult.GameState,
 			Teams:     fetchDataResult.Teams,
@@ -75,7 +75,7 @@ func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) er
 			var putResult *PutActivityResult
 			if err := workflow.ExecuteActivity(
 				putActivityCtx,
-				ActivityPutName,
+				PutActivityName,
 				PutActivityParameters{
 					FlagInfo: flagInfo,
 				},
@@ -110,7 +110,7 @@ func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) er
 	var saveRoundDataResult *SaveRoundDataActivityResult
 	if err := workflow.ExecuteLocalActivity(
 		laoCtx,
-		ActivitySaveRoundStateName,
+		SaveRoundDataActivityName,
 		&SaveRoundDataActivityParameters{
 			PutResults: putResults,
 		},

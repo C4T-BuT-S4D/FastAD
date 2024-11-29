@@ -153,7 +153,7 @@ func (s *Scheduler) TryRunRound(ctx context.Context) error {
 			WorkflowExecutionErrorWhenAlreadyStarted: true,
 		},
 		checkers.RoundWorkflowName,
-		checkers.WorkflowParameters{},
+		checkers.RoundWorkflowParameters{},
 	)
 	if err != nil {
 		return fmt.Errorf("executing workflow: %w", err)

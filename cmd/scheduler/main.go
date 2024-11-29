@@ -5,15 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
-	"github.com/creasty/defaults"
-	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -22,10 +18,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
+	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/internal/scheduler"
 	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	"github.com/c4t-but-s4d/fastad/pkg/util"
 )
 
 func main() {
@@ -92,30 +90,9 @@ func setupConfig() (*scheduler.Config, error) {
 	pflag.BoolP("debug", "v", false, "Enable verbose logging")
 	pflag.Parse()
 
-	v := viper.NewWithOptions(viper.ExperimentalBindStruct())
-
-	if err := v.BindPFlags(pflag.CommandLine); err != nil {
-		return nil, fmt.Errorf("binding pflags: %w", err)
-	}
-
-	v.SetEnvPrefix("FASTAD_TICKER")
-	v.AutomaticEnv()
-	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-
-	cfg := new(scheduler.Config)
-	defaults.MustSet(cfg)
-
-	if err := v.Unmarshal(
-		cfg,
-		viper.DecodeHook(
-			mapstructure.ComposeDecodeHookFunc(
-				mapstructure.TextUnmarshallerHookFunc(),
-				mapstructure.StringToTimeDurationHookFunc(),
-			),
-		),
-	); err != nil {
-		return nil, fmt.Errorf("unmarshaling config: %w", err)
-	}
+	cfg := util.Must[*scheduler.Config]("setup config")(
+		config.SetupAll[*scheduler.Config]("FASTAD_DATA_SERVICE"),
+	)
 
 	return cfg, nil
 }

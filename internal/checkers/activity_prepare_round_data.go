@@ -10,10 +10,28 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 )
+
+const PrepareRoundActivityName = "PrepareRound"
+
+type PrepareRoundActivity struct {
+	checkersController *Controller
+	gameStateClient    *gamestate.Client
+}
+
+func NewPrepareRoundActivity(
+	checkersController *Controller,
+	gameStateClient *gamestate.Client,
+) *PrepareRoundActivity {
+	return &PrepareRoundActivity{
+		checkersController: checkersController,
+		gameStateClient:    gameStateClient,
+	}
+}
 
 type PrepareRoundActivityParameters struct {
 	GameState *models.GameState
@@ -31,13 +49,14 @@ type PrepareRoundActivityResult struct {
 	Flags []*FQFlagInfo
 }
 
-func (s *ActivityState) PrepareRoundActivityDefinition(ctx context.Context, params *PrepareRoundActivityParameters) (*PrepareRoundActivityResult, error) {
+func (a *PrepareRoundActivity) ActivityDefinition(ctx context.Context, params *PrepareRoundActivityParameters) (*PrepareRoundActivityResult, error) {
 	logger := logrus.WithFields(logrus.Fields{
-		"action": "PrepareRound",
+		"action":        "PrepareRound",
+		"running_round": params.GameState.RunningRound,
 	})
 
 	logger.Info("starting")
-	flags, err := s.prepareRoundPutState(ctx, params, logger)
+	flags, err := a.prepareRoundPutState(ctx, params, logger)
 	if err != nil {
 		return nil, fmt.Errorf("preparing round put state: %w", err)
 	}
@@ -46,7 +65,7 @@ func (s *ActivityState) PrepareRoundActivityDefinition(ctx context.Context, para
 	return &PrepareRoundActivityResult{Flags: flags}, nil
 }
 
-func (s *ActivityState) prepareRoundPutState(
+func (a *PrepareRoundActivity) prepareRoundPutState(
 	ctx context.Context,
 	params *PrepareRoundActivityParameters,
 	logger *logrus.Entry,
@@ -85,13 +104,13 @@ func (s *ActivityState) prepareRoundPutState(
 		params.GameState.RunningRound+1,
 	)
 
-	if err := s.checkersController.AddFlags(ctx, flagModels); err != nil {
+	if err := a.checkersController.AddFlags(ctx, flagModels); err != nil {
 		return nil, fmt.Errorf("adding flags: %w", err)
 	}
 
 	logger.Infof("inserted %d flags: %+v", len(flagModels), flagModels[0])
 
-	if _, err := s.gameStateClient.UpdateRound(ctx, &gspb.UpdateRoundRequest{
+	if _, err := a.gameStateClient.UpdateRound(ctx, &gspb.UpdateRoundRequest{
 		RunningRound:      params.GameState.RunningRound,
 		RunningRoundStart: timestamppb.New(params.GameState.RunningRoundStart),
 	}); err != nil {

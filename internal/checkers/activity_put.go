@@ -8,6 +8,14 @@ import (
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
 
+const PutActivityName = "Put"
+
+type PutActivity struct{}
+
+func NewPutActivity() *PutActivity {
+	return &PutActivity{}
+}
+
 type PutActivityParameters struct {
 	FlagInfo *FQFlagInfo
 }
@@ -17,7 +25,7 @@ type PutActivityResult struct {
 	Verdict  *Verdict
 }
 
-func (s *ActivityState) PutActivityDefinition(ctx context.Context, params *PutActivityParameters) (*PutActivityResult, error) {
+func (a *PutActivity) ActivityDefinition(ctx context.Context, params *PutActivityParameters) (*PutActivityResult, error) {
 	logger := logrus.WithFields(logrus.Fields{
 		"team":    params.FlagInfo.Team.Name,
 		"service": params.FlagInfo.Service.Name,

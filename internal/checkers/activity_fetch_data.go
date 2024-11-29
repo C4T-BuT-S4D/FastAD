@@ -6,42 +6,65 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
+	"github.com/c4t-but-s4d/fastad/internal/clients/services"
+	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
 	"github.com/c4t-but-s4d/fastad/internal/models"
 )
 
-type ActivityFetchDataParameters struct{}
+const FetchDataActivityName = "FetchData"
 
-type ActivityFetchDataResult struct {
+type FetchDataActivity struct {
+	teamsClient     *teams.Client
+	servicesClient  *services.Client
+	gameStateClient *gamestate.Client
+}
+
+func NewFetchDataActivity(
+	teamsClient *teams.Client,
+	servicesClient *services.Client,
+	gameStateClient *gamestate.Client,
+) *FetchDataActivity {
+	return &FetchDataActivity{
+		teamsClient:     teamsClient,
+		servicesClient:  servicesClient,
+		gameStateClient: gameStateClient,
+	}
+}
+
+type FetchDataActivityParameters struct{}
+
+type FetchDataActivityResult struct {
 	GameState *models.GameState
 	Teams     []*models.Team
 	Services  []*models.Service
 }
 
-func (s *ActivityState) ActivityFetchDataDefinition(
+func (a *FetchDataActivity) ActivityDefinition(
 	ctx context.Context,
-	_ *ActivityFetchDataParameters,
-) (*ActivityFetchDataResult, error) {
-	gs, err := s.gameStateClient.Get(ctx)
+	_ *FetchDataActivityParameters,
+) (*FetchDataActivityResult, error) {
+	gs, err := a.gameStateClient.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting game state: %w", err)
 	}
 	logrus.Infof("fetched game state: %v", gs)
 
-	teams, err := s.teamsClient.List(ctx)
+	teamsList, err := a.teamsClient.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting teams: %w", err)
 	}
-	logrus.Infof("fetched teams: %v", teams)
+	logrus.Infof("fetched teams: %v", teamsList)
 
-	services, err := s.servicesClient.List(ctx)
+	servicesList, err := a.servicesClient.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting services: %w", err)
 	}
-	logrus.Infof("fetched services: %v", services)
+	logrus.Infof("fetched services: %v", servicesList)
 
-	return &ActivityFetchDataResult{
+	return &FetchDataActivityResult{
 		GameState: gs,
-		Teams:     teams,
-		Services:  services,
+		Teams:     teamsList,
+		Services:  servicesList,
 	}, nil
 }

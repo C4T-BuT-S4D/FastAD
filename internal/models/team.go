@@ -19,7 +19,7 @@ type Team struct {
 }
 
 func (t *Team) String() string {
-	return fmt.Sprintf("%s (%s)", t.Name, t.Address)
+	return fmt.Sprintf("Team(name=%s, ip=%s)", t.Name, t.Address)
 }
 
 func (t *Team) ToProto() *teamspb.Team {

@@ -4,14 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/creasty/defaults"
-	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
@@ -23,8 +19,10 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
+	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	"github.com/c4t-but-s4d/fastad/pkg/util"
 
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
 	"github.com/c4t-but-s4d/fastad/internal/clients/services"
@@ -93,65 +91,65 @@ func main() {
 	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn))
 	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn))
 
-	activityState := checkers.NewActivityState(
-		teamsClient,
-		servicesClient,
-		gameStateClient,
-		checkersController,
+	checkersWorker := worker.New(temporalClient, "checkers", worker.Options{})
+
+	// Activities.
+	checkersWorker.RegisterActivityWithOptions(
+		checkers.NewCheckActivity(),
+		activity.RegisterOptions{Name: checkers.CheckActivityName},
 	)
 
-	checkersWorker := worker.New(temporalClient, "checkers", worker.Options{})
-	checkersWorker.RegisterWorkflow(checkers.WorkflowDefinition)
+	checkersWorker.RegisterActivityWithOptions(
+		checkers.NewFetchDataActivity(
+			teamsClient,
+			servicesClient,
+			gameStateClient,
+		),
+		activity.RegisterOptions{Name: checkers.FetchDataActivityName},
+	)
 
-	// Round-related stuff.
+	checkersWorker.RegisterActivityWithOptions(
+		checkers.NewGetActivity(),
+		activity.RegisterOptions{Name: checkers.GetActivityName},
+	)
+
+	checkersWorker.RegisterActivityWithOptions(
+		checkers.NewPickGetFlagActivity(checkersController),
+		activity.RegisterOptions{Name: checkers.PickGetFlagActivityName},
+	)
+
+	checkersWorker.RegisterActivityWithOptions(
+		checkers.NewPrepareRoundActivity(checkersController, gameStateClient),
+		activity.RegisterOptions{Name: checkers.PrepareRoundActivityName},
+	)
+
+	checkersWorker.RegisterActivityWithOptions(
+		checkers.NewPutActivity(),
+		activity.RegisterOptions{Name: checkers.PutActivityName},
+	)
+
+	checkersWorker.RegisterActivityWithOptions(
+		checkers.NewSaveRoundDataActivity(checkersController),
+		activity.RegisterOptions{Name: checkers.SaveRoundDataActivityName},
+	)
+	// End of activities.
+
+	// Workflows.
+	checkersWorker.RegisterWorkflowWithOptions(
+		checkers.CheckWorkflowDefinition,
+		workflow.RegisterOptions{Name: checkers.CheckWorkflowName},
+	)
+
+	checkersWorker.RegisterWorkflowWithOptions(
+		checkers.GetWorkflowDefinition,
+		workflow.RegisterOptions{Name: checkers.GetWorkflowName},
+	)
+
 	checkersWorker.RegisterWorkflowWithOptions(
 		checkers.RoundWorkflowDefinition,
-		workflow.RegisterOptions{
-			Name: checkers.RoundWorkflowName,
-		},
+		workflow.RegisterOptions{Name: checkers.RoundWorkflowName},
 	)
-
-	checkersWorker.RegisterActivityWithOptions(
-		activityState.PrepareRoundActivityDefinition,
-		activity.RegisterOptions{
-			Name: checkers.ActivityPrepareRoundStateName,
-		},
-	)
-
-	checkersWorker.RegisterActivityWithOptions(
-		activityState.PutActivityDefinition,
-		activity.RegisterOptions{
-			Name: checkers.ActivityPutName,
-		},
-	)
-
-	checkersWorker.RegisterActivityWithOptions(
-		activityState.SaveRoundDataActivityDefinition,
-		activity.RegisterOptions{
-			Name: checkers.ActivitySaveRoundStateName,
-		},
-	)
-
-	checkersWorker.RegisterActivityWithOptions(
-		activityState.ActivityFetchDataDefinition,
-		activity.RegisterOptions{
-			Name: checkers.ActivityFetchDataName,
-		},
-	)
-
-	checkersWorker.RegisterActivityWithOptions(
-		activityState.CheckActivityDefinition,
-		activity.RegisterOptions{
-			Name: checkers.ActivityCheckName,
-		},
-	)
-
-	checkersWorker.RegisterActivityWithOptions(
-		activityState.GetActivityDefinition,
-		activity.RegisterOptions{
-			Name: checkers.ActivityGetName,
-		},
-	)
+	// End of workflows.
 
 	if err := checkersWorker.Run(worker.InterruptCh()); err != nil {
 		logrus.WithError(err).Fatalf("error running worker")
@@ -162,31 +160,9 @@ func setupConfig() (*checkers.Config, error) {
 	pflag.BoolP("debug", "v", false, "Enable verbose logging")
 	pflag.Parse()
 
-	v := viper.NewWithOptions(viper.ExperimentalBindStruct())
-
-	if err := v.BindPFlags(pflag.CommandLine); err != nil {
-		return nil, fmt.Errorf("binding pflags: %w", err)
-	}
-	v.SetEnvPrefix("FASTAD_CHECKERS")
-	v.AutomaticEnv()
-	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-
-	v.SetDefault("user_agent", "checkers_worker")
-
-	cfg := new(checkers.Config)
-	defaults.MustSet(cfg)
-
-	if err := v.Unmarshal(
-		cfg,
-		viper.DecodeHook(
-			mapstructure.ComposeDecodeHookFunc(
-				mapstructure.TextUnmarshallerHookFunc(),
-				mapstructure.StringToTimeDurationHookFunc(),
-			),
-		),
-	); err != nil {
-		return nil, fmt.Errorf("unmarshaling config: %w", err)
-	}
+	cfg := util.Must[*checkers.Config]("setup config")(
+		config.SetupAll[*checkers.Config]("FASTAD_CHECKERS"),
+	)
 
 	return cfg, nil
 }

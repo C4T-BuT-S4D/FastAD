@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/samber/lo"
@@ -37,7 +38,7 @@ type Service struct {
 }
 
 func (s *Service) String() string {
-	return s.Name
+	return fmt.Sprintf("Service(name=%s)", s.Name)
 }
 
 func (s *Service) CheckerTimeout(action checkerpb.Action) time.Duration {

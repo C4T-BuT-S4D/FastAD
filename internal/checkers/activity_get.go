@@ -9,6 +9,14 @@ import (
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
 
+const GetActivityName = "Get"
+
+type GetActivity struct{}
+
+func NewGetActivity() *GetActivity {
+	return &GetActivity{}
+}
+
 type GetActivityParameters struct {
 	GameState *models.GameState
 	Team      *models.Team
@@ -20,7 +28,7 @@ type GetActivityResult struct {
 	Verdict *Verdict
 }
 
-func (s *ActivityState) GetActivityDefinition(ctx context.Context, params *GetActivityParameters) (*GetActivityResult, error) {
+func (*GetActivity) ActivityDefinition(ctx context.Context, params *GetActivityParameters) (*GetActivityResult, error) {
 	logger := logrus.WithFields(logrus.Fields{
 		"team":    params.Team.Name,
 		"service": params.Service.Name,
