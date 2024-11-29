@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	"go.temporal.io/sdk/workflow"
+
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
+
+const RoundWorkflowName = "RoundWorkflow"
 
 type RoundWorkflowParameters struct{}
 

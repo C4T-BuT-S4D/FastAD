@@ -7,9 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
-	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
-	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	"github.com/creasty/defaults"
 	"github.com/mitchellh/mapstructure"
 	"github.com/sirupsen/logrus"
@@ -21,8 +18,13 @@ import (
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
+	"go.temporal.io/sdk/workflow"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
+	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
 	"github.com/c4t-but-s4d/fastad/internal/clients/services"
@@ -102,7 +104,12 @@ func main() {
 	checkersWorker.RegisterWorkflow(checkers.WorkflowDefinition)
 
 	// Round-related stuff.
-	checkersWorker.RegisterWorkflow(checkers.RoundWorkflowDefinition)
+	checkersWorker.RegisterWorkflowWithOptions(
+		checkers.RoundWorkflowDefinition,
+		workflow.RegisterOptions{
+			Name: checkers.RoundWorkflowName,
+		},
+	)
 
 	checkersWorker.RegisterActivityWithOptions(
 		activityState.PrepareRoundActivityDefinition,
