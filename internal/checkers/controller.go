@@ -3,10 +3,12 @@ package checkers
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/uptrace/bun"
+
+	"github.com/c4t-but-s4d/fastad/internal/models"
 )
 
 type Controller struct {
@@ -33,6 +35,37 @@ func (c *Controller) AddCheckerExecutions(ctx context.Context, executions []*mod
 		return fmt.Errorf("inserting executions: %w", err)
 	}
 	return nil
+}
+
+func (c *Controller) PickFlag(
+	ctx context.Context,
+	teamID, serviceID int,
+	runningRound, lifetimeRounds uint64,
+) (*models.Flag, error) {
+	minRound := uint64(0)
+	if runningRound > lifetimeRounds {
+		minRound = runningRound - lifetimeRounds
+	}
+
+	var flag models.Flag
+	if err := c.db.
+		NewSelect().
+		Model(&flag).
+		Where(
+			"team_id = ? AND service_id = ? AND round >= ?",
+			teamID,
+			serviceID,
+			minRound,
+		).
+		Order("RANDOM()").
+		Scan(ctx); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("picking flag: %w", err)
+	}
+
+	return &flag, nil
 }
 
 func (c *Controller) MigrateDB(ctx context.Context) error {

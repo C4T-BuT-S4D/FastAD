@@ -4,10 +4,23 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
-	"github.com/sirupsen/logrus"
 )
+
+const SaveRoundDataActivityName = "SaveRoundData"
+
+type SaveRoundDataActivity struct {
+	checkersController *Controller
+}
+
+func NewSaveRoundDataActivity(checkersController *Controller) *SaveRoundDataActivity {
+	return &SaveRoundDataActivity{
+		checkersController: checkersController,
+	}
+}
 
 type SaveRoundDataActivityParameters struct {
 	PutResults []*PutActivityResult
@@ -15,7 +28,7 @@ type SaveRoundDataActivityParameters struct {
 
 type SaveRoundDataActivityResult struct{}
 
-func (s *ActivityState) SaveRoundDataActivityDefinition(ctx context.Context, params *SaveRoundDataActivityParameters) (*SaveRoundDataActivityResult, error) {
+func (s *SaveRoundDataActivity) SaveRoundDataActivityDefinition(ctx context.Context, params *SaveRoundDataActivityParameters) (*SaveRoundDataActivityResult, error) {
 	logger := logrus.WithFields(logrus.Fields{
 		"action": "SaveRoundData",
 	})
@@ -30,7 +43,7 @@ func (s *ActivityState) SaveRoundDataActivityDefinition(ctx context.Context, par
 	return &SaveRoundDataActivityResult{}, nil
 }
 
-func (s *ActivityState) saveRoundData(
+func (s *SaveRoundDataActivity) saveRoundData(
 	ctx context.Context,
 	params *SaveRoundDataActivityParameters,
 	logger *logrus.Entry,
