@@ -11,7 +11,7 @@ func New() *Service {
 }
 
 type Service struct {
-	*pingerpb.UnimplementedPingerServiceServer
+	pingerpb.UnimplementedPingerServiceServer
 }
 
 func (*Service) Ping(context.Context, *pingerpb.PingRequest) (*pingerpb.PingResponse, error) {

@@ -45,6 +45,8 @@ func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*mode
 		Paused:             req.Paused,
 		FlagLifetimeRounds: req.FlagLifetimeRounds,
 		RoundDuration:      req.RoundDuration.AsDuration(),
+		Hardness:           req.Hardness,
+		Inflation:          req.Inflation,
 	}
 
 	if req.EndTime != nil {
@@ -85,6 +87,7 @@ func (c *Controller) UpdateRound(ctx context.Context, req *gspb.UpdateRoundReque
 		ID:                1,
 		RunningRound:      req.RunningRound,
 		RunningRoundStart: req.RunningRoundStart.AsTime(),
+		Hardness:          1337,
 	}
 
 	var newVersion int
@@ -110,15 +113,4 @@ func (c *Controller) UpdateRound(ctx context.Context, req *gspb.UpdateRoundReque
 	}
 
 	return gs, newVersion, nil
-}
-
-func (c *Controller) Migrate(ctx context.Context) error {
-	if _, err := c.db.
-		NewCreateTable().
-		IfNotExists().
-		Model(&models.GameState{}).
-		Exec(ctx); err != nil {
-		return fmt.Errorf("creating game state table: %w", err)
-	}
-	return nil
 }

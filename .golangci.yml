@@ -24,7 +24,6 @@ linters:
     - forbidigo
     - forcetypeassert
     - gocheckcompilerdirectives
-    - gochecknoglobals
     - gochecknoinits
     - goconst
     - gocritic

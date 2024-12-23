@@ -181,17 +181,6 @@ func (s *Scheduler) TryRunRound(ctx context.Context) error {
 	return nil
 }
 
-func (s *Scheduler) MigrateDB(ctx context.Context) error {
-	if _, err := s.db.
-		NewCreateTable().
-		IfNotExists().
-		Model(&models.SchedulerState{}).
-		Exec(ctx); err != nil {
-		return fmt.Errorf("creating scheduler state table: %w", err)
-	}
-	return nil
-}
-
 func (s *Scheduler) updateStateOnPause(ctx context.Context) error {
 	if _, err := s.db.
 		NewInsert().

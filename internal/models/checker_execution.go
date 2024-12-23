@@ -9,7 +9,7 @@ import (
 )
 
 type CheckerExecution struct {
-	bun.BaseModel `bun:"checker_execution,alias:ce"`
+	bun.BaseModel `bun:"checker_executions,alias:ce"`
 
 	ID int `bun:"id,pk,autoincrement"`
 

@@ -33,6 +33,8 @@ type Service struct {
 	DefaultTimeout time.Duration                             `bun:"default_timeout,notnull"`
 	Actions        map[checkerpb.Action]*ServiceActionConfig `bun:"actions,type:jsonb,notnull"`
 
+	Disabled bool `bun:"disabled,notnull"`
+
 	// TODO: vulns format.
 	// Places int
 }
@@ -73,6 +75,7 @@ func (s *Service) ToProto() *servicespb.Service {
 		},
 
 		DefaultScore: s.DefaultScore,
+		Disabled:     s.Disabled,
 	}
 }
 
@@ -95,5 +98,6 @@ func NewServiceFromProto(p *servicespb.Service) *Service {
 		),
 
 		DefaultScore: p.DefaultScore,
+		Disabled:     p.Disabled,
 	}
 }

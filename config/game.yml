@@ -5,6 +5,7 @@ game:
   round_duration: '10s'
   flag_lifetime_rounds: 10
   mode: 'classic'
+  hardness: 15
 
 teams:
   - name: 'team1'

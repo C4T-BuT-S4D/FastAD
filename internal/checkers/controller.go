@@ -67,33 +67,3 @@ func (c *Controller) PickFlag(
 
 	return &flag, nil
 }
-
-func (c *Controller) MigrateDB(ctx context.Context) error {
-	if err := c.db.RunInTx(
-		ctx,
-		&sql.TxOptions{},
-		func(ctx context.Context, tx bun.Tx) error {
-			if _, err := tx.
-				NewCreateTable().
-				IfNotExists().
-				Model(&models.Flag{}).
-				Exec(ctx); err != nil {
-				return fmt.Errorf("creating flags table: %w", err)
-			}
-
-			if _, err := tx.
-				NewCreateTable().
-				IfNotExists().
-				Model(&models.CheckerExecution{}).
-				Exec(ctx); err != nil {
-				return fmt.Errorf("creating checker_executions table: %w", err)
-			}
-
-			return nil
-		},
-	); err != nil {
-		return fmt.Errorf("migrating: %w", err)
-	}
-
-	return nil
-}

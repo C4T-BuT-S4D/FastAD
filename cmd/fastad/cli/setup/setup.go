@@ -13,7 +13,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/internal/clients/services"
 	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
-	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
+	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
@@ -56,7 +56,7 @@ func NewSetupCommand(_ *common.CommandContext) *cli.Command {
 
 			logrus.Info("game config validated")
 
-			apiConn, err := grpctools.Dial(c.String("api-address"), "fastad-setup")
+			apiConn, err := grpcext.Dial(c.String("api-address"), "fastad-setup")
 			if err != nil {
 				return fmt.Errorf("dialing data service: %w", err)
 			}

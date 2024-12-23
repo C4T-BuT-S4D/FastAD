@@ -17,6 +17,7 @@ export interface Service {
   name: string;
   checker: Service_Checker | undefined;
   defaultScore: number;
+  disabled: boolean;
 }
 
 export interface Service_Checker {
@@ -50,7 +51,7 @@ export interface CreateBatchResponse {
 }
 
 function createBaseService(): Service {
-  return { id: 0n, name: "", checker: undefined, defaultScore: 0 };
+  return { id: 0n, name: "", checker: undefined, defaultScore: 0, disabled: false };
 }
 
 export const Service: MessageFns<Service> = {
@@ -69,6 +70,9 @@ export const Service: MessageFns<Service> = {
     }
     if (message.defaultScore !== 0) {
       writer.uint32(33).double(message.defaultScore);
+    }
+    if (message.disabled !== false) {
+      writer.uint32(40).bool(message.disabled);
     }
     return writer;
   },
@@ -110,6 +114,14 @@ export const Service: MessageFns<Service> = {
           }
 
           message.defaultScore = reader.double();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.disabled = reader.bool();
           continue;
         }
       }
@@ -159,6 +171,7 @@ export const Service: MessageFns<Service> = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       checker: isSet(object.checker) ? Service_Checker.fromJSON(object.checker) : undefined,
       defaultScore: isSet(object.defaultScore) ? globalThis.Number(object.defaultScore) : 0,
+      disabled: isSet(object.disabled) ? globalThis.Boolean(object.disabled) : false,
     };
   },
 
@@ -176,6 +189,9 @@ export const Service: MessageFns<Service> = {
     if (message.defaultScore !== 0) {
       obj.defaultScore = message.defaultScore;
     }
+    if (message.disabled !== false) {
+      obj.disabled = message.disabled;
+    }
     return obj;
   },
 
@@ -190,6 +206,7 @@ export const Service: MessageFns<Service> = {
       ? Service_Checker.fromPartial(object.checker)
       : undefined;
     message.defaultScore = object.defaultScore ?? 0;
+    message.disabled = object.disabled ?? false;
     return message;
   },
 };

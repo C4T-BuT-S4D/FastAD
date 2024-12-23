@@ -22,6 +22,8 @@ type Game struct {
 
 	FlagLifetimeRounds uint32        `yaml:"flag_lifetime_rounds"`
 	RoundDuration      time.Duration `yaml:"round_duration"`
+	Hardness           float64       `yaml:"hardness"`
+	Inflation          bool          `yaml:"inflation"`
 
 	Mode GameMode `yaml:"mode"`
 }
@@ -33,6 +35,9 @@ func (g *Game) Validate() error {
 	if g.EndTime != nil && g.EndTime.Before(g.StartTime) {
 		return errors.New("end_time is before start_time")
 	}
+	if g.Hardness <= 0 {
+		return errors.New("hardness must be positive")
+	}
 	return nil
 }
 
@@ -43,6 +48,8 @@ func (g *Game) ToUpdateRequestProto() *gspb.UpdateRequest {
 
 		FlagLifetimeRounds: uint64(g.FlagLifetimeRounds),
 		RoundDuration:      durationpb.New(g.RoundDuration),
+		Hardness:           g.Hardness,
+		Inflation:          g.Inflation,
 
 		Mode: gspb.GameMode(g.Mode),
 	}

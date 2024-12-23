@@ -27,7 +27,6 @@ func RunCheckAction(
 	ctx context.Context,
 	params *CheckActivityParameters,
 ) *Verdict {
-	// TODO: some form of configuration.
 	checkerPath := filepath.Join("checkers", params.Service.CheckerPath)
 	return RunAction(
 		ctx,
@@ -42,7 +41,6 @@ func RunPutAction(
 	ctx context.Context,
 	params *PutActivityParameters,
 ) *Verdict {
-	// TODO: some form of configuration.
 	checkerPath := filepath.Join("checkers", params.FlagInfo.Service.CheckerPath)
 	return RunAction(
 		ctx,
@@ -53,7 +51,7 @@ func RunPutAction(
 			params.FlagInfo.Team.Address,
 			params.FlagInfo.Flag.Private,
 			params.FlagInfo.Flag.Flag,
-			"1",
+			"1", // TODO: vulns.
 		},
 		params.FlagInfo.Service.CheckerTimeout(checkerpb.Action_ACTION_PUT),
 	)
@@ -63,7 +61,6 @@ func RunGetAction(
 	ctx context.Context,
 	params *GetActivityParameters,
 ) *Verdict {
-	// TODO: some form of configuration.
 	checkerPath := filepath.Join("checkers", params.Service.CheckerPath)
 	return RunAction(
 		ctx,
@@ -74,7 +71,7 @@ func RunGetAction(
 			params.Team.Address,
 			params.Flag.Private,
 			params.Flag.Flag,
-			"1",
+			"1", // TODO: vulns.
 		},
 		params.Service.CheckerTimeout(checkerpb.Action_ACTION_GET),
 	)

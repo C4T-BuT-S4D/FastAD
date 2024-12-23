@@ -67,10 +67,3 @@ func (c *Controller) CreateBatch(ctx context.Context, services []*models.Service
 	}
 	return nil
 }
-
-func (c *Controller) Migrate(ctx context.Context) error {
-	if _, err := c.db.NewCreateTable().IfNotExists().Model(&models.Service{}).Exec(ctx); err != nil {
-		return fmt.Errorf("creating services table: %w", err)
-	}
-	return nil
-}

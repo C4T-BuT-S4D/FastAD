@@ -6,9 +6,12 @@ import (
 
 	"github.com/creasty/defaults"
 	"github.com/mitchellh/mapstructure"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
+
+var _ = pflag.BoolP("debug", "v", false, "Enable verbose logging")
 
 func NewViper(envPrefix string) (*viper.Viper, error) {
 	v := viper.NewWithOptions(viper.ExperimentalBindStruct())
@@ -43,11 +46,24 @@ func Setup[T any](v *viper.Viper, cfg T) (t T, err error) {
 	return cfg, nil
 }
 
-func SetupAll[T any](envPrefix string) (t T, err error) {
-	v, err := NewViper(envPrefix)
+func SetupAll[T any](cfg *T, opts ...SetupOption) (*T, error) {
+	pflag.Parse()
+
+	setupConfig := GetSetupConfig(opts...)
+
+	v, err := NewViper(setupConfig.envPrefix)
 	if err != nil {
-		return t, fmt.Errorf("creating viper: %w", err)
+		return nil, fmt.Errorf("creating viper: %w", err)
 	}
 
-	return Setup(v, t)
+	return Setup(v, cfg)
+}
+
+func MustSetupAll[T any](cfg *T, opts ...SetupOption) *T {
+	t, err := SetupAll[T](cfg, opts...)
+	if err != nil {
+		logrus.WithError(err).Fatal("error setting up config")
+	}
+
+	return t
 }

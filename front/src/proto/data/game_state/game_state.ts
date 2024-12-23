@@ -55,6 +55,8 @@ export interface GameState {
   mode: GameMode;
   runningRound: bigint;
   runningRoundStart: Date | undefined;
+  hardness: number;
+  inflation: boolean;
 }
 
 export interface GetRequest {
@@ -74,6 +76,8 @@ export interface UpdateRequest {
   flagLifetimeRounds: bigint;
   roundDuration: Duration | undefined;
   mode: GameMode;
+  hardness: number;
+  inflation: boolean;
 }
 
 export interface UpdateResponse {
@@ -102,6 +106,8 @@ function createBaseGameState(): GameState {
     mode: 0,
     runningRound: 0n,
     runningRoundStart: undefined,
+    hardness: 0,
+    inflation: false,
   };
 }
 
@@ -142,6 +148,12 @@ export const GameState: MessageFns<GameState> = {
     }
     if (message.runningRoundStart !== undefined) {
       Timestamp.encode(toTimestamp(message.runningRoundStart), writer.uint32(74).fork()).join();
+    }
+    if (message.hardness !== 0) {
+      writer.uint32(81).double(message.hardness);
+    }
+    if (message.inflation !== false) {
+      writer.uint32(88).bool(message.inflation);
     }
     return writer;
   },
@@ -225,6 +237,22 @@ export const GameState: MessageFns<GameState> = {
           message.runningRoundStart = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
+        case 10: {
+          if (tag !== 81) {
+            break;
+          }
+
+          message.hardness = reader.double();
+          continue;
+        }
+        case 11: {
+          if (tag !== 88) {
+            break;
+          }
+
+          message.inflation = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -277,6 +305,8 @@ export const GameState: MessageFns<GameState> = {
       mode: isSet(object.mode) ? gameModeFromJSON(object.mode) : 0,
       runningRound: isSet(object.runningRound) ? BigInt(object.runningRound) : 0n,
       runningRoundStart: isSet(object.runningRoundStart) ? fromJsonTimestamp(object.runningRoundStart) : undefined,
+      hardness: isSet(object.hardness) ? globalThis.Number(object.hardness) : 0,
+      inflation: isSet(object.inflation) ? globalThis.Boolean(object.inflation) : false,
     };
   },
 
@@ -309,6 +339,12 @@ export const GameState: MessageFns<GameState> = {
     if (message.runningRoundStart !== undefined) {
       obj.runningRoundStart = message.runningRoundStart.toISOString();
     }
+    if (message.hardness !== 0) {
+      obj.hardness = message.hardness;
+    }
+    if (message.inflation !== false) {
+      obj.inflation = message.inflation;
+    }
     return obj;
   },
 
@@ -328,6 +364,8 @@ export const GameState: MessageFns<GameState> = {
     message.mode = object.mode ?? 0;
     message.runningRound = object.runningRound ?? 0n;
     message.runningRoundStart = object.runningRoundStart ?? undefined;
+    message.hardness = object.hardness ?? 0;
+    message.inflation = object.inflation ?? false;
     return message;
   },
 };
@@ -545,6 +583,8 @@ function createBaseUpdateRequest(): UpdateRequest {
     flagLifetimeRounds: 0n,
     roundDuration: undefined,
     mode: 0,
+    hardness: 0,
+    inflation: false,
   };
 }
 
@@ -576,6 +616,12 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     }
     if (message.mode !== 0) {
       writer.uint32(56).int32(message.mode);
+    }
+    if (message.hardness !== 0) {
+      writer.uint32(65).double(message.hardness);
+    }
+    if (message.inflation !== false) {
+      writer.uint32(72).bool(message.inflation);
     }
     return writer;
   },
@@ -643,6 +689,22 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
           message.mode = reader.int32() as any;
           continue;
         }
+        case 8: {
+          if (tag !== 65) {
+            break;
+          }
+
+          message.hardness = reader.double();
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.inflation = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -693,6 +755,8 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
       flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? BigInt(object.flagLifetimeRounds) : 0n,
       roundDuration: isSet(object.roundDuration) ? Duration.fromJSON(object.roundDuration) : undefined,
       mode: isSet(object.mode) ? gameModeFromJSON(object.mode) : 0,
+      hardness: isSet(object.hardness) ? globalThis.Number(object.hardness) : 0,
+      inflation: isSet(object.inflation) ? globalThis.Boolean(object.inflation) : false,
     };
   },
 
@@ -719,6 +783,12 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     if (message.mode !== 0) {
       obj.mode = gameModeToJSON(message.mode);
     }
+    if (message.hardness !== 0) {
+      obj.hardness = message.hardness;
+    }
+    if (message.inflation !== false) {
+      obj.inflation = message.inflation;
+    }
     return obj;
   },
 
@@ -736,6 +806,8 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
       ? Duration.fromPartial(object.roundDuration)
       : undefined;
     message.mode = object.mode ?? 0;
+    message.hardness = object.hardness ?? 0;
+    message.inflation = object.inflation ?? false;
     return message;
   },
 };

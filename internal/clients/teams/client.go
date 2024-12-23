@@ -6,6 +6,8 @@ import (
 	"sync"
 
 	"github.com/samber/lo"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
@@ -37,7 +39,22 @@ func (c *Client) GetByID(ctx context.Context, id int) (*models.Team, error) {
 	if err := c.refresh(ctx); err != nil {
 		return nil, fmt.Errorf("refreshing teams: %w", err)
 	}
-	return c.cache.GetTeamByID(id), nil
+	team := c.cache.GetTeamByID(id)
+	if team == nil {
+		return nil, status.Error(codes.NotFound, "team not found")
+	}
+	return team, nil
+}
+
+func (c *Client) GetByToken(ctx context.Context, token string) (*models.Team, error) {
+	if err := c.refresh(ctx); err != nil {
+		return nil, fmt.Errorf("refreshing teams: %w", err)
+	}
+	team := c.cache.GetTeamByToken(token)
+	if team == nil {
+		return nil, status.Error(codes.NotFound, "team not found")
+	}
+	return team, nil
 }
 
 func (c *Client) CreateBatch(ctx context.Context, teams []*teamspb.Team) ([]*models.Team, error) {

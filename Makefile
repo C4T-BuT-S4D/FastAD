@@ -39,3 +39,15 @@ commit-proto: proto
 	git add pkg/proto
 	git add front/src/proto
 	git commit -m "Regenerate proto"
+
+.PHONY: reset-db
+reset-db:
+	docker compose exec postgres psql -U fastad fastad -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+	go run ./cmd/migrator/main.go init
+
+.PHONY: migrate-db
+migrate-db:
+	go run ./cmd/migrator/main.go migrate
+
+.PHONY: db
+db: reset-db migrate-db

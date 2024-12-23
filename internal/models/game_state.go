@@ -26,6 +26,8 @@ type GameState struct {
 	RoundDuration      time.Duration `bun:"round_duration,notnull"`
 
 	// TODO: game_mode.
+	Hardness  float64 `bun:"hardness,notnull"`
+	Inflation bool    `bun:"inflation"`
 
 	RunningRound      uint64    `bun:"running_round"`
 	RunningRoundStart time.Time `bun:"running_round_start"`
@@ -42,6 +44,9 @@ func (gs *GameState) ToProto() *gspb.GameState {
 
 		RunningRound:      gs.RunningRound,
 		RunningRoundStart: timestamppb.New(gs.RunningRoundStart),
+
+		Hardness:  gs.Hardness,
+		Inflation: gs.Inflation,
 	}
 	if gs.EndTime != nil {
 		res.EndTime = timestamppb.New(*gs.EndTime)
@@ -60,6 +65,9 @@ func NewGameStateFromProto(p *gspb.GameState) *GameState {
 
 		RunningRound:      p.RunningRound,
 		RunningRoundStart: p.RunningRoundStart.AsTime(),
+
+		Hardness:  p.Hardness,
+		Inflation: p.Inflation,
 	}
 	if p.EndTime != nil {
 		res.EndTime = lo.ToPtr(p.EndTime.AsTime())

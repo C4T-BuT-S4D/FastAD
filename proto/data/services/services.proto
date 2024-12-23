@@ -28,6 +28,8 @@ message Service {
   data.services.Service.Checker checker = 3;
 
   double default_score = 4;
+
+  bool disabled = 5;
 }
 
 message ListRequest {

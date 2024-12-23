@@ -17,7 +17,10 @@ export interface FlagResponse {
   flag: string;
   verdict: FlagResponse_Verdict;
   message: string;
-  flagPoints: number;
+  victimId: bigint;
+  serviceId: bigint;
+  attackerDelta: number;
+  victimDelta: number;
 }
 
 export const FlagResponse_Verdict = {
@@ -26,6 +29,7 @@ export const FlagResponse_Verdict = {
   VERDICT_OWN: 2,
   VERDICT_OLD: 3,
   VERDICT_INVALID: 4,
+  VERDICT_DUPLICATE: 5,
 } as const;
 
 export type FlagResponse_Verdict = typeof FlagResponse_Verdict[keyof typeof FlagResponse_Verdict];
@@ -36,6 +40,7 @@ export namespace FlagResponse_Verdict {
   export type VERDICT_OWN = typeof FlagResponse_Verdict.VERDICT_OWN;
   export type VERDICT_OLD = typeof FlagResponse_Verdict.VERDICT_OLD;
   export type VERDICT_INVALID = typeof FlagResponse_Verdict.VERDICT_INVALID;
+  export type VERDICT_DUPLICATE = typeof FlagResponse_Verdict.VERDICT_DUPLICATE;
 }
 
 export function flagResponse_VerdictFromJSON(object: any): FlagResponse_Verdict {
@@ -55,6 +60,9 @@ export function flagResponse_VerdictFromJSON(object: any): FlagResponse_Verdict 
     case 4:
     case "VERDICT_INVALID":
       return FlagResponse_Verdict.VERDICT_INVALID;
+    case 5:
+    case "VERDICT_DUPLICATE":
+      return FlagResponse_Verdict.VERDICT_DUPLICATE;
     default:
       throw new globalThis.Error("Unrecognized enum value " + object + " for enum FlagResponse_Verdict");
   }
@@ -72,6 +80,8 @@ export function flagResponse_VerdictToJSON(object: FlagResponse_Verdict): string
       return "VERDICT_OLD";
     case FlagResponse_Verdict.VERDICT_INVALID:
       return "VERDICT_INVALID";
+    case FlagResponse_Verdict.VERDICT_DUPLICATE:
+      return "VERDICT_DUPLICATE";
     default:
       throw new globalThis.Error("Unrecognized enum value " + object + " for enum FlagResponse_Verdict");
   }
@@ -174,7 +184,7 @@ export const SubmitFlagsRequest: MessageFns<SubmitFlagsRequest> = {
 };
 
 function createBaseFlagResponse(): FlagResponse {
-  return { flag: "", verdict: 0, message: "", flagPoints: 0 };
+  return { flag: "", verdict: 0, message: "", victimId: 0n, serviceId: 0n, attackerDelta: 0, victimDelta: 0 };
 }
 
 export const FlagResponse: MessageFns<FlagResponse> = {
@@ -188,8 +198,23 @@ export const FlagResponse: MessageFns<FlagResponse> = {
     if (message.message !== "") {
       writer.uint32(26).string(message.message);
     }
-    if (message.flagPoints !== 0) {
-      writer.uint32(33).double(message.flagPoints);
+    if (message.victimId !== 0n) {
+      if (BigInt.asIntN(64, message.victimId) !== message.victimId) {
+        throw new globalThis.Error("value provided for field message.victimId of type int64 too large");
+      }
+      writer.uint32(32).int64(message.victimId);
+    }
+    if (message.serviceId !== 0n) {
+      if (BigInt.asIntN(64, message.serviceId) !== message.serviceId) {
+        throw new globalThis.Error("value provided for field message.serviceId of type int64 too large");
+      }
+      writer.uint32(40).int64(message.serviceId);
+    }
+    if (message.attackerDelta !== 0) {
+      writer.uint32(49).double(message.attackerDelta);
+    }
+    if (message.victimDelta !== 0) {
+      writer.uint32(57).double(message.victimDelta);
     }
     return writer;
   },
@@ -226,11 +251,35 @@ export const FlagResponse: MessageFns<FlagResponse> = {
           continue;
         }
         case 4: {
-          if (tag !== 33) {
+          if (tag !== 32) {
             break;
           }
 
-          message.flagPoints = reader.double();
+          message.victimId = reader.int64() as bigint;
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.serviceId = reader.int64() as bigint;
+          continue;
+        }
+        case 6: {
+          if (tag !== 49) {
+            break;
+          }
+
+          message.attackerDelta = reader.double();
+          continue;
+        }
+        case 7: {
+          if (tag !== 57) {
+            break;
+          }
+
+          message.victimDelta = reader.double();
           continue;
         }
       }
@@ -279,7 +328,10 @@ export const FlagResponse: MessageFns<FlagResponse> = {
       flag: isSet(object.flag) ? globalThis.String(object.flag) : "",
       verdict: isSet(object.verdict) ? flagResponse_VerdictFromJSON(object.verdict) : 0,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
-      flagPoints: isSet(object.flagPoints) ? globalThis.Number(object.flagPoints) : 0,
+      victimId: isSet(object.victimId) ? BigInt(object.victimId) : 0n,
+      serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
+      attackerDelta: isSet(object.attackerDelta) ? globalThis.Number(object.attackerDelta) : 0,
+      victimDelta: isSet(object.victimDelta) ? globalThis.Number(object.victimDelta) : 0,
     };
   },
 
@@ -294,8 +346,17 @@ export const FlagResponse: MessageFns<FlagResponse> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
-    if (message.flagPoints !== 0) {
-      obj.flagPoints = message.flagPoints;
+    if (message.victimId !== 0n) {
+      obj.victimId = message.victimId.toString();
+    }
+    if (message.serviceId !== 0n) {
+      obj.serviceId = message.serviceId.toString();
+    }
+    if (message.attackerDelta !== 0) {
+      obj.attackerDelta = message.attackerDelta;
+    }
+    if (message.victimDelta !== 0) {
+      obj.victimDelta = message.victimDelta;
     }
     return obj;
   },
@@ -308,7 +369,10 @@ export const FlagResponse: MessageFns<FlagResponse> = {
     message.flag = object.flag ?? "";
     message.verdict = object.verdict ?? 0;
     message.message = object.message ?? "";
-    message.flagPoints = object.flagPoints ?? 0;
+    message.victimId = object.victimId ?? 0n;
+    message.serviceId = object.serviceId ?? 0n;
+    message.attackerDelta = object.attackerDelta ?? 0;
+    message.victimDelta = object.victimDelta ?? 0;
     return message;
   },
 };

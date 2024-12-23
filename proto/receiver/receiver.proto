@@ -3,24 +3,28 @@ syntax = "proto3";
 package receiver;
 
 message SubmitFlagsRequest {
-    repeated string flags = 1;
+  repeated string flags = 1;
 }
 
 message FlagResponse {
-    enum Verdict {
-        VERDICT_UNSPECIFIED = 0;
-        VERDICT_ACCEPTED = 1;
-        VERDICT_OWN = 2;
-        VERDICT_OLD = 3;
-        VERDICT_INVALID = 4;
-    }
+  enum Verdict {
+    VERDICT_UNSPECIFIED = 0;
+    VERDICT_ACCEPTED = 1;
+    VERDICT_OWN = 2;
+    VERDICT_OLD = 3;
+    VERDICT_INVALID = 4;
+    VERDICT_DUPLICATE = 5;
+  }
 
-    string flag = 1;
-    FlagResponse.Verdict verdict = 2;
-    string message = 3;
-    double flag_points = 4;
+  string flag = 1;
+  FlagResponse.Verdict verdict = 2;
+  string message = 3;
+  int64 victim_id = 4;
+  int64 service_id = 5;
+  double attacker_delta = 6;
+  double victim_delta = 7;
 }
 
 message SubmitFlagsResponse {
-    repeated FlagResponse responses = 1;
+  repeated FlagResponse responses = 1;
 }

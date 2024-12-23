@@ -28,7 +28,7 @@ type SaveRoundDataActivityParameters struct {
 
 type SaveRoundDataActivityResult struct{}
 
-func (s *SaveRoundDataActivity) SaveRoundDataActivityDefinition(ctx context.Context, params *SaveRoundDataActivityParameters) (*SaveRoundDataActivityResult, error) {
+func (s *SaveRoundDataActivity) ActivityDefinition(ctx context.Context, params *SaveRoundDataActivityParameters) (*SaveRoundDataActivityResult, error) {
 	logger := logrus.WithFields(logrus.Fields{
 		"action": "SaveRoundData",
 	})

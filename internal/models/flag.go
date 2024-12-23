@@ -14,7 +14,7 @@ type Flag struct {
 	Public  string `bun:"public"`
 	Private string `bun:"private"`
 
-	Round int `bun:"round,notnull"`
+	Round uint64 `bun:"round,notnull"`
 
 	TeamID    int `bun:"team_id,notnull"`
 	ServiceID int `bun:"service_id,notnull"`

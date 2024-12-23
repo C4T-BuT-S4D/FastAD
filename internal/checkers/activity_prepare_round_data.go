@@ -82,6 +82,7 @@ func (a *PrepareRoundActivity) prepareRoundPutState(
 					TeamID:    team.ID,
 					ServiceID: service.ID,
 					CreatedAt: params.GameState.RunningRoundStart,
+					Round:     params.GameState.RunningRound,
 				}
 				flags = append(flags, &FQFlagInfo{
 					Team:    team,

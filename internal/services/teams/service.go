@@ -30,8 +30,6 @@ func NewService(controller *Controller) *Service {
 func (s *Service) List(ctx context.Context, req *teamspb.ListRequest) (*teamspb.ListResponse, error) {
 	logrus.Debugf("TeamsService/List: %v", req)
 
-	// FIXME: check admin rights, remove token from result.
-
 	gotVersion, err := s.controller.Versions.Get(ctx, VersionKey)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "getting version: %v", err)
@@ -61,8 +59,6 @@ func (s *Service) List(ctx context.Context, req *teamspb.ListRequest) (*teamspb.
 func (s *Service) CreateBatch(ctx context.Context, req *teamspb.CreateBatchRequest) (*teamspb.CreateBatchResponse, error) {
 	logrus.Debugf("TeamsService/CreateBatch: %v", req)
 
-	// FIXME: check admin rights.
-
 	if err := s.validateCreateBatchRequest(req); err != nil {
 		return nil, fmt.Errorf("validating request: %w", err)
 	}
@@ -70,7 +66,6 @@ func (s *Service) CreateBatch(ctx context.Context, req *teamspb.CreateBatchReque
 	teams := lo.Map(req.Teams, func(team *teamspb.Team, _ int) *models.Team {
 		teamModel := models.NewTeamFromProto(team)
 		teamModel.ID = 0
-		// TODO: generate token using server private key.
 		teamModel.Token = uuid.NewString()
 		return teamModel
 	})

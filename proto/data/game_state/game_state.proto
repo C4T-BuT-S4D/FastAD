@@ -8,59 +8,64 @@ import "google/protobuf/duration.proto";
 import "data/version/version.proto";
 
 enum GameMode {
-    GAME_MODE_UNSPECIFIED = 0;
-    GAME_MODE_CLASSIC = 1;
+  GAME_MODE_UNSPECIFIED = 0;
+  GAME_MODE_CLASSIC = 1;
 }
 
 message GameState {
-    google.protobuf.Timestamp start_time = 1;
-    google.protobuf.Timestamp end_time = 2;
-    uint64 total_rounds = 3;
+  google.protobuf.Timestamp start_time = 1;
+  google.protobuf.Timestamp end_time = 2;
+  uint64 total_rounds = 3;
 
-    bool paused = 4;
+  bool paused = 4;
 
-    uint64 flag_lifetime_rounds = 5;
-    google.protobuf.Duration round_duration = 6;
+  uint64 flag_lifetime_rounds = 5;
+  google.protobuf.Duration round_duration = 6;
 
-    data.game_state.GameMode mode = 7;
+  data.game_state.GameMode mode = 7;
 
-    uint64 running_round = 8;
-    google.protobuf.Timestamp running_round_start = 9;
+  uint64 running_round = 8;
+  google.protobuf.Timestamp running_round_start = 9;
+
+  double hardness = 10;
+  bool inflation = 11;
 }
 
 message GetRequest {
-    data.version.Version version = 1;
+  data.version.Version version = 1;
 }
 
 message GetResponse {
-    data.game_state.GameState game_state = 1;
-    data.version.Version version = 2;
+  data.game_state.GameState game_state = 1;
+  data.version.Version version = 2;
 }
 
 message UpdateRequest {
-    google.protobuf.Timestamp start_time = 1;
-    google.protobuf.Timestamp end_time = 2;
-    uint64 total_rounds = 3;
+  google.protobuf.Timestamp start_time = 1;
+  google.protobuf.Timestamp end_time = 2;
+  uint64 total_rounds = 3;
 
-    bool paused = 4;
+  bool paused = 4;
 
-    uint64 flag_lifetime_rounds = 5;
-    google.protobuf.Duration round_duration = 6;
+  uint64 flag_lifetime_rounds = 5;
+  google.protobuf.Duration round_duration = 6;
 
-    data.game_state.GameMode mode = 7;
+  data.game_state.GameMode mode = 7;
+  double hardness = 8;
+  bool inflation = 9;
 }
 
 message UpdateResponse {
-    data.game_state.GameState game_state = 1;
-    data.version.Version version = 2;
+  data.game_state.GameState game_state = 1;
+  data.version.Version version = 2;
 }
 
 message UpdateRoundRequest {
-    uint64 running_round = 1;
-    google.protobuf.Timestamp running_round_start = 2;
+  uint64 running_round = 1;
+  google.protobuf.Timestamp running_round_start = 2;
 }
 
 message UpdateRoundResponse {
-    data.game_state.GameState game_state = 1;
-    data.version.Version version = 2;
+  data.game_state.GameState game_state = 1;
+  data.version.Version version = 2;
 }

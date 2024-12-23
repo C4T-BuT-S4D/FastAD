@@ -51,14 +51,3 @@ func (c *Controller) Increment(ctx context.Context, tx bun.Tx, name string) (int
 
 	return v.Version, nil
 }
-
-func (c *Controller) Migrate(ctx context.Context) error {
-	if _, err := c.db.
-		NewCreateTable().
-		IfNotExists().
-		Model(&models.Version{}).
-		Exec(ctx); err != nil {
-		return fmt.Errorf("creating version table: %w", err)
-	}
-	return nil
-}

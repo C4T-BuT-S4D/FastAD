@@ -27,6 +27,6 @@ func main() {
 	}
 
 	if err := app.RunContext(runCtx, os.Args); err != nil {
-		logrus.Fatalf("error running app: %v", err)
+		logrus.WithError(err).Fatal("error running app")
 	}
 }

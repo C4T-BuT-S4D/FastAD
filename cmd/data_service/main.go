@@ -2,17 +2,11 @@ package main
 
 import (
 	"context"
-	"database/sql"
-	"fmt"
 	"net"
 	"os/signal"
 	"syscall"
 
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/pflag"
-	"github.com/uptrace/bun"
-	"github.com/uptrace/bun/dialect/pgdialect"
-	"github.com/uptrace/bun/driver/pgdriver"
 
 	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
@@ -20,11 +14,10 @@ import (
 	"github.com/c4t-but-s4d/fastad/internal/services/services"
 	"github.com/c4t-but-s4d/fastad/internal/services/teams"
 	"github.com/c4t-but-s4d/fastad/internal/version"
-	"github.com/c4t-but-s4d/fastad/pkg/grpctools"
+	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
-	"github.com/c4t-but-s4d/fastad/pkg/util"
 )
 
 type Config struct {
@@ -33,29 +26,11 @@ type Config struct {
 }
 
 func main() {
-	cfg, err := setupConfig()
-	if err != nil {
-		logrus.Fatalf("error setting up config: %v", err)
-	}
+	cfg := config.MustSetupAll(&Config{}, config.WithEnvPrefix("FASTAD_DATA_SERVICE"))
 
 	logging.Init()
 
-	pgConn := pgdriver.NewConnector(
-		pgdriver.WithAddr(fmt.Sprintf("%s:%d", cfg.Postgres.Host, cfg.Postgres.Port)),
-		pgdriver.WithDatabase(cfg.Postgres.Database),
-		pgdriver.WithUser(cfg.Postgres.User),
-		pgdriver.WithPassword(cfg.Postgres.Password),
-		pgdriver.WithInsecure(!cfg.Postgres.EnableSSL),
-	)
-
-	sqlDB := sql.OpenDB(pgConn)
-	sqlDB.SetMaxIdleConns(cfg.Postgres.MaxIdleConns)
-	sqlDB.SetMaxOpenConns(cfg.Postgres.MaxOpenConns)
-	sqlDB.SetConnMaxIdleTime(cfg.Postgres.ConnMaxIdleTime)
-	sqlDB.SetConnMaxLifetime(cfg.Postgres.ConnMaxLifetime)
-
-	db := bun.NewDB(sqlDB, pgdialect.New())
-	logging.AddBunQueryHook(db)
+	db := cfg.Postgres.BunDB()
 
 	versionController := version.NewController(db)
 
@@ -68,7 +43,7 @@ func main() {
 	gameStateController := gamestate.NewController(db, versionController)
 	gameStateService := gamestate.NewService(gameStateController)
 
-	server := grpctools.NewServer()
+	server := grpcext.NewServer()
 	teamspb.RegisterTeamsServiceServer(server, teamsService)
 	servicespb.RegisterServicesServiceServer(server, servicesService)
 	gspb.RegisterGameStateServiceServer(server, gameStateService)
@@ -76,30 +51,10 @@ func main() {
 	runCtx, runCancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer runCancel()
 
-	if err := db.PingContext(runCtx); err != nil {
-		logrus.Fatalf("error pinging postgres: %v", err)
-	}
-
-	if err := versionController.Migrate(runCtx); err != nil {
-		logrus.Fatalf("error migrating versions: %v", err)
-	}
-
-	if err := teamsController.Migrate(runCtx); err != nil {
-		logrus.Fatalf("error migrating teams: %v", err)
-	}
-
-	if err := servicesController.Migrate(runCtx); err != nil {
-		logrus.Fatalf("error migrating services: %v", err)
-	}
-
-	if err := gameStateController.Migrate(runCtx); err != nil {
-		logrus.Fatalf("error migrating game state: %v", err)
-	}
-
-	logrus.Infof("starting server on %s", cfg.ListenAddress)
+	logrus.WithField("listen_address", cfg.ListenAddress).Info("starting server")
 	lis, err := net.Listen("tcp", cfg.ListenAddress)
 	if err != nil {
-		logrus.Fatalf("error listening on %s: %v", cfg.ListenAddress, err)
+		logrus.WithError(err).Fatal("error creating listener")
 	}
 
 	go func() {
@@ -108,17 +63,6 @@ func main() {
 	}()
 
 	if err := server.Serve(lis); err != nil {
-		logrus.Fatalf("error serving: %v", err)
+		logrus.WithError(err).Fatal("error in server")
 	}
-}
-
-func setupConfig() (*Config, error) {
-	pflag.BoolP("debug", "v", false, "Enable verbose logging")
-	pflag.Parse()
-
-	cfg := util.Must[*Config]("setup config")(
-		config.SetupAll[*Config]("FASTAD_DATA_SERVICE"),
-	)
-
-	return cfg, nil
 }

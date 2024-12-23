@@ -1,4 +1,4 @@
-package grpctools
+package grpcext
 
 import (
 	"fmt"

@@ -5,26 +5,26 @@ package data.teams;
 import "data/version/version.proto";
 
 message Team {
-    int64 id = 1;
-    string name = 2;
-    string address = 3;
-    string token = 4;
-    map<string, string> labels = 5;
+  int64 id = 1;
+  string name = 2;
+  string address = 3;
+  string token = 4;
+  map<string, string> labels = 5;
 }
 
 message ListRequest {
-    data.version.Version version = 1;
+  data.version.Version version = 1;
 }
 
 message ListResponse {
-    repeated Team teams = 1;
-    data.version.Version version = 2;
+  repeated Team teams = 1;
+  data.version.Version version = 2;
 }
 
 message CreateBatchRequest {
-    repeated Team teams = 1;
+  repeated Team teams = 1;
 }
 
 message CreateBatchResponse {
-    repeated Team teams = 1;
+  repeated Team teams = 1;
 }
