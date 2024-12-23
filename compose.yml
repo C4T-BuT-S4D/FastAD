@@ -17,17 +17,6 @@ services:
       postgres:
         condition: service_healthy
 
-  envoy:
-    image: envoyproxy/envoy:v1.27.0
-    volumes:
-      - ./docker/envoy/envoy.yaml:/etc/envoy/envoy.yaml
-      - ./proto/descriptor.pb:/etc/envoy/descriptor.pb
-    ports:
-      - "8080:8080"
-    depends_on:
-      - data-service
-    command: /usr/local/bin/envoy -c /etc/envoy/envoy.yaml --service-cluster envoy --service-node envoy --log-level debug
-
   postgres:
     image: postgres:17.2-alpine
     environment:

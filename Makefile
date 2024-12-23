@@ -17,7 +17,7 @@ goimports:
 .PHONY: proto
 proto: lint-proto
 	rm -rf pkg/proto
-	cd proto && buf generate && buf build --as-file-descriptor-set -o descriptor.pb
+	cd proto && buf generate
 
 .PHONY: tidy
 tidy:
