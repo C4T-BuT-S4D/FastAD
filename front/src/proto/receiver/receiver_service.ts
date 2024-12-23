@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { type CallContext, type CallOptions } from "nice-grpc-common";
-import { SubmitFlagsRequest, SubmitFlagsResponse } from "./receiver";
+import { GetStateRequest, GetStateResponse, SubmitFlagsRequest, SubmitFlagsResponse } from "./receiver";
 
 export const protobufPackage = "receiver";
 
@@ -23,6 +23,14 @@ export const ReceiverServiceDefinition = {
       responseStream: false,
       options: {},
     },
+    getState: {
+      name: "GetState",
+      requestType: GetStateRequest,
+      requestStream: false,
+      responseType: GetStateResponse,
+      responseStream: false,
+      options: {},
+    },
   },
 } as const;
 
@@ -31,6 +39,7 @@ export interface ReceiverServiceImplementation<CallContextExt = {}> {
     request: SubmitFlagsRequest,
     context: CallContext & CallContextExt,
   ): Promise<DeepPartial<SubmitFlagsResponse>>;
+  getState(request: GetStateRequest, context: CallContext & CallContextExt): Promise<DeepPartial<GetStateResponse>>;
 }
 
 export interface ReceiverServiceClient<CallOptionsExt = {}> {
@@ -38,6 +47,7 @@ export interface ReceiverServiceClient<CallOptionsExt = {}> {
     request: DeepPartial<SubmitFlagsRequest>,
     options?: CallOptions & CallOptionsExt,
   ): Promise<SubmitFlagsResponse>;
+  getState(request: DeepPartial<GetStateRequest>, options?: CallOptions & CallOptionsExt): Promise<GetStateResponse>;
 }
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;

@@ -5,5 +5,7 @@ package receiver;
 import "receiver/receiver.proto";
 
 service ReceiverService {
-    rpc SubmitFlags(SubmitFlagsRequest) returns (SubmitFlagsResponse);
+  rpc SubmitFlags(SubmitFlagsRequest) returns (SubmitFlagsResponse);
+
+  rpc GetState(GetStateRequest) returns (GetStateResponse);
 }

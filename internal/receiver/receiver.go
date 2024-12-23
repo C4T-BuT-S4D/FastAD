@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
+	"github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -58,6 +60,8 @@ type Service struct {
 }
 
 func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRequest) (*receiverpb.SubmitFlagsResponse, error) {
+	logrus.Debugf("Receiver/SubmitFlags: %v", req)
+
 	if len(req.Flags) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "no flags")
 	}
@@ -250,6 +254,15 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 	return resp, nil
 }
 
+func (s *Service) GetState(context.Context, *receiverpb.GetStateRequest) (*receiverpb.GetStateResponse, error) {
+	s.stateMu.Lock()
+	defer s.stateMu.Unlock()
+
+	return &receiverpb.GetStateResponse{
+		State: s.state.ToProto(),
+	}, nil
+}
+
 func (s *Service) RestoreState(ctx context.Context) error {
 	serviceList, err := s.servicesClient.List(ctx)
 	if err != nil {
@@ -260,7 +273,16 @@ func (s *Service) RestoreState(ctx context.Context) error {
 		return service.ID
 	})
 
+	start := time.Now()
+
 	if err := s.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		attackCount, err := tx.NewSelect().Model(&models.Attack{}).Count(ctx)
+		if err != nil {
+			return fmt.Errorf("counting attacks: %w", err)
+		}
+
+		logrus.Infof("Restoring state from %d attacks", attackCount)
+
 		lastID := -1
 		for {
 			const batchSize = 1000
@@ -279,6 +301,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 			}
 			lastID = batch[len(batch)-1].ID
 
+			logrus.Infof("Applying batch of %d attacks", len(batch))
 			if err := s.state.ApplyRaw(servicesByID, batch...); err != nil {
 				return fmt.Errorf("applying batch of %d attacks to state: %w", len(batch), err)
 			}
@@ -292,6 +315,8 @@ func (s *Service) RestoreState(ctx context.Context) error {
 	}); err != nil {
 		return fmt.Errorf("in tx: %w", err)
 	}
+
+	logrus.Infof("State restored in %s", time.Since(start))
 
 	return nil
 }

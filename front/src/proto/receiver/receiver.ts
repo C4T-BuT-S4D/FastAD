@@ -87,8 +87,31 @@ export function flagResponse_VerdictToJSON(object: FlagResponse_Verdict): string
   }
 }
 
+export interface State {
+  services: State_Service[];
+}
+
+export interface State_Team {
+  id: bigint;
+  points: number;
+  stolenFlags: bigint;
+  lostFlags: bigint;
+}
+
+export interface State_Service {
+  id: bigint;
+  teams: State_Team[];
+}
+
 export interface SubmitFlagsResponse {
   responses: FlagResponse[];
+}
+
+export interface GetStateRequest {
+}
+
+export interface GetStateResponse {
+  state: State | undefined;
 }
 
 function createBaseSubmitFlagsRequest(): SubmitFlagsRequest {
@@ -377,6 +400,360 @@ export const FlagResponse: MessageFns<FlagResponse> = {
   },
 };
 
+function createBaseState(): State {
+  return { services: [] };
+}
+
+export const State: MessageFns<State> = {
+  encode(message: State, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.services) {
+      State_Service.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): State {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseState();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.services.push(State_Service.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<State, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<State | State[]> | Iterable<State | State[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [State.encode(p).finish()];
+        }
+      } else {
+        yield* [State.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, State>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<State> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [State.decode(p)];
+        }
+      } else {
+        yield* [State.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): State {
+    return {
+      services: globalThis.Array.isArray(object?.services)
+        ? object.services.map((e: any) => State_Service.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: State): unknown {
+    const obj: any = {};
+    if (message.services?.length) {
+      obj.services = message.services.map((e) => State_Service.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<State>, I>>(base?: I): State {
+    return State.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<State>, I>>(object: I): State {
+    const message = createBaseState();
+    message.services = object.services?.map((e) => State_Service.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseState_Team(): State_Team {
+  return { id: 0n, points: 0, stolenFlags: 0n, lostFlags: 0n };
+}
+
+export const State_Team: MessageFns<State_Team> = {
+  encode(message: State_Team, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== 0n) {
+      if (BigInt.asIntN(64, message.id) !== message.id) {
+        throw new globalThis.Error("value provided for field message.id of type int64 too large");
+      }
+      writer.uint32(8).int64(message.id);
+    }
+    if (message.points !== 0) {
+      writer.uint32(17).double(message.points);
+    }
+    if (message.stolenFlags !== 0n) {
+      if (BigInt.asIntN(64, message.stolenFlags) !== message.stolenFlags) {
+        throw new globalThis.Error("value provided for field message.stolenFlags of type int64 too large");
+      }
+      writer.uint32(24).int64(message.stolenFlags);
+    }
+    if (message.lostFlags !== 0n) {
+      if (BigInt.asIntN(64, message.lostFlags) !== message.lostFlags) {
+        throw new globalThis.Error("value provided for field message.lostFlags of type int64 too large");
+      }
+      writer.uint32(32).int64(message.lostFlags);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): State_Team {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseState_Team();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = reader.int64() as bigint;
+          continue;
+        }
+        case 2: {
+          if (tag !== 17) {
+            break;
+          }
+
+          message.points = reader.double();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.stolenFlags = reader.int64() as bigint;
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.lostFlags = reader.int64() as bigint;
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<State_Team, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<State_Team | State_Team[]> | Iterable<State_Team | State_Team[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [State_Team.encode(p).finish()];
+        }
+      } else {
+        yield* [State_Team.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, State_Team>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<State_Team> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [State_Team.decode(p)];
+        }
+      } else {
+        yield* [State_Team.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): State_Team {
+    return {
+      id: isSet(object.id) ? BigInt(object.id) : 0n,
+      points: isSet(object.points) ? globalThis.Number(object.points) : 0,
+      stolenFlags: isSet(object.stolenFlags) ? BigInt(object.stolenFlags) : 0n,
+      lostFlags: isSet(object.lostFlags) ? BigInt(object.lostFlags) : 0n,
+    };
+  },
+
+  toJSON(message: State_Team): unknown {
+    const obj: any = {};
+    if (message.id !== 0n) {
+      obj.id = message.id.toString();
+    }
+    if (message.points !== 0) {
+      obj.points = message.points;
+    }
+    if (message.stolenFlags !== 0n) {
+      obj.stolenFlags = message.stolenFlags.toString();
+    }
+    if (message.lostFlags !== 0n) {
+      obj.lostFlags = message.lostFlags.toString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<State_Team>, I>>(base?: I): State_Team {
+    return State_Team.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<State_Team>, I>>(object: I): State_Team {
+    const message = createBaseState_Team();
+    message.id = object.id ?? 0n;
+    message.points = object.points ?? 0;
+    message.stolenFlags = object.stolenFlags ?? 0n;
+    message.lostFlags = object.lostFlags ?? 0n;
+    return message;
+  },
+};
+
+function createBaseState_Service(): State_Service {
+  return { id: 0n, teams: [] };
+}
+
+export const State_Service: MessageFns<State_Service> = {
+  encode(message: State_Service, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== 0n) {
+      if (BigInt.asIntN(64, message.id) !== message.id) {
+        throw new globalThis.Error("value provided for field message.id of type int64 too large");
+      }
+      writer.uint32(8).int64(message.id);
+    }
+    for (const v of message.teams) {
+      State_Team.encode(v!, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): State_Service {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseState_Service();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = reader.int64() as bigint;
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.teams.push(State_Team.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<State_Service, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<State_Service | State_Service[]> | Iterable<State_Service | State_Service[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [State_Service.encode(p).finish()];
+        }
+      } else {
+        yield* [State_Service.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, State_Service>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<State_Service> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [State_Service.decode(p)];
+        }
+      } else {
+        yield* [State_Service.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): State_Service {
+    return {
+      id: isSet(object.id) ? BigInt(object.id) : 0n,
+      teams: globalThis.Array.isArray(object?.teams) ? object.teams.map((e: any) => State_Team.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: State_Service): unknown {
+    const obj: any = {};
+    if (message.id !== 0n) {
+      obj.id = message.id.toString();
+    }
+    if (message.teams?.length) {
+      obj.teams = message.teams.map((e) => State_Team.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<State_Service>, I>>(base?: I): State_Service {
+    return State_Service.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<State_Service>, I>>(object: I): State_Service {
+    const message = createBaseState_Service();
+    message.id = object.id ?? 0n;
+    message.teams = object.teams?.map((e) => State_Team.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 function createBaseSubmitFlagsResponse(): SubmitFlagsResponse {
   return { responses: [] };
 }
@@ -469,6 +846,171 @@ export const SubmitFlagsResponse: MessageFns<SubmitFlagsResponse> = {
   fromPartial<I extends Exact<DeepPartial<SubmitFlagsResponse>, I>>(object: I): SubmitFlagsResponse {
     const message = createBaseSubmitFlagsResponse();
     message.responses = object.responses?.map((e) => FlagResponse.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseGetStateRequest(): GetStateRequest {
+  return {};
+}
+
+export const GetStateRequest: MessageFns<GetStateRequest> = {
+  encode(_: GetStateRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetStateRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetStateRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<GetStateRequest, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<GetStateRequest | GetStateRequest[]> | Iterable<GetStateRequest | GetStateRequest[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [GetStateRequest.encode(p).finish()];
+        }
+      } else {
+        yield* [GetStateRequest.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, GetStateRequest>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<GetStateRequest> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [GetStateRequest.decode(p)];
+        }
+      } else {
+        yield* [GetStateRequest.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(_: any): GetStateRequest {
+    return {};
+  },
+
+  toJSON(_: GetStateRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetStateRequest>, I>>(base?: I): GetStateRequest {
+    return GetStateRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetStateRequest>, I>>(_: I): GetStateRequest {
+    const message = createBaseGetStateRequest();
+    return message;
+  },
+};
+
+function createBaseGetStateResponse(): GetStateResponse {
+  return { state: undefined };
+}
+
+export const GetStateResponse: MessageFns<GetStateResponse> = {
+  encode(message: GetStateResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.state !== undefined) {
+      State.encode(message.state, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetStateResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetStateResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.state = State.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<GetStateResponse, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<GetStateResponse | GetStateResponse[]> | Iterable<GetStateResponse | GetStateResponse[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [GetStateResponse.encode(p).finish()];
+        }
+      } else {
+        yield* [GetStateResponse.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, GetStateResponse>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<GetStateResponse> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [GetStateResponse.decode(p)];
+        }
+      } else {
+        yield* [GetStateResponse.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): GetStateResponse {
+    return { state: isSet(object.state) ? State.fromJSON(object.state) : undefined };
+  },
+
+  toJSON(message: GetStateResponse): unknown {
+    const obj: any = {};
+    if (message.state !== undefined) {
+      obj.state = State.toJSON(message.state);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetStateResponse>, I>>(base?: I): GetStateResponse {
+    return GetStateResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetStateResponse>, I>>(object: I): GetStateResponse {
+    const message = createBaseGetStateResponse();
+    message.state = (object.state !== undefined && object.state !== null) ? State.fromPartial(object.state) : undefined;
     return message;
   },
 };

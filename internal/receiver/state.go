@@ -7,12 +7,23 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
+	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 )
 
 type TeamState struct {
+	TeamID      int     `json:"team_id"`
 	Points      float64 `json:"points"`
 	StolenFlags int     `json:"stolen_flags"`
 	LostFlags   int     `json:"lost_flags"`
+}
+
+func (s *TeamState) ToProto() *receiverpb.State_Team {
+	return &receiverpb.State_Team{
+		Id:          int64(s.TeamID),
+		Points:      s.Points,
+		StolenFlags: int64(s.StolenFlags),
+		LostFlags:   int64(s.LostFlags),
+	}
 }
 
 func (s *TeamState) Clone() *TeamState {
@@ -88,6 +99,15 @@ func (s *ServiceState) ApplyRaw(attacks ...*models.Attack) {
 	}
 }
 
+func (s *ServiceState) ToProto() *receiverpb.State_Service {
+	return &receiverpb.State_Service{
+		Id: int64(s.ServiceID),
+		Teams: lo.MapToSlice(s.TeamStates, func(_ int, value *TeamState) *receiverpb.State_Team {
+			return value.ToProto()
+		}),
+	}
+}
+
 func (s *ServiceState) getOrCreate(teamID int) *TeamState {
 	res, ok := s.TeamStates[teamID]
 	if !ok {
@@ -134,6 +154,14 @@ func (s *State) Clone() *State {
 		}),
 	}
 	return res
+}
+
+func (s *State) ToProto() *receiverpb.State {
+	return &receiverpb.State{
+		Services: lo.MapToSlice(s.ServiceStates, func(_ int, value *ServiceState) *receiverpb.State_Service {
+			return value.ToProto()
+		}),
+	}
 }
 
 func (s *State) getOrCreate(service *models.Service) *ServiceState {

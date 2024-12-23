@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ReceiverService_SubmitFlags_FullMethodName = "/receiver.ReceiverService/SubmitFlags"
+	ReceiverService_GetState_FullMethodName    = "/receiver.ReceiverService/GetState"
 )
 
 // ReceiverServiceClient is the client API for ReceiverService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ReceiverServiceClient interface {
 	SubmitFlags(ctx context.Context, in *SubmitFlagsRequest, opts ...grpc.CallOption) (*SubmitFlagsResponse, error)
+	GetState(ctx context.Context, in *GetStateRequest, opts ...grpc.CallOption) (*GetStateResponse, error)
 }
 
 type receiverServiceClient struct {
@@ -47,11 +49,22 @@ func (c *receiverServiceClient) SubmitFlags(ctx context.Context, in *SubmitFlags
 	return out, nil
 }
 
+func (c *receiverServiceClient) GetState(ctx context.Context, in *GetStateRequest, opts ...grpc.CallOption) (*GetStateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetStateResponse)
+	err := c.cc.Invoke(ctx, ReceiverService_GetState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReceiverServiceServer is the server API for ReceiverService service.
 // All implementations must embed UnimplementedReceiverServiceServer
 // for forward compatibility.
 type ReceiverServiceServer interface {
 	SubmitFlags(context.Context, *SubmitFlagsRequest) (*SubmitFlagsResponse, error)
+	GetState(context.Context, *GetStateRequest) (*GetStateResponse, error)
 	mustEmbedUnimplementedReceiverServiceServer()
 }
 
@@ -64,6 +77,9 @@ type UnimplementedReceiverServiceServer struct{}
 
 func (UnimplementedReceiverServiceServer) SubmitFlags(context.Context, *SubmitFlagsRequest) (*SubmitFlagsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SubmitFlags not implemented")
+}
+func (UnimplementedReceiverServiceServer) GetState(context.Context, *GetStateRequest) (*GetStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetState not implemented")
 }
 func (UnimplementedReceiverServiceServer) mustEmbedUnimplementedReceiverServiceServer() {}
 func (UnimplementedReceiverServiceServer) testEmbeddedByValue()                         {}
@@ -104,6 +120,24 @@ func _ReceiverService_SubmitFlags_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReceiverService_GetState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReceiverServiceServer).GetState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReceiverService_GetState_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReceiverServiceServer).GetState(ctx, req.(*GetStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReceiverService_ServiceDesc is the grpc.ServiceDesc for ReceiverService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +148,10 @@ var ReceiverService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SubmitFlags",
 			Handler:    _ReceiverService_SubmitFlags_Handler,
+		},
+		{
+			MethodName: "GetState",
+			Handler:    _ReceiverService_GetState_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

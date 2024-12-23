@@ -25,6 +25,29 @@ message FlagResponse {
   double victim_delta = 7;
 }
 
+message State {
+  message Team {
+    int64 id = 1;
+    double points = 2;
+    int64 stolen_flags = 3;
+    int64 lost_flags = 4;
+  }
+
+  message Service {
+    int64 id = 1;
+    repeated Team teams = 2;
+  }
+
+  repeated Service services = 1;
+}
+
 message SubmitFlagsResponse {
   repeated FlagResponse responses = 1;
+}
+
+message GetStateRequest {
+}
+
+message GetStateResponse {
+  State state = 1;
 }
