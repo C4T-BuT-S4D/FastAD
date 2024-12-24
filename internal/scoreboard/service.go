@@ -14,8 +14,6 @@ import (
 	scoreboardpb "github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
 )
 
-const processorID = "scoreboard"
-
 type Service struct {
 	scoreboardpb.UnimplementedScoreboardServiceServer
 
@@ -24,6 +22,8 @@ type Service struct {
 	logger *zap.Logger
 
 	state *atomic.Pointer[State]
+
+	lastProcessorIteration time.Time
 }
 
 func NewService(db *bun.DB, cfg *Config) *Service {
@@ -64,24 +64,26 @@ func (s *Service) Check(ctx context.Context) error {
 
 	if err := s.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		for {
-			// TODO: this is a bunch of seq scans, can we do better?
-			statesSubquery := tx.
-				NewSelect().
-				Model(&models.ProcessorState{}).
-				Column("entity_id").
-				Where("processor_id = ?", processorID)
+			// We only need to look through the last executions.
+			// Some executions can reappear in the "ids holes" if the transaction
+			// that inserted them was stuck for some reason.
+			// ExecutionTXCreateTimeout is the estimate of this "stuck" time.
+			// We select only executions that were created after the last check
+			// minus the timeout and minus the threshold ProcessorStateThreshold (just to be safe).
+			// This way JOIN with RIGHT IS NULL filter performs better and is
+			// simpler than the EXCEPT subquery.
 
-			executionsIDsSubquery := tx.
-				NewSelect().
-				Model(&models.CheckerExecution{}).
-				Column("id").
-				Except(statesSubquery)
+			threshold := s.lastProcessorIteration.
+				Add(-s.config.ProcessorStateThreshold).
+				Add(-s.config.ExecutionTXCreateTimeout)
 
 			var batch []*models.CheckerExecution
 			if err := tx.
 				NewSelect().
 				Model(&batch).
-				Where("id IN (?)", executionsIDsSubquery).
+				Where("created_at > ?", threshold).
+				Join("LEFT OUTER JOIN scoreboard_processed_items spi ON spi.checker_execution_id = ce.id").
+				Where("spi.id IS NULL").
 				Order("ce.id ASC").
 				Limit(s.config.BatchSize).
 				Scan(ctx); err != nil {
@@ -92,18 +94,17 @@ func (s *Service) Check(ctx context.Context) error {
 				break
 			}
 
-			statesToInsert := make([]*models.ProcessorState, 0, len(batch))
+			itemsToInsert := make([]*models.ScoreboardProcessedItem, 0, len(batch))
 			s.logger.With(zap.Int("batch_size", len(batch))).Info("processing executions batch")
 			for _, execution := range batch {
 				stateClone.Apply(execution)
-				statesToInsert = append(statesToInsert, &models.ProcessorState{
-					ProcessorID: processorID,
-					EntityID:    execution.ID,
-					ProcessedAt: time.Now(),
+				itemsToInsert = append(itemsToInsert, &models.ScoreboardProcessedItem{
+					CheckerExecutionID: execution.ID,
+					ProcessedAt:        time.Now(),
 				})
 			}
 
-			if _, err := tx.NewInsert().Model(&statesToInsert).Exec(ctx); err != nil {
+			if _, err := tx.NewInsert().Model(&itemsToInsert).Exec(ctx); err != nil {
 				return fmt.Errorf("inserting states: %w", err)
 			}
 		}
@@ -117,6 +118,7 @@ func (s *Service) Check(ctx context.Context) error {
 	s.logger.Sugar().Debugf("current state: %+v", stateClone)
 
 	s.state.Store(stateClone)
+	s.lastProcessorIteration = time.Now()
 
 	return nil
 }
@@ -127,8 +129,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 	if err := s.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		processedExecutionsCount, err := tx.
 			NewSelect().
-			Model(&models.ProcessorState{}).
-			Where("processor_id = ?", processorID).
+			Model(&models.ScoreboardProcessedItem{}).
 			Count(ctx)
 		if err != nil {
 			return fmt.Errorf("counting executions: %w", err)
@@ -136,36 +137,36 @@ func (s *Service) RestoreState(ctx context.Context) error {
 
 		s.logger.Info("restoring state from processed executions", zap.Int("executions_count", processedExecutionsCount))
 
+		if processedExecutionsCount == 0 {
+			return nil
+		}
+
 		lastID := -1
 		for {
 			const batchSize = 1000
 
-			processorStatesSubquery := tx.
-				NewSelect().
-				Model(&models.ProcessorState{}).
-				Column("entity_id").
-				Where("processor_id = ? AND entity_id > ?", processorID, lastID).
-				Order("entity_id").
-				Limit(batchSize)
-
-			var batch []*models.CheckerExecution
+			var batch []*models.ScoreboardProcessedItem
 			if err := tx.
 				NewSelect().
-				Model(&models.CheckerExecution{}).
-				Where("id IN (?)", processorStatesSubquery).
-				Order("id").
+				Model(&models.ScoreboardProcessedItem{}).
+				// No need for INNER JOIN as we pretty much know that all processed executions exist.
+				Relation("CheckerExecution").
+				Where("spi.id > ?", lastID).
+				Order("spi.id").
+				Limit(batchSize).
 				Scan(ctx, &batch); err != nil {
-				return fmt.Errorf("fetching executions batch: %w", err)
+				return fmt.Errorf("fetching processed executions batch: %w", err)
 			}
 
 			if len(batch) == 0 {
 				break
 			}
 			lastID = batch[len(batch)-1].ID
+			s.lastProcessorIteration = batch[len(batch)-1].ProcessedAt
 
 			s.logger.Info("applying batch of executions", zap.Int("batch_size", len(batch)))
-			for _, execution := range batch {
-				s.state.Load().Apply(execution)
+			for _, item := range batch {
+				s.state.Load().Apply(item.CheckerExecution)
 			}
 
 			if len(batch) < batchSize {
@@ -179,6 +180,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 	}
 
 	s.logger.Info("state restored", zap.Duration("duration", time.Since(start)))
+	s.lastProcessorIteration = time.Now()
 
 	return nil
 }

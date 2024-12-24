@@ -15,8 +15,9 @@ func init() {
 		fmt.Print(" [up migration] ")
 
 		if _, err := db.NewCreateTable().
-			Model((*models.ProcessorState)(nil)).
+			Model((*models.ScoreboardProcessedItem)(nil)).
 			IfNotExists().
+			// Don't create foreign keys here.
 			Exec(ctx); err != nil {
 			return fmt.Errorf("create processor_states: %w", err)
 		}

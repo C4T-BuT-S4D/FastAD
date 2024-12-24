@@ -14,7 +14,6 @@ type Attack struct {
 
 	ServiceID int `bun:"service_id,notnull"`
 
-	// TODO: unique constraints, foreign keys, indices.
 	AttackerID int `bun:"attacker_id,notnull,unique:attacker_flag_id"`
 	VictimID   int `bun:"victim_id,notnull"`
 	FlagID     int `bun:"flag_id,notnull,unique:attacker_flag_id"`
