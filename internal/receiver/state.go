@@ -109,7 +109,7 @@ func (s *ServiceState) ToProto() []*receiverpb.State_TeamService {
 func (s *ServiceState) getOrCreate(teamID int) *TeamServiceState {
 	res, ok := s.TeamStates[teamID]
 	if !ok {
-		res = &TeamServiceState{Points: s.DefaultScore}
+		res = &TeamServiceState{TeamID: teamID, Points: s.DefaultScore}
 		s.TeamStates[teamID] = res
 	}
 	return res
