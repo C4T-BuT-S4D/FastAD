@@ -10,9 +10,9 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
-	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
-	"github.com/c4t-but-s4d/fastad/internal/clients/services"
-	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"

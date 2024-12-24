@@ -8,14 +8,14 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
-	"github.com/c4t-but-s4d/fastad/internal/config"
-	"github.com/c4t-but-s4d/fastad/internal/logging"
-	"github.com/c4t-but-s4d/fastad/internal/services/gamestate"
-	"github.com/c4t-but-s4d/fastad/internal/services/services"
-	"github.com/c4t-but-s4d/fastad/internal/services/teams"
+	"github.com/c4t-but-s4d/fastad/internal/dataservice/gamestate"
+	"github.com/c4t-but-s4d/fastad/internal/dataservice/services"
+	"github.com/c4t-but-s4d/fastad/internal/dataservice/teams"
 	"github.com/c4t-but-s4d/fastad/internal/version"
+	"github.com/c4t-but-s4d/fastad/pkg/baseconfig"
+	"github.com/c4t-but-s4d/fastad/pkg/config"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
+	"github.com/c4t-but-s4d/fastad/pkg/logging"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
@@ -52,10 +52,10 @@ func main() {
 	runCtx, runCancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer runCancel()
 
-	zap.L().With(zap.String("listen_address", cfg.ListenAddress)).Info("starting server")
+	zap.L().Info("starting server", zap.String("listen_address", cfg.ListenAddress))
 	lis, err := net.Listen("tcp", cfg.ListenAddress)
 	if err != nil {
-		zap.L().With(zap.Error(err)).Fatal("error creating listener")
+		zap.L().Fatal("error creating listener", zap.Error(err))
 	}
 
 	go func() {
@@ -64,6 +64,6 @@ func main() {
 	}()
 
 	if err := server.Serve(lis); err != nil {
-		zap.L().With(zap.Error(err)).Fatal("error in server")
+		zap.L().Fatal("error in server", zap.Error(err))
 	}
 }

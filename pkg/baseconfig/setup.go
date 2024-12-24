@@ -58,7 +58,7 @@ func SetupAll[T any](cfg *T, opts ...SetupOption) (*T, error) {
 func MustSetupAll[T any](cfg *T, opts ...SetupOption) *T {
 	t, err := SetupAll[T](cfg, opts...)
 	if err != nil {
-		zap.L().With(zap.Error(err)).Fatal("error setting up config")
+		zap.L().Fatal("error setting up config", zap.Error(err))
 	}
 
 	return t

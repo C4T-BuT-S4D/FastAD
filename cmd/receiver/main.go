@@ -13,15 +13,15 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
-	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
-	"github.com/c4t-but-s4d/fastad/internal/clients/services"
-	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
-	"github.com/c4t-but-s4d/fastad/internal/logging"
-	"github.com/c4t-but-s4d/fastad/internal/multiproto"
 	"github.com/c4t-but-s4d/fastad/internal/pinger"
 	"github.com/c4t-but-s4d/fastad/internal/receiver"
+	"github.com/c4t-but-s4d/fastad/pkg/baseconfig"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
+	"github.com/c4t-but-s4d/fastad/pkg/logging"
+	"github.com/c4t-but-s4d/fastad/pkg/multiproto"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
@@ -42,7 +42,7 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		zap.L().With(zap.Error(err)).Fatal("dialing data service")
+		zap.L().Fatal("dialing data service", zap.Error(err))
 	}
 
 	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn))
@@ -54,7 +54,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	if err := receiverService.RestoreState(ctx); err != nil {
-		zap.L().With(zap.Error(err)).Fatal("restoring receiver state")
+		zap.L().Fatal("restoring receiver state", zap.Error(err))
 	}
 
 	grpcServer := grpcext.NewServer()
@@ -68,9 +68,9 @@ func main() {
 	}
 
 	go func() {
-		zap.L().With(zap.String("listen_address", httpServer.Addr)).Info("Running http server")
+		zap.L().Info("Running http server", zap.String("listen_address", httpServer.Addr))
 		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			zap.L().With(zap.Error(err)).Fatal("error running http server")
+			zap.L().Fatal("error running http server", zap.Error(err))
 		}
 	}()
 
@@ -82,6 +82,6 @@ func main() {
 	defer cancel()
 
 	if err := httpServer.Shutdown(shutdownCtx); err != nil {
-		zap.L().With(zap.Error(err)).Fatal("error shutting down server")
+		zap.L().Fatal("error shutting down server", zap.Error(err))
 	}
 }

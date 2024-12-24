@@ -11,11 +11,11 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
-	"github.com/c4t-but-s4d/fastad/internal/logging"
-	"github.com/c4t-but-s4d/fastad/internal/multiproto"
 	"github.com/c4t-but-s4d/fastad/internal/scoreboard"
+	"github.com/c4t-but-s4d/fastad/pkg/baseconfig"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
+	"github.com/c4t-but-s4d/fastad/pkg/logging"
+	"github.com/c4t-but-s4d/fastad/pkg/multiproto"
 	scoreboardpb "github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
 )
 
@@ -54,9 +54,9 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		zap.L().With(zap.String("listen_address", httpServer.Addr)).Info("Running http server")
+		zap.L().Info("Running http server", zap.String("listen_address", httpServer.Addr))
 		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			zap.L().With(zap.Error(err)).Fatal("error running http server")
+			zap.L().Fatal("error running http server", zap.Error(err))
 		}
 	}()
 
@@ -68,7 +68,7 @@ func main() {
 	defer cancel()
 
 	if err := httpServer.Shutdown(shutdownCtx); err != nil {
-		zap.L().With(zap.Error(err)).Fatal("error shutting down server")
+		zap.L().Fatal("error shutting down server", zap.Error(err))
 	}
 
 	wg.Wait()

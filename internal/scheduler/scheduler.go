@@ -13,8 +13,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
-	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/internal/models"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 )
 
@@ -81,17 +81,17 @@ func (s *Scheduler) Run(ctx context.Context) error {
 			if s.gameState.GetPaused() {
 				s.logger.Info("game is paused, skipping round update")
 				if err := s.updateStateOnPause(ctx); err != nil {
-					s.logger.With(zap.Error(err)).Error("updating scheduler state on pause")
+					s.logger.Error("updating scheduler state on pause", zap.Error(err))
 				}
 				continue
 			}
 
 			if err := s.TryRunRound(ctx); err != nil {
-				s.logger.With(zap.Error(err)).Error("running round scheduler")
+				s.logger.Error("running round scheduler", zap.Error(err))
 			}
 		case <-refreshTicker.C:
 			if err := s.refreshGameState(ctx); err != nil {
-				s.logger.With(zap.Error(err)).Error("refreshing game state")
+				s.logger.Error("refreshing game state", zap.Error(err))
 				continue
 			}
 		}
@@ -121,25 +121,28 @@ func (s *Scheduler) TryRunRound(ctx context.Context) error {
 	}
 
 	roundDuration := s.gameState.GetRoundDuration().AsDuration()
-	s.logger.With(
+	s.logger.Debug(
+		"checking if ready to run round",
 		zap.Duration("round_duration", roundDuration),
 		zap.Time("expected_start", state.ExpectedNextRun),
-	).Debug("checking if ready to run round")
+	)
 
 	if now.Before(state.ExpectedNextRun) {
-		s.logger.With(
+		s.logger.Debug(
+			"not ready to run round",
 			zap.Time("expected_start", state.ExpectedNextRun),
 			zap.Duration("round_duration", roundDuration),
-		).Debug("not ready to run round")
+		)
 		return nil
 	}
 
 	if lag := now.Sub(state.ExpectedNextRun); lag > RoundLateThreshold {
-		s.logger.With(
+		s.logger.Debug(
+			"rounds are running late, trying to catch up",
 			zap.Duration("round_duration", roundDuration),
 			zap.Time("expected_start", state.ExpectedNextRun),
 			zap.Duration("lag", lag),
-		).Warn("rounds are running late, trying to catch up")
+		)
 	}
 
 	s.logger.Info("running round workflow")
@@ -159,18 +162,14 @@ func (s *Scheduler) TryRunRound(ctx context.Context) error {
 		return fmt.Errorf("executing workflow: %w", err)
 	}
 
-	s.logger.With(
-		zap.String("run_id", workflowRun.GetRunID()),
-	).Info("workflow started, waiting for completion")
+	s.logger.Info("workflow started, waiting for completion", zap.String("run_id", workflowRun.GetRunID()))
 
 	if err := workflowRun.Get(ctx, nil); err != nil {
 		return fmt.Errorf("waiting for workflow: %w", err)
 	}
 
 	nextRun := state.ExpectedNextRun.Add(roundDuration)
-	s.logger.With(
-		zap.Time("next_run", nextRun),
-	).Info("workflow completed, updating scheduler state")
+	s.logger.Info("workflow completed, updating scheduler state", zap.Time("next_run", nextRun))
 	if _, err := s.db.
 		NewUpdate().
 		Model(&state).
@@ -206,10 +205,11 @@ func (s *Scheduler) refreshGameState(ctx context.Context) error {
 
 	if s.gameState == nil || s.gsVersion != response.GetVersion().GetVersion() {
 		s.gameState = response.GetGameState()
-		s.logger.With(
+		s.logger.Info(
+			"updated game state",
 			zap.Int64("old_version", s.gsVersion),
 			zap.Int64("new_version", response.GetVersion().GetVersion()),
-		).Info("updated game state")
+		)
 		s.gsVersion = response.GetVersion().GetVersion()
 	}
 

@@ -9,7 +9,7 @@ import (
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
 
-	"github.com/c4t-but-s4d/fastad/internal/logging"
+	"github.com/c4t-but-s4d/fastad/pkg/logging"
 )
 
 type Postgres struct {

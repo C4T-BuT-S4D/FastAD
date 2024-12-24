@@ -9,13 +9,13 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
-	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
-	"github.com/c4t-but-s4d/fastad/internal/clients/services"
-	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
-	"github.com/c4t-but-s4d/fastad/internal/logging"
+	"github.com/c4t-but-s4d/fastad/pkg/baseconfig"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
+	"github.com/c4t-but-s4d/fastad/pkg/logging"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
@@ -33,11 +33,13 @@ func main() {
 		),
 	})
 	if err != nil {
-		zap.L().With(zap.Error(err)).Fatal("unable to create temporal client")
+		zap.L().Fatal("unable to create temporal client", zap.Error(err))
 	}
 	defer temporalClient.Close()
 
 	db := cfg.Postgres.BunDB()
+
+	checkersController := checkers.NewController(db)
 
 	dataServiceConn, err := grpcext.Dial(
 		cfg.DataService.Address,
@@ -45,10 +47,8 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		zap.L().With(zap.Error(err)).Fatal("unable to connect to data service")
+		zap.L().Fatal("unable to connect to data service", zap.Error(err))
 	}
-
-	checkersController := checkers.NewController(db)
 
 	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn))
 	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn))
@@ -117,6 +117,6 @@ func main() {
 	// End of workflows.
 
 	if err := checkersWorker.Run(worker.InterruptCh()); err != nil {
-		zap.L().With(zap.Error(err)).Fatal("error running worker")
+		zap.L().Fatal("error running worker", zap.Error(err))
 	}
 }

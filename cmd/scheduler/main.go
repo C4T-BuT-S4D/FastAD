@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
-	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
-	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/internal/scheduler"
+	"github.com/c4t-but-s4d/fastad/pkg/baseconfig"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
+	"github.com/c4t-but-s4d/fastad/pkg/logging"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 )
 
@@ -31,7 +31,7 @@ func main() {
 		),
 	})
 	if err != nil {
-		zap.L().With(zap.Error(err)).Fatal("unable to create temporal client")
+		zap.L().Fatal("unable to create temporal client", zap.Error(err))
 	}
 	defer temporalClient.Close()
 
@@ -43,7 +43,7 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		zap.L().With(zap.Error(err)).Fatal("unable to connect to data service")
+		zap.L().Fatal("unable to connect to data service", zap.Error(err))
 	}
 
 	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn))
@@ -54,6 +54,6 @@ func main() {
 	defer cancel()
 
 	if err := t.Run(ctx); err != nil {
-		zap.L().With(zap.Error(err)).Fatal("scheduler run failed")
+		zap.L().Fatal("scheduler run failed", zap.Error(err))
 	}
 }

@@ -11,7 +11,7 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
 	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/setup"
-	"github.com/c4t-but-s4d/fastad/internal/logging"
+	"github.com/c4t-but-s4d/fastad/pkg/logging"
 )
 
 func main() {
@@ -30,6 +30,6 @@ func main() {
 	}
 
 	if err := app.RunContext(runCtx, os.Args); err != nil {
-		zap.L().With(zap.Error(err)).Fatal("error running app")
+		zap.L().Fatal("error running app", zap.Error(err))
 	}
 }

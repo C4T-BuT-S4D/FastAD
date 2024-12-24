@@ -13,9 +13,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/c4t-but-s4d/fastad/cmd/migrator/migrations"
-	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
-	"github.com/c4t-but-s4d/fastad/internal/config"
-	"github.com/c4t-but-s4d/fastad/internal/logging"
+	"github.com/c4t-but-s4d/fastad/pkg/baseconfig"
+	"github.com/c4t-but-s4d/fastad/pkg/config"
+	"github.com/c4t-but-s4d/fastad/pkg/logging"
 )
 
 type Config struct {
@@ -152,6 +152,6 @@ func main() {
 	defer cancel()
 
 	if err := app.RunContext(ctx, os.Args); err != nil {
-		zap.L().With(zap.Error(err)).Fatal("error running app")
+		zap.L().Fatal("error running app", zap.Error(err))
 	}
 }

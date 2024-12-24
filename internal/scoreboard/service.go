@@ -50,9 +50,9 @@ func (s *Service) Run(ctx context.Context) {
 			s.logger.Info("checking")
 			start := time.Now()
 			if err := s.Check(ctx); err != nil {
-				s.logger.With(zap.Error(err)).Error("check failed")
+				s.logger.Error("check failed", zap.Error(err))
 			}
-			s.logger.With(zap.Duration("duration", time.Since(start))).Info("checked")
+			s.logger.Info("checked", zap.Duration("duration", time.Since(start)))
 		case <-ctx.Done():
 			return
 		}
@@ -95,7 +95,7 @@ func (s *Service) Check(ctx context.Context) error {
 			}
 
 			itemsToInsert := make([]*models.ScoreboardProcessedItem, 0, len(batch))
-			s.logger.With(zap.Int("batch_size", len(batch))).Info("processing executions batch")
+			s.logger.Info("processing executions batch", zap.Int("batch_size", len(batch)))
 			for _, execution := range batch {
 				stateClone.Apply(execution)
 				itemsToInsert = append(itemsToInsert, &models.ScoreboardProcessedItem{

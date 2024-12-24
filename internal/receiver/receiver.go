@@ -15,10 +15,10 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
-	"github.com/c4t-but-s4d/fastad/internal/clients/services"
-	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
 	"github.com/c4t-but-s4d/fastad/internal/models"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
+	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 )
 

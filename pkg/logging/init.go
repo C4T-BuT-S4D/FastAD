@@ -11,7 +11,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
+	"github.com/c4t-but-s4d/fastad/pkg/baseconfig"
 )
 
 var initOnce sync.Once

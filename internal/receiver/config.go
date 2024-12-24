@@ -1,7 +1,7 @@
 package receiver
 
 import (
-	"github.com/c4t-but-s4d/fastad/internal/config"
+	"github.com/c4t-but-s4d/fastad/pkg/config"
 )
 
 type Config struct {
