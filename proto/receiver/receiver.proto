@@ -26,19 +26,15 @@ message FlagResponse {
 }
 
 message State {
-  message Team {
-    int64 id = 1;
-    double points = 2;
-    int64 stolen_flags = 3;
-    int64 lost_flags = 4;
+  message TeamService {
+    int64 team_id = 1;
+    int64 service_id = 2;
+    double points = 3;
+    int64 stolen_flags = 4;
+    int64 lost_flags = 5;
   }
 
-  message Service {
-    int64 id = 1;
-    repeated Team teams = 2;
-  }
-
-  repeated Service services = 1;
+  repeated TeamService team_services = 1;
 }
 
 message SubmitFlagsResponse {

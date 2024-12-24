@@ -10,24 +10,25 @@ import (
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 )
 
-type TeamState struct {
+type TeamServiceState struct {
 	TeamID      int     `json:"team_id"`
 	Points      float64 `json:"points"`
 	StolenFlags int     `json:"stolen_flags"`
 	LostFlags   int     `json:"lost_flags"`
 }
 
-func (s *TeamState) ToProto() *receiverpb.State_Team {
-	return &receiverpb.State_Team{
-		Id:          int64(s.TeamID),
+func (s *TeamServiceState) ToProto(serviceID int) *receiverpb.State_TeamService {
+	return &receiverpb.State_TeamService{
+		TeamId:      int64(s.TeamID),
+		ServiceId:   int64(serviceID),
 		Points:      s.Points,
 		StolenFlags: int64(s.StolenFlags),
 		LostFlags:   int64(s.LostFlags),
 	}
 }
 
-func (s *TeamState) Clone() *TeamState {
-	return &TeamState{
+func (s *TeamServiceState) Clone() *TeamServiceState {
+	return &TeamServiceState{
 		Points:      s.Points,
 		StolenFlags: s.StolenFlags,
 		LostFlags:   s.LostFlags,
@@ -35,16 +36,16 @@ func (s *TeamState) Clone() *TeamState {
 }
 
 type ServiceState struct {
-	ServiceID    int                `json:"service_id"`
-	DefaultScore float64            `json:"default_score"`
-	TeamStates   map[int]*TeamState `json:"team_states"`
+	ServiceID    int                       `json:"service_id"`
+	DefaultScore float64                   `json:"default_score"`
+	TeamStates   map[int]*TeamServiceState `json:"team_states"`
 }
 
 func newServiceState(service *models.Service) *ServiceState {
 	return &ServiceState{
 		ServiceID:    service.ID,
 		DefaultScore: service.DefaultScore,
-		TeamStates:   make(map[int]*TeamState),
+		TeamStates:   make(map[int]*TeamServiceState),
 	}
 }
 
@@ -52,13 +53,13 @@ func (s *ServiceState) Clone() *ServiceState {
 	return &ServiceState{
 		ServiceID:    s.ServiceID,
 		DefaultScore: s.DefaultScore,
-		TeamStates: lo.MapEntries(s.TeamStates, func(key int, value *TeamState) (int, *TeamState) {
+		TeamStates: lo.MapEntries(s.TeamStates, func(key int, value *TeamServiceState) (int, *TeamServiceState) {
 			return key, value.Clone()
 		}),
 	}
 }
 
-func (s *ServiceState) ProcessAttack(gs *models.GameState, attack *models.Attack) error {
+func (s *ServiceState) Apply(gs *models.GameState, attack *models.Attack) error {
 	attackerState := s.getOrCreate(attack.AttackerID)
 	victimState := s.getOrCreate(attack.VictimID)
 
@@ -95,23 +96,20 @@ func (s *ServiceState) ApplyRaw(attacks ...*models.Attack) {
 		attackerState.StolenFlags++
 
 		victimState.Points += attack.VictimDelta
-		victimState.LostFlags--
+		victimState.LostFlags++
 	}
 }
 
-func (s *ServiceState) ToProto() *receiverpb.State_Service {
-	return &receiverpb.State_Service{
-		Id: int64(s.ServiceID),
-		Teams: lo.MapToSlice(s.TeamStates, func(_ int, value *TeamState) *receiverpb.State_Team {
-			return value.ToProto()
-		}),
-	}
+func (s *ServiceState) ToProto() []*receiverpb.State_TeamService {
+	return lo.MapToSlice(s.TeamStates, func(_ int, value *TeamServiceState) *receiverpb.State_TeamService {
+		return value.ToProto(s.ServiceID)
+	})
 }
 
-func (s *ServiceState) getOrCreate(teamID int) *TeamState {
+func (s *ServiceState) getOrCreate(teamID int) *TeamServiceState {
 	res, ok := s.TeamStates[teamID]
 	if !ok {
-		res = &TeamState{Points: s.DefaultScore}
+		res = &TeamServiceState{Points: s.DefaultScore}
 		s.TeamStates[teamID] = res
 	}
 	return res
@@ -128,7 +126,7 @@ func NewState() *State {
 }
 
 func (s *State) ProcessAttack(gs *models.GameState, service *models.Service, attack *models.Attack) error {
-	return s.getOrCreate(service).ProcessAttack(gs, attack)
+	return s.getOrCreate(service).Apply(gs, attack)
 }
 
 func (s *State) ApplyRaw(services map[int]*models.Service, attacks ...*models.Attack) error {
@@ -158,9 +156,9 @@ func (s *State) Clone() *State {
 
 func (s *State) ToProto() *receiverpb.State {
 	return &receiverpb.State{
-		Services: lo.MapToSlice(s.ServiceStates, func(_ int, value *ServiceState) *receiverpb.State_Service {
+		TeamServices: lo.Flatten(lo.MapToSlice(s.ServiceStates, func(_ int, value *ServiceState) []*receiverpb.State_TeamService {
 			return value.ToProto()
-		}),
+		})),
 	}
 }
 

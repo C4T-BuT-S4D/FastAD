@@ -88,19 +88,15 @@ export function flagResponse_VerdictToJSON(object: FlagResponse_Verdict): string
 }
 
 export interface State {
-  services: State_Service[];
+  teamServices: State_TeamService[];
 }
 
-export interface State_Team {
-  id: bigint;
+export interface State_TeamService {
+  teamId: bigint;
+  serviceId: bigint;
   points: number;
   stolenFlags: bigint;
   lostFlags: bigint;
-}
-
-export interface State_Service {
-  id: bigint;
-  teams: State_Team[];
 }
 
 export interface SubmitFlagsResponse {
@@ -401,13 +397,13 @@ export const FlagResponse: MessageFns<FlagResponse> = {
 };
 
 function createBaseState(): State {
-  return { services: [] };
+  return { teamServices: [] };
 }
 
 export const State: MessageFns<State> = {
   encode(message: State, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    for (const v of message.services) {
-      State_Service.encode(v!, writer.uint32(10).fork()).join();
+    for (const v of message.teamServices) {
+      State_TeamService.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
@@ -424,7 +420,7 @@ export const State: MessageFns<State> = {
             break;
           }
 
-          message.services.push(State_Service.decode(reader, reader.uint32()));
+          message.teamServices.push(State_TeamService.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -470,16 +466,16 @@ export const State: MessageFns<State> = {
 
   fromJSON(object: any): State {
     return {
-      services: globalThis.Array.isArray(object?.services)
-        ? object.services.map((e: any) => State_Service.fromJSON(e))
+      teamServices: globalThis.Array.isArray(object?.teamServices)
+        ? object.teamServices.map((e: any) => State_TeamService.fromJSON(e))
         : [],
     };
   },
 
   toJSON(message: State): unknown {
     const obj: any = {};
-    if (message.services?.length) {
-      obj.services = message.services.map((e) => State_Service.toJSON(e));
+    if (message.teamServices?.length) {
+      obj.teamServices = message.teamServices.map((e) => State_TeamService.toJSON(e));
     }
     return obj;
   },
@@ -489,45 +485,51 @@ export const State: MessageFns<State> = {
   },
   fromPartial<I extends Exact<DeepPartial<State>, I>>(object: I): State {
     const message = createBaseState();
-    message.services = object.services?.map((e) => State_Service.fromPartial(e)) || [];
+    message.teamServices = object.teamServices?.map((e) => State_TeamService.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseState_Team(): State_Team {
-  return { id: 0n, points: 0, stolenFlags: 0n, lostFlags: 0n };
+function createBaseState_TeamService(): State_TeamService {
+  return { teamId: 0n, serviceId: 0n, points: 0, stolenFlags: 0n, lostFlags: 0n };
 }
 
-export const State_Team: MessageFns<State_Team> = {
-  encode(message: State_Team, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== 0n) {
-      if (BigInt.asIntN(64, message.id) !== message.id) {
-        throw new globalThis.Error("value provided for field message.id of type int64 too large");
+export const State_TeamService: MessageFns<State_TeamService> = {
+  encode(message: State_TeamService, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.teamId !== 0n) {
+      if (BigInt.asIntN(64, message.teamId) !== message.teamId) {
+        throw new globalThis.Error("value provided for field message.teamId of type int64 too large");
       }
-      writer.uint32(8).int64(message.id);
+      writer.uint32(8).int64(message.teamId);
+    }
+    if (message.serviceId !== 0n) {
+      if (BigInt.asIntN(64, message.serviceId) !== message.serviceId) {
+        throw new globalThis.Error("value provided for field message.serviceId of type int64 too large");
+      }
+      writer.uint32(16).int64(message.serviceId);
     }
     if (message.points !== 0) {
-      writer.uint32(17).double(message.points);
+      writer.uint32(25).double(message.points);
     }
     if (message.stolenFlags !== 0n) {
       if (BigInt.asIntN(64, message.stolenFlags) !== message.stolenFlags) {
         throw new globalThis.Error("value provided for field message.stolenFlags of type int64 too large");
       }
-      writer.uint32(24).int64(message.stolenFlags);
+      writer.uint32(32).int64(message.stolenFlags);
     }
     if (message.lostFlags !== 0n) {
       if (BigInt.asIntN(64, message.lostFlags) !== message.lostFlags) {
         throw new globalThis.Error("value provided for field message.lostFlags of type int64 too large");
       }
-      writer.uint32(32).int64(message.lostFlags);
+      writer.uint32(40).int64(message.lostFlags);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): State_Team {
+  decode(input: BinaryReader | Uint8Array, length?: number): State_TeamService {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseState_Team();
+    const message = createBaseState_TeamService();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -536,27 +538,35 @@ export const State_Team: MessageFns<State_Team> = {
             break;
           }
 
-          message.id = reader.int64() as bigint;
+          message.teamId = reader.int64() as bigint;
           continue;
         }
         case 2: {
-          if (tag !== 17) {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.serviceId = reader.int64() as bigint;
+          continue;
+        }
+        case 3: {
+          if (tag !== 25) {
             break;
           }
 
           message.points = reader.double();
           continue;
         }
-        case 3: {
-          if (tag !== 24) {
+        case 4: {
+          if (tag !== 32) {
             break;
           }
 
           message.stolenFlags = reader.int64() as bigint;
           continue;
         }
-        case 4: {
-          if (tag !== 32) {
+        case 5: {
+          if (tag !== 40) {
             break;
           }
 
@@ -573,50 +583,54 @@ export const State_Team: MessageFns<State_Team> = {
   },
 
   // encodeTransform encodes a source of message objects.
-  // Transform<State_Team, Uint8Array>
+  // Transform<State_TeamService, Uint8Array>
   async *encodeTransform(
-    source: AsyncIterable<State_Team | State_Team[]> | Iterable<State_Team | State_Team[]>,
+    source: AsyncIterable<State_TeamService | State_TeamService[]> | Iterable<State_TeamService | State_TeamService[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (globalThis.Array.isArray(pkt)) {
         for (const p of (pkt as any)) {
-          yield* [State_Team.encode(p).finish()];
+          yield* [State_TeamService.encode(p).finish()];
         }
       } else {
-        yield* [State_Team.encode(pkt as any).finish()];
+        yield* [State_TeamService.encode(pkt as any).finish()];
       }
     }
   },
 
   // decodeTransform decodes a source of encoded messages.
-  // Transform<Uint8Array, State_Team>
+  // Transform<Uint8Array, State_TeamService>
   async *decodeTransform(
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-  ): AsyncIterable<State_Team> {
+  ): AsyncIterable<State_TeamService> {
     for await (const pkt of source) {
       if (globalThis.Array.isArray(pkt)) {
         for (const p of (pkt as any)) {
-          yield* [State_Team.decode(p)];
+          yield* [State_TeamService.decode(p)];
         }
       } else {
-        yield* [State_Team.decode(pkt as any)];
+        yield* [State_TeamService.decode(pkt as any)];
       }
     }
   },
 
-  fromJSON(object: any): State_Team {
+  fromJSON(object: any): State_TeamService {
     return {
-      id: isSet(object.id) ? BigInt(object.id) : 0n,
+      teamId: isSet(object.teamId) ? BigInt(object.teamId) : 0n,
+      serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
       points: isSet(object.points) ? globalThis.Number(object.points) : 0,
       stolenFlags: isSet(object.stolenFlags) ? BigInt(object.stolenFlags) : 0n,
       lostFlags: isSet(object.lostFlags) ? BigInt(object.lostFlags) : 0n,
     };
   },
 
-  toJSON(message: State_Team): unknown {
+  toJSON(message: State_TeamService): unknown {
     const obj: any = {};
-    if (message.id !== 0n) {
-      obj.id = message.id.toString();
+    if (message.teamId !== 0n) {
+      obj.teamId = message.teamId.toString();
+    }
+    if (message.serviceId !== 0n) {
+      obj.serviceId = message.serviceId.toString();
     }
     if (message.points !== 0) {
       obj.points = message.points;
@@ -630,126 +644,16 @@ export const State_Team: MessageFns<State_Team> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<State_Team>, I>>(base?: I): State_Team {
-    return State_Team.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<State_TeamService>, I>>(base?: I): State_TeamService {
+    return State_TeamService.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<State_Team>, I>>(object: I): State_Team {
-    const message = createBaseState_Team();
-    message.id = object.id ?? 0n;
+  fromPartial<I extends Exact<DeepPartial<State_TeamService>, I>>(object: I): State_TeamService {
+    const message = createBaseState_TeamService();
+    message.teamId = object.teamId ?? 0n;
+    message.serviceId = object.serviceId ?? 0n;
     message.points = object.points ?? 0;
     message.stolenFlags = object.stolenFlags ?? 0n;
     message.lostFlags = object.lostFlags ?? 0n;
-    return message;
-  },
-};
-
-function createBaseState_Service(): State_Service {
-  return { id: 0n, teams: [] };
-}
-
-export const State_Service: MessageFns<State_Service> = {
-  encode(message: State_Service, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== 0n) {
-      if (BigInt.asIntN(64, message.id) !== message.id) {
-        throw new globalThis.Error("value provided for field message.id of type int64 too large");
-      }
-      writer.uint32(8).int64(message.id);
-    }
-    for (const v of message.teams) {
-      State_Team.encode(v!, writer.uint32(18).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): State_Service {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseState_Service();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.id = reader.int64() as bigint;
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.teams.push(State_Team.decode(reader, reader.uint32()));
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  // encodeTransform encodes a source of message objects.
-  // Transform<State_Service, Uint8Array>
-  async *encodeTransform(
-    source: AsyncIterable<State_Service | State_Service[]> | Iterable<State_Service | State_Service[]>,
-  ): AsyncIterable<Uint8Array> {
-    for await (const pkt of source) {
-      if (globalThis.Array.isArray(pkt)) {
-        for (const p of (pkt as any)) {
-          yield* [State_Service.encode(p).finish()];
-        }
-      } else {
-        yield* [State_Service.encode(pkt as any).finish()];
-      }
-    }
-  },
-
-  // decodeTransform decodes a source of encoded messages.
-  // Transform<Uint8Array, State_Service>
-  async *decodeTransform(
-    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-  ): AsyncIterable<State_Service> {
-    for await (const pkt of source) {
-      if (globalThis.Array.isArray(pkt)) {
-        for (const p of (pkt as any)) {
-          yield* [State_Service.decode(p)];
-        }
-      } else {
-        yield* [State_Service.decode(pkt as any)];
-      }
-    }
-  },
-
-  fromJSON(object: any): State_Service {
-    return {
-      id: isSet(object.id) ? BigInt(object.id) : 0n,
-      teams: globalThis.Array.isArray(object?.teams) ? object.teams.map((e: any) => State_Team.fromJSON(e)) : [],
-    };
-  },
-
-  toJSON(message: State_Service): unknown {
-    const obj: any = {};
-    if (message.id !== 0n) {
-      obj.id = message.id.toString();
-    }
-    if (message.teams?.length) {
-      obj.teams = message.teams.map((e) => State_Team.toJSON(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<State_Service>, I>>(base?: I): State_Service {
-    return State_Service.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<State_Service>, I>>(object: I): State_Service {
-    const message = createBaseState_Service();
-    message.id = object.id ?? 0n;
-    message.teams = object.teams?.map((e) => State_Team.fromPartial(e)) || [];
     return message;
   },
 };

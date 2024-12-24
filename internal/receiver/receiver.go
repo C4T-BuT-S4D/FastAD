@@ -281,7 +281,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 			return fmt.Errorf("counting attacks: %w", err)
 		}
 
-		zap.L().Info("Restoring state from attacks", zap.Int("attack_count", attackCount))
+		zap.L().Info("restoring state from attacks", zap.Int("attack_count", attackCount))
 
 		lastID := -1
 		for {
@@ -301,7 +301,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 			}
 			lastID = batch[len(batch)-1].ID
 
-			zap.L().Info("Applying batch of attacks", zap.Int("batch_size", len(batch)))
+			zap.L().Info("applying batch of attacks", zap.Int("batch_size", len(batch)))
 			if err := s.state.ApplyRaw(servicesByID, batch...); err != nil {
 				return fmt.Errorf("applying batch of %d attacks to state: %w", len(batch), err)
 			}
@@ -316,7 +316,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 		return fmt.Errorf("in tx: %w", err)
 	}
 
-	zap.L().Info("State restored", zap.Duration("duration", time.Since(start)))
+	zap.L().Info("state restored", zap.Duration("duration", time.Since(start)))
 
 	return nil
 }
