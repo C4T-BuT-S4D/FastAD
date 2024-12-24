@@ -23,4 +23,10 @@ type Attack struct {
 	VictimDelta   float64 `bun:"victim_delta,notnull"`
 
 	RequestID string `bun:"request_id,notnull,type:uuid"`
+
+	// Foreign keys.
+	Service  *Service `bun:"rel:belongs-to,join:service_id=id"`
+	Attacker *Team    `bun:"rel:belongs-to,join:attacker_id=id"`
+	Victim   *Team    `bun:"rel:belongs-to,join:victim_id=id"`
+	Flag     *Flag    `bun:"rel:belongs-to,join:flag_id=id"`
 }

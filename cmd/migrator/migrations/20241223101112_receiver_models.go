@@ -18,6 +18,7 @@ func init() {
 			NewCreateTable().
 			Model((*models.Attack)(nil)).
 			IfNotExists().
+			WithForeignKeys().
 			Exec(ctx); err != nil {
 			return fmt.Errorf("create attacks: %w", err)
 		}

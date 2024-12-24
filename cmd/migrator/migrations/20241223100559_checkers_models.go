@@ -18,6 +18,7 @@ func init() {
 			NewCreateTable().
 			Model((*models.CheckerExecution)(nil)).
 			IfNotExists().
+			WithForeignKeys().
 			Exec(ctx); err != nil {
 			return fmt.Errorf("create checkers_executions: %w", err)
 		}
@@ -26,6 +27,7 @@ func init() {
 			NewCreateTable().
 			Model((*models.Flag)(nil)).
 			IfNotExists().
+			WithForeignKeys().
 			Exec(ctx); err != nil {
 			return fmt.Errorf("create flags: %w", err)
 		}

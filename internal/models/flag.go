@@ -21,4 +21,8 @@ type Flag struct {
 
 	// CreatedAt is set to round workflow start.
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull"`
+
+	// Foreign keys.
+	Team    *Team    `bun:"rel:belongs-to,join:team_id=id"`
+	Service *Service `bun:"rel:belongs-to,join:service_id=id"`
 }

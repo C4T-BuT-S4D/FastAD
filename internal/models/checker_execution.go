@@ -25,4 +25,8 @@ type CheckerExecution struct {
 	Command string `bun:"command"`
 
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
+
+	// Foreign keys.
+	Team    *Team    `bun:"rel:belongs-to,join:team_id=id"`
+	Service *Service `bun:"rel:belongs-to,join:service_id=id"`
 }
