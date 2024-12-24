@@ -11,8 +11,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var _ = pflag.BoolP("debug", "v", false, "Enable verbose logging")
-
 func NewViper(envPrefix string) (*viper.Viper, error) {
 	v := viper.NewWithOptions(viper.ExperimentalBindStruct())
 
@@ -47,8 +45,6 @@ func Setup[T any](v *viper.Viper, cfg T) (t T, err error) {
 }
 
 func SetupAll[T any](cfg *T, opts ...SetupOption) (*T, error) {
-	pflag.Parse()
-
 	setupConfig := GetSetupConfig(opts...)
 
 	v, err := NewViper(setupConfig.envPrefix)

@@ -1,10 +1,12 @@
 package logging
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
 	"sync"
+	"syscall"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -40,11 +42,11 @@ func Init() CheckedCloser {
 		stderr := zapcore.Lock(os.Stderr)
 		core := zapcore.NewCore(consoleEncoder, stderr, level)
 
-		zap.ReplaceGlobals(zap.New(core))
+		zap.ReplaceGlobals(zap.New(core, zap.WithCaller(true)))
 	})
 
 	return checkedCloserImpl(func() {
-		if err := zap.L().Sync(); err != nil {
+		if err := zap.L().Sync(); err != nil && !errors.Is(err, syscall.ENOTTY) {
 			fmt.Printf("failed to sync logger: %v\n", err)
 		}
 	})

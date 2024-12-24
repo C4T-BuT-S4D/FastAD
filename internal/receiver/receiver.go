@@ -106,7 +106,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 		if err := tx.
 			NewSelect().
 			Model(&models.Flag{}).
-			ExcludeColumn("command", "public", "private").
+			ExcludeColumn("public", "private").
 			Where("flag IN (?)", bun.In(uniqueFlags)).
 			Scan(ctx, &flagModels); err != nil {
 			return fmt.Errorf("selecting flags: %w", err)

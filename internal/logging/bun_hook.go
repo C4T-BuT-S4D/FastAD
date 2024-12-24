@@ -9,7 +9,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// Field names
 const (
 	OperationFieldName     = "operation"
 	OperationTimeFieldName = "operation_time_ms"
@@ -22,11 +21,15 @@ type QueryHook struct {
 	logger *zap.Logger
 }
 
-func (qh QueryHook) BeforeQuery(ctx context.Context, event *bun.QueryEvent) context.Context {
+func NewQueryHook(logger *zap.Logger) QueryHook {
+	return QueryHook{logger: logger.WithOptions(zap.AddCallerSkip(6))}
+}
+
+func (qh QueryHook) BeforeQuery(ctx context.Context, _ *bun.QueryEvent) context.Context {
 	return ctx
 }
 
-func (qh QueryHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
+func (qh QueryHook) AfterQuery(_ context.Context, event *bun.QueryEvent) {
 	queryDuration := time.Since(event.StartTime)
 	fields := []zapcore.Field{
 		zap.String(OperationFieldName, event.Operation()),
@@ -50,5 +53,5 @@ func (qh QueryHook) AfterQuery(ctx context.Context, event *bun.QueryEvent) {
 }
 
 func AddBunQueryHook(db *bun.DB) {
-	db.AddQueryHook(QueryHook{logger: zap.L()})
+	db.AddQueryHook(NewQueryHook(zap.L()))
 }
