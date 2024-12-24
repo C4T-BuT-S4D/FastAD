@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -60,7 +60,7 @@ type Service struct {
 }
 
 func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRequest) (*receiverpb.SubmitFlagsResponse, error) {
-	logrus.Debugf("Receiver/SubmitFlags: %v", req)
+	zap.L().Debug("Receiver/SubmitFlags", zap.Any("request", req))
 
 	if len(req.Flags) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "no flags")
@@ -281,7 +281,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 			return fmt.Errorf("counting attacks: %w", err)
 		}
 
-		logrus.Infof("Restoring state from %d attacks", attackCount)
+		zap.L().Info("Restoring state from attacks", zap.Int("attack_count", attackCount))
 
 		lastID := -1
 		for {
@@ -301,7 +301,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 			}
 			lastID = batch[len(batch)-1].ID
 
-			logrus.Infof("Applying batch of %d attacks", len(batch))
+			zap.L().Info("Applying batch of attacks", zap.Int("batch_size", len(batch)))
 			if err := s.state.ApplyRaw(servicesByID, batch...); err != nil {
 				return fmt.Errorf("applying batch of %d attacks to state: %w", len(batch), err)
 			}
@@ -316,7 +316,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 		return fmt.Errorf("in tx: %w", err)
 	}
 
-	logrus.Infof("State restored in %s", time.Since(start))
+	zap.L().Info("State restored", zap.Duration("duration", time.Since(start)))
 
 	return nil
 }

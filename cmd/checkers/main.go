@@ -1,19 +1,19 @@
 package main
 
 import (
-	"github.com/sirupsen/logrus"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/internal/clients/services"
 	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
-	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
@@ -22,20 +22,18 @@ import (
 )
 
 func main() {
-	cfg := config.MustSetupAll(&checkers.Config{}, config.WithEnvPrefix("FASTAD_CHECKERS"))
+	defer logging.Init().Close()
 
-	logging.Init()
+	cfg := baseconfig.MustSetupAll(&checkers.Config{}, baseconfig.WithEnvPrefix("FASTAD_CHECKERS"))
 
 	temporalClient, err := client.Dial(client.Options{
 		HostPort: cfg.Temporal.Address,
 		Logger: logging.NewTemporalAdapter(
-			logrus.WithFields(logrus.Fields{
-				"component": "checkers_worker",
-			}),
+			zap.L().With(zap.String("component", "checkers_worker")),
 		),
 	})
 	if err != nil {
-		logrus.WithError(err).Fatal("unable to create temporal client")
+		zap.L().With(zap.Error(err)).Fatal("unable to create temporal client")
 	}
 	defer temporalClient.Close()
 
@@ -47,7 +45,7 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		logrus.WithError(err).Fatal("unable to connect to data service")
+		zap.L().With(zap.Error(err)).Fatal("unable to connect to data service")
 	}
 
 	checkersController := checkers.NewController(db)
@@ -119,6 +117,6 @@ func main() {
 	// End of workflows.
 
 	if err := checkersWorker.Run(worker.InterruptCh()); err != nil {
-		logrus.WithError(err).Fatal("error running worker")
+		zap.L().With(zap.Error(err)).Fatal("error running worker")
 	}
 }

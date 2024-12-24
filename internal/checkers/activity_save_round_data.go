@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sirupsen/logrus"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/log"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
@@ -29,16 +30,17 @@ type SaveRoundDataActivityParameters struct {
 type SaveRoundDataActivityResult struct{}
 
 func (s *SaveRoundDataActivity) ActivityDefinition(ctx context.Context, params *SaveRoundDataActivityParameters) (*SaveRoundDataActivityResult, error) {
-	logger := logrus.WithFields(logrus.Fields{
-		"action": "SaveRoundData",
-	})
+	logger := log.With(
+		activity.GetLogger(ctx),
+		"activity", SaveRoundDataActivityName,
+	)
 
 	logger.Info("starting")
 	err := s.saveRoundData(ctx, params, logger)
 	if err != nil {
 		return nil, fmt.Errorf("saving round data: %w", err)
 	}
-	logger.Infof("finished")
+	logger.Info("finished")
 
 	return &SaveRoundDataActivityResult{}, nil
 }
@@ -46,9 +48,9 @@ func (s *SaveRoundDataActivity) ActivityDefinition(ctx context.Context, params *
 func (s *SaveRoundDataActivity) saveRoundData(
 	ctx context.Context,
 	params *SaveRoundDataActivityParameters,
-	logger *logrus.Entry,
+	logger log.Logger,
 ) error {
-	logger.Infof("saving data for %d put results", len(params.PutResults))
+	logger.Info("saving data for put results", "put_results", len(params.PutResults))
 
 	executions := make([]*models.CheckerExecution, 0, len(params.PutResults))
 	for _, putResult := range params.PutResults {
@@ -70,7 +72,7 @@ func (s *SaveRoundDataActivity) saveRoundData(
 		return nil
 	}
 
-	logger.Infof("saving %d executions", len(executions))
+	logger.Info("saving executions", "executions", len(executions))
 	if err := s.checkersController.AddCheckerExecutions(ctx, executions); err != nil {
 		return fmt.Errorf("adding checker executions: %w", err)
 	}

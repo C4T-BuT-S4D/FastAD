@@ -6,13 +6,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"go.temporal.io/sdk/client"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
-	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/internal/scheduler"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
@@ -20,20 +20,18 @@ import (
 )
 
 func main() {
-	cfg := config.MustSetupAll(&scheduler.Config{}, config.WithEnvPrefix("FASTAD_SCHEDULER"))
+	defer logging.Init().Close()
 
-	logging.Init()
+	cfg := baseconfig.MustSetupAll(&scheduler.Config{}, baseconfig.WithEnvPrefix("FASTAD_SCHEDULER"))
 
 	temporalClient, err := client.Dial(client.Options{
 		HostPort: cfg.Temporal.Address,
 		Logger: logging.NewTemporalAdapter(
-			logrus.WithFields(logrus.Fields{
-				"component": "scheduler",
-			}),
+			zap.L().With(zap.String("component", "scheduler")),
 		),
 	})
 	if err != nil {
-		logrus.WithError(err).Fatal("unable to create temporal client")
+		zap.L().With(zap.Error(err)).Fatal("unable to create temporal client")
 	}
 	defer temporalClient.Close()
 
@@ -45,7 +43,7 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		logrus.WithError(err).Fatal("unable to connect to data service")
+		zap.L().With(zap.Error(err)).Fatal("unable to connect to data service")
 	}
 
 	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn))
@@ -56,6 +54,6 @@ func main() {
 	defer cancel()
 
 	if err := t.Run(ctx); err != nil {
-		logrus.WithError(err).Fatal("scheduler run failed")
+		zap.L().With(zap.Error(err)).Fatal("scheduler run failed")
 	}
 }

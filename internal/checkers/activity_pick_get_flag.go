@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sirupsen/logrus"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/log"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 )
@@ -33,9 +34,12 @@ func (a *PickGetFlagActivity) ActivityDefinition(
 	ctx context.Context,
 	params *PickGetFlagActivityParameters,
 ) (*PickGetFlagActivityResult, error) {
-	logger := logrus.WithFields(logrus.Fields{
-		"activity": "PickGetFlag",
-	})
+	logger := log.With(
+		activity.GetLogger(ctx),
+		"team", params.Team.Name,
+		"service", params.Service.Name,
+		"activity", PickGetFlagActivityName,
+	)
 
 	logger.Info("picking flag")
 
@@ -50,6 +54,6 @@ func (a *PickGetFlagActivity) ActivityDefinition(
 		return nil, fmt.Errorf("picking flag: %w", err)
 	}
 
-	logger.Infof("picked flag %d", flag.ID)
+	logger.Info("picked flag", "flag", flag)
 	return &PickGetFlagActivityResult{Flag: flag}, nil
 }

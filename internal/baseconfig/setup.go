@@ -1,4 +1,4 @@
-package config
+package baseconfig
 
 import (
 	"fmt"
@@ -6,9 +6,9 @@ import (
 
 	"github.com/creasty/defaults"
 	"github.com/mitchellh/mapstructure"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 var _ = pflag.BoolP("debug", "v", false, "Enable verbose logging")
@@ -62,7 +62,7 @@ func SetupAll[T any](cfg *T, opts ...SetupOption) (*T, error) {
 func MustSetupAll[T any](cfg *T, opts ...SetupOption) *T {
 	t, err := SetupAll[T](cfg, opts...)
 	if err != nil {
-		logrus.WithError(err).Fatal("error setting up config")
+		zap.L().With(zap.Error(err)).Fatal("error setting up config")
 	}
 
 	return t

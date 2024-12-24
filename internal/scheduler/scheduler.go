@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/uptrace/bun"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
+	"go.uber.org/zap"
 
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
@@ -38,7 +38,7 @@ type Scheduler struct {
 	gameState *gspb.GameState
 	gsVersion int64
 
-	logger *logrus.Entry
+	logger *zap.Logger
 }
 
 func New(
@@ -54,7 +54,7 @@ func New(
 
 		db: db,
 
-		logger: logrus.WithField("component", "scheduler"),
+		logger: zap.L().With(zap.String("component", "scheduler")),
 	}
 }
 
@@ -81,17 +81,17 @@ func (s *Scheduler) Run(ctx context.Context) error {
 			if s.gameState.GetPaused() {
 				s.logger.Info("game is paused, skipping round update")
 				if err := s.updateStateOnPause(ctx); err != nil {
-					s.logger.WithError(err).Error("updating scheduler state on pause")
+					s.logger.With(zap.Error(err)).Error("updating scheduler state on pause")
 				}
 				continue
 			}
 
 			if err := s.TryRunRound(ctx); err != nil {
-				s.logger.WithError(err).Error("running round scheduler")
+				s.logger.With(zap.Error(err)).Error("running round scheduler")
 			}
 		case <-refreshTicker.C:
 			if err := s.refreshGameState(ctx); err != nil {
-				s.logger.WithError(err).Error("refreshing game state")
+				s.logger.With(zap.Error(err)).Error("refreshing game state")
 				continue
 			}
 		}
@@ -121,25 +121,25 @@ func (s *Scheduler) TryRunRound(ctx context.Context) error {
 	}
 
 	roundDuration := s.gameState.GetRoundDuration().AsDuration()
-	s.logger.WithFields(logrus.Fields{
-		"round_duration": roundDuration,
-		"expected_start": state.ExpectedNextRun,
-	}).Debug("checking if ready to run round")
+	s.logger.With(
+		zap.Duration("round_duration", roundDuration),
+		zap.Time("expected_start", state.ExpectedNextRun),
+	).Debug("checking if ready to run round")
 
 	if now.Before(state.ExpectedNextRun) {
-		s.logger.WithFields(logrus.Fields{
-			"expected_start": state.ExpectedNextRun,
-			"round_duration": roundDuration,
-		}).Debug("not ready to run round")
+		s.logger.With(
+			zap.Time("expected_start", state.ExpectedNextRun),
+			zap.Duration("round_duration", roundDuration),
+		).Debug("not ready to run round")
 		return nil
 	}
 
 	if lag := now.Sub(state.ExpectedNextRun); lag > RoundLateThreshold {
-		s.logger.WithFields(logrus.Fields{
-			"round_duration": roundDuration,
-			"expected_start": state.ExpectedNextRun,
-			"lag":            lag,
-		}).Warn("rounds are running late, trying to catch up")
+		s.logger.With(
+			zap.Duration("round_duration", roundDuration),
+			zap.Time("expected_start", state.ExpectedNextRun),
+			zap.Duration("lag", lag),
+		).Warn("rounds are running late, trying to catch up")
 	}
 
 	s.logger.Info("running round workflow")
@@ -159,16 +159,18 @@ func (s *Scheduler) TryRunRound(ctx context.Context) error {
 		return fmt.Errorf("executing workflow: %w", err)
 	}
 
-	s.logger.
-		WithField("run_id", workflowRun.GetRunID()).
-		Info("workflow started, waiting for completion")
+	s.logger.With(
+		zap.String("run_id", workflowRun.GetRunID()),
+	).Info("workflow started, waiting for completion")
 
 	if err := workflowRun.Get(ctx, nil); err != nil {
 		return fmt.Errorf("waiting for workflow: %w", err)
 	}
 
 	nextRun := state.ExpectedNextRun.Add(roundDuration)
-	s.logger.Infof("workflow completed, updating scheduler state, next run: %v", nextRun)
+	s.logger.With(
+		zap.Time("next_run", nextRun),
+	).Info("workflow completed, updating scheduler state")
 	if _, err := s.db.
 		NewUpdate().
 		Model(&state).
@@ -204,10 +206,10 @@ func (s *Scheduler) refreshGameState(ctx context.Context) error {
 
 	if s.gameState == nil || s.gsVersion != response.GetVersion().GetVersion() {
 		s.gameState = response.GetGameState()
-		s.logger.WithFields(logrus.Fields{
-			"old_version": s.gsVersion,
-			"new_version": response.GetVersion().GetVersion(),
-		}).Info("updated game state")
+		s.logger.With(
+			zap.Int64("old_version", s.gsVersion),
+			zap.Int64("new_version", response.GetVersion().GetVersion()),
+		).Info("updated game state")
 		s.gsVersion = response.GetVersion().GetVersion()
 	}
 

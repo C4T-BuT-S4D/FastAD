@@ -7,7 +7,8 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/sirupsen/logrus"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/log"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
@@ -50,17 +51,18 @@ type PrepareRoundActivityResult struct {
 }
 
 func (a *PrepareRoundActivity) ActivityDefinition(ctx context.Context, params *PrepareRoundActivityParameters) (*PrepareRoundActivityResult, error) {
-	logger := logrus.WithFields(logrus.Fields{
-		"action":        "PrepareRound",
-		"running_round": params.GameState.RunningRound,
-	})
+	logger := log.With(
+		activity.GetLogger(ctx),
+		"activity", PrepareRoundActivityName,
+		"running_round", params.GameState.RunningRound,
+	)
 
 	logger.Info("starting")
 	flags, err := a.prepareRoundPutState(ctx, params, logger)
 	if err != nil {
 		return nil, fmt.Errorf("preparing round put state: %w", err)
 	}
-	logger.Infof("finished")
+	logger.Info("finished")
 
 	return &PrepareRoundActivityResult{Flags: flags}, nil
 }
@@ -68,9 +70,9 @@ func (a *PrepareRoundActivity) ActivityDefinition(ctx context.Context, params *P
 func (a *PrepareRoundActivity) prepareRoundPutState(
 	ctx context.Context,
 	params *PrepareRoundActivityParameters,
-	logger *logrus.Entry,
+	logger log.Logger,
 ) ([]*FQFlagInfo, error) {
-	logger.Infof("preparing flags for %d teams and %d services", len(params.Teams), len(params.Services))
+	logger.Info("preparing flags for teams and services", "teams", len(params.Teams), "services", len(params.Services))
 
 	flags := make([]*FQFlagInfo, 0, len(params.Teams)*len(params.Services))
 	flagModels := make([]*models.Flag, 0, len(params.Teams)*len(params.Services))
@@ -99,17 +101,17 @@ func (a *PrepareRoundActivity) prepareRoundPutState(
 		return flags, nil
 	}
 
-	logger.Infof(
-		"inserting %d flags, bumping round to %v",
-		len(flagModels),
-		params.GameState.RunningRound+1,
+	logger.Info(
+		"inserting flags, bumping round to next",
+		"flags", len(flagModels),
+		"round", params.GameState.RunningRound+1,
 	)
 
 	if err := a.checkersController.AddFlags(ctx, flagModels); err != nil {
 		return nil, fmt.Errorf("adding flags: %w", err)
 	}
 
-	logger.Infof("inserted %d flags: %+v", len(flagModels), flagModels[0])
+	logger.Info("inserted flags", "flags", len(flagModels), "first_flag", flagModels[0])
 
 	if _, err := a.gameStateClient.UpdateRound(ctx, &gspb.UpdateRoundRequest{
 		RunningRound:      params.GameState.RunningRound,

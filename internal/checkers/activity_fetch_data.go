@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sirupsen/logrus"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/log"
 
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/internal/clients/services"
@@ -44,23 +45,25 @@ func (a *FetchDataActivity) ActivityDefinition(
 	ctx context.Context,
 	_ *FetchDataActivityParameters,
 ) (*FetchDataActivityResult, error) {
+	logger := log.With(activity.GetLogger(ctx), "activity", FetchDataActivityName)
+
 	gs, err := a.gameStateClient.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting game state: %w", err)
 	}
-	logrus.Infof("fetched game state: %v", gs)
+	logger.Info("fetched game state", "game_state", gs)
 
 	teamsList, err := a.teamsClient.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting teams: %w", err)
 	}
-	logrus.Infof("fetched teams: %v", teamsList)
+	logger.Info("fetched teams", "teams", teamsList)
 
 	servicesList, err := a.servicesClient.List(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("getting services: %w", err)
 	}
-	logrus.Infof("fetched services: %v", servicesList)
+	logger.Info("fetched services", "services", servicesList)
 
 	return &FetchDataActivityResult{
 		GameState: gs,

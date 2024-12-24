@@ -6,8 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 
+	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
 	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/internal/services/gamestate"
@@ -26,9 +27,9 @@ type Config struct {
 }
 
 func main() {
-	cfg := config.MustSetupAll(&Config{}, config.WithEnvPrefix("FASTAD_DATA_SERVICE"))
+	defer logging.Init().Close()
 
-	logging.Init()
+	cfg := baseconfig.MustSetupAll(&Config{}, baseconfig.WithEnvPrefix("FASTAD_DATA_SERVICE"))
 
 	db := cfg.Postgres.BunDB()
 
@@ -51,10 +52,10 @@ func main() {
 	runCtx, runCancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer runCancel()
 
-	logrus.WithField("listen_address", cfg.ListenAddress).Info("starting server")
+	zap.L().With(zap.String("listen_address", cfg.ListenAddress)).Info("starting server")
 	lis, err := net.Listen("tcp", cfg.ListenAddress)
 	if err != nil {
-		logrus.WithError(err).Fatal("error creating listener")
+		zap.L().With(zap.Error(err)).Fatal("error creating listener")
 	}
 
 	go func() {
@@ -63,6 +64,6 @@ func main() {
 	}()
 
 	if err := server.Serve(lis); err != nil {
-		logrus.WithError(err).Fatal("error in server")
+		zap.L().With(zap.Error(err)).Fatal("error in server")
 	}
 }

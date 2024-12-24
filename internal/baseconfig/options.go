@@ -1,4 +1,4 @@
-package config
+package baseconfig
 
 type SetupConfig struct {
 	envPrefix string

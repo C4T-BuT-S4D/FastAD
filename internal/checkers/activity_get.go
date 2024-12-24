@@ -3,7 +3,8 @@ package checkers
 import (
 	"context"
 
-	"github.com/sirupsen/logrus"
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/log"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
@@ -29,15 +30,17 @@ type GetActivityResult struct {
 }
 
 func (*GetActivity) ActivityDefinition(ctx context.Context, params *GetActivityParameters) (*GetActivityResult, error) {
-	logger := logrus.WithFields(logrus.Fields{
-		"team":    params.Team.Name,
-		"service": params.Service.Name,
-		"action":  checkerpb.Action_ACTION_GET,
-	})
+	logger := log.With(
+		activity.GetLogger(ctx),
+		"team", params.Team.Name,
+		"service", params.Service.Name,
+		"action", checkerpb.Action_ACTION_GET,
+		"activity", GetActivityName,
+	)
 
 	logger.Info("starting")
 	verdict := RunGetAction(ctx, params)
-	logger.Infof("finished: %v", verdict)
+	logger.Info("finished", "verdict", verdict)
 
 	return &GetActivityResult{Verdict: verdict}, nil
 }

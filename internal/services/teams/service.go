@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -28,7 +28,7 @@ func NewService(controller *Controller) *Service {
 }
 
 func (s *Service) List(ctx context.Context, req *teamspb.ListRequest) (*teamspb.ListResponse, error) {
-	logrus.Debugf("TeamsService/List: %v", req)
+	zap.L().Debug("TeamsService/List", zap.Any("request", req))
 
 	gotVersion, err := s.controller.Versions.Get(ctx, VersionKey)
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *Service) List(ctx context.Context, req *teamspb.ListRequest) (*teamspb.
 }
 
 func (s *Service) CreateBatch(ctx context.Context, req *teamspb.CreateBatchRequest) (*teamspb.CreateBatchResponse, error) {
-	logrus.Debugf("TeamsService/CreateBatch: %v", req)
+	zap.L().Debug("TeamsService/CreateBatch", zap.Any("request", req))
 
 	if err := s.validateCreateBatchRequest(req); err != nil {
 		return nil, fmt.Errorf("validating request: %w", err)

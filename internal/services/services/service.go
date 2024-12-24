@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -26,7 +26,7 @@ func NewService(controller *Controller) *Service {
 }
 
 func (s *Service) List(ctx context.Context, req *servicespb.ListRequest) (*servicespb.ListResponse, error) {
-	logrus.Debugf("ServicesService/List: %v", req)
+	zap.L().Debug("ServicesService/List", zap.Any("request", req))
 
 	// FIXME: check admin rights.
 
@@ -57,7 +57,7 @@ func (s *Service) List(ctx context.Context, req *servicespb.ListRequest) (*servi
 }
 
 func (s *Service) CreateBatch(ctx context.Context, req *servicespb.CreateBatchRequest) (*servicespb.CreateBatchResponse, error) {
-	logrus.Debugf("ServicesService/CreateBatch: %v", req)
+	zap.L().Debug("ServicesService/CreateBatch", zap.Any("request", req))
 
 	// FIXME: check admin rights.
 

@@ -1,13 +1,11 @@
 package util
 
-import (
-	"github.com/sirupsen/logrus"
-)
+import "go.uber.org/zap"
 
 func Must[T any](message string) func(t T, err error) T {
 	return func(t T, err error) T {
 		if err != nil {
-			logrus.Fatalf("%s: %v", message, err)
+			zap.L().Fatal(message, zap.Error(err))
 		}
 		return t
 	}

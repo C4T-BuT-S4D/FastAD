@@ -9,14 +9,14 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
 	"github.com/c4t-but-s4d/fastad/internal/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/internal/clients/services"
 	"github.com/c4t-but-s4d/fastad/internal/clients/teams"
-	"github.com/c4t-but-s4d/fastad/internal/config"
 	"github.com/c4t-but-s4d/fastad/internal/logging"
 	"github.com/c4t-but-s4d/fastad/internal/multiproto"
 	"github.com/c4t-but-s4d/fastad/internal/pinger"
@@ -30,9 +30,9 @@ import (
 )
 
 func main() {
-	cfg := config.MustSetupAll(&receiver.Config{}, config.WithEnvPrefix("FASTAD_RECEIVER"))
+	defer logging.Init().Close()
 
-	logging.Init()
+	cfg := baseconfig.MustSetupAll(&receiver.Config{}, baseconfig.WithEnvPrefix("FASTAD_RECEIVER"))
 
 	db := cfg.Postgres.BunDB()
 
@@ -42,7 +42,7 @@ func main() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		logrus.WithError(err).Fatal("dialing data service")
+		zap.L().With(zap.Error(err)).Fatal("dialing data service")
 	}
 
 	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn))
@@ -54,7 +54,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	if err := receiverService.RestoreState(ctx); err != nil {
-		logrus.WithError(err).Fatal("restoring receiver state")
+		zap.L().With(zap.Error(err)).Fatal("restoring receiver state")
 	}
 
 	grpcServer := grpcext.NewServer()
@@ -68,9 +68,9 @@ func main() {
 	}
 
 	go func() {
-		logrus.Infof("Running http server on %s", httpServer.Addr)
+		zap.L().With(zap.String("listen_address", httpServer.Addr)).Info("Running http server")
 		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logrus.WithError(err).Fatal("error running http server")
+			zap.L().With(zap.Error(err)).Fatal("error running http server")
 		}
 	}()
 
@@ -82,6 +82,6 @@ func main() {
 	defer cancel()
 
 	if err := httpServer.Shutdown(shutdownCtx); err != nil {
-		logrus.WithError(err).Fatal("error shutting down server")
+		zap.L().With(zap.Error(err)).Fatal("error shutting down server")
 	}
 }

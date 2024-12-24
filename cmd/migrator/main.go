@@ -8,12 +8,14 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/sirupsen/logrus"
 	"github.com/uptrace/bun/migrate"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 
 	"github.com/c4t-but-s4d/fastad/cmd/migrator/migrations"
+	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
 	"github.com/c4t-but-s4d/fastad/internal/config"
+	"github.com/c4t-but-s4d/fastad/internal/logging"
 )
 
 type Config struct {
@@ -21,13 +23,15 @@ type Config struct {
 }
 
 func main() {
+	defer logging.Init().Close()
+
 	app := cli.NewApp()
 
 	var cfg *Config
 	var migrator *migrate.Migrator
 	app.Before = func(_ *cli.Context) error {
 		var err error
-		if cfg, err = config.SetupAll(&Config{}, config.WithEnvPrefix("FASTAD_MIGRATOR")); err != nil {
+		if cfg, err = baseconfig.SetupAll(&Config{}, baseconfig.WithEnvPrefix("FASTAD_MIGRATOR")); err != nil {
 			return fmt.Errorf("setting up config: %w", err)
 		}
 		migrator = migrate.NewMigrator(cfg.Postgres.BunDB(), migrations.Migrations)
@@ -52,11 +56,11 @@ func main() {
 				}
 
 				if group.ID == 0 {
-					logrus.Info("there are no new migrations to run")
+					zap.L().Info("there are no new migrations to run")
 					return nil
 				}
 
-				logrus.Infof("migrated to %s", group)
+				zap.S().Infof("migrated to %s", group)
 				return nil
 			},
 		},
@@ -70,11 +74,11 @@ func main() {
 				}
 
 				if group.ID == 0 {
-					logrus.Info("there are no groups to roll back")
+					zap.L().Info("there are no groups to roll back")
 					return nil
 				}
 
-				logrus.Infof("rolled back %s", group)
+				zap.S().Infof("rolled back %s", group)
 				return nil
 			},
 		},
@@ -87,7 +91,7 @@ func main() {
 				if err != nil {
 					return fmt.Errorf("creating Go migration: %w", err)
 				}
-				logrus.Infof("created migration %s (%s)", mf.Name, mf.Path)
+				zap.S().Infof("created migration %s (%s)", mf.Name, mf.Path)
 
 				return nil
 			},
@@ -103,7 +107,7 @@ func main() {
 				}
 
 				for _, mf := range files {
-					logrus.Infof("created migration %s (%s)", mf.Name, mf.Path)
+					zap.S().Infof("created migration %s (%s)", mf.Name, mf.Path)
 				}
 
 				return nil
@@ -117,9 +121,9 @@ func main() {
 				if err != nil {
 					return fmt.Errorf("checking migrations status: %w", err)
 				}
-				logrus.Infof("migrations: %s", ms)
-				logrus.Infof("unapplied migrations: %s", ms.Unapplied())
-				logrus.Infof("last migration group: %s", ms.LastGroup())
+				zap.S().Infof("migrations: %s", ms)
+				zap.S().Infof("unapplied migrations: %s", ms.Unapplied())
+				zap.S().Infof("last migration group: %s", ms.LastGroup())
 
 				return nil
 			},
@@ -134,11 +138,11 @@ func main() {
 				}
 
 				if group.ID == 0 {
-					logrus.Info("there are no new migrations to mark as applied")
+					zap.L().Info("there are no new migrations to mark as applied")
 					return nil
 				}
 
-				logrus.Infof("marked as applied %s", group)
+				zap.S().Infof("marked as applied %s", group)
 				return nil
 			},
 		},
@@ -148,6 +152,6 @@ func main() {
 	defer cancel()
 
 	if err := app.RunContext(ctx, os.Args); err != nil {
-		logrus.WithError(err).Fatal("error running app")
+		zap.L().With(zap.Error(err)).Fatal("error running app")
 	}
 }

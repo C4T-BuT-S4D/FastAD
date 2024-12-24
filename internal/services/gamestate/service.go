@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -23,7 +23,7 @@ func NewService(controller *Controller) *Service {
 }
 
 func (s *Service) Get(ctx context.Context, req *gspb.GetRequest) (*gspb.GetResponse, error) {
-	logrus.Debugf("GameStateService/Get: %v", req)
+	zap.L().Debug("GameStateService/Get", zap.Any("request", req))
 
 	gotVersion, err := s.controller.Versions.Get(ctx, VersionKey)
 	if err != nil {
@@ -50,7 +50,7 @@ func (s *Service) Get(ctx context.Context, req *gspb.GetRequest) (*gspb.GetRespo
 }
 
 func (s *Service) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.UpdateResponse, error) {
-	logrus.Debugf("GameStateService/Update: %v", req)
+	zap.L().Debug("GameStateService/Update", zap.Any("request", req))
 
 	// FiXME: security.
 
@@ -70,7 +70,7 @@ func (s *Service) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.Up
 }
 
 func (s *Service) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*gspb.UpdateRoundResponse, error) {
-	logrus.Debugf("GameStateService/UpdateRound: %v", req)
+	zap.L().Debug("GameStateService/UpdateRound", zap.Any("request", req))
 
 	// FiXME: security.
 

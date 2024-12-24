@@ -6,14 +6,17 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 
 	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
 	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/setup"
+	"github.com/c4t-but-s4d/fastad/internal/logging"
 )
 
 func main() {
+	defer logging.Init().Close()
+
 	// TODO: rewrite with cobra.
 	app := cli.NewApp()
 
@@ -27,6 +30,6 @@ func main() {
 	}
 
 	if err := app.RunContext(runCtx, os.Args); err != nil {
-		logrus.WithError(err).Fatal("error running app")
+		zap.L().With(zap.Error(err)).Fatal("error running app")
 	}
 }

@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/samber/lo"
-	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 
 	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
@@ -36,7 +36,7 @@ func NewSetupCommand(_ *common.CommandContext) *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			logrus.Infof("reading game config from %s", c.Path("game-config"))
+			zap.S().Infof("reading game config from %s", c.Path("game-config"))
 
 			content, err := os.ReadFile(c.Path("game-config"))
 			if err != nil {
@@ -48,13 +48,13 @@ func NewSetupCommand(_ *common.CommandContext) *cli.Command {
 				return fmt.Errorf("unmarshalling game config: %w", err)
 			}
 
-			logrus.Infof("parsed game config: %+v", cfg)
+			zap.S().Infof("parsed game config: %+v", cfg)
 
 			if err := cfg.Validate(); err != nil {
 				return fmt.Errorf("validating game config: %w", err)
 			}
 
-			logrus.Info("game config validated")
+			zap.S().Info("game config validated")
 
 			apiConn, err := grpcext.Dial(c.String("api-address"), "fastad-setup")
 			if err != nil {
@@ -77,19 +77,19 @@ func NewSetupCommand(_ *common.CommandContext) *cli.Command {
 			if err != nil {
 				return fmt.Errorf("creating teams: %w", err)
 			}
-			logrus.Infof("created teams: %+v", createdTeams)
+			zap.S().Infof("created teams: %+v", createdTeams)
 
 			createdServices, err := servicesClient.CreateBatch(c.Context, servicesToCreate)
 			if err != nil {
 				return fmt.Errorf("creating services: %w", err)
 			}
-			logrus.Infof("created services: %+v", createdServices)
+			zap.S().Infof("created services: %+v", createdServices)
 
 			createdGameService, err := gameStateClient.Update(c.Context, cfg.Game.ToUpdateRequestProto())
 			if err != nil {
 				return fmt.Errorf("updating game state: %w", err)
 			}
-			logrus.Infof("created game state: %+v", createdGameService)
+			zap.S().Infof("created game state: %+v", createdGameService)
 
 			return nil
 		},
