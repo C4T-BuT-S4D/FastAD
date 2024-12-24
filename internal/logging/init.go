@@ -14,9 +14,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/internal/baseconfig"
 )
 
-var (
-	initOnce sync.Once
-)
+var initOnce sync.Once
 
 type CheckedCloser interface {
 	Close()
