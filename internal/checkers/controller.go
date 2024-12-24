@@ -60,6 +60,7 @@ func (c *Controller) PickFlag(
 		Order("RANDOM()").
 		Scan(ctx); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			//nolint:nilnil // Easier to handle in the caller.
 			return nil, nil
 		}
 		return nil, fmt.Errorf("picking flag: %w", err)
