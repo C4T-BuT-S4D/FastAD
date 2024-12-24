@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package data.game_state;
+
+import "data/game_state/game_state.proto";
+
+service GameStateService {
+    rpc Get(data.game_state.GetRequest) returns (data.game_state.GetResponse);
+
+    rpc Update(data.game_state.UpdateRequest) returns (data.game_state.UpdateResponse);
+
+    rpc UpdateRound(data.game_state.UpdateRoundRequest) returns (data.game_state.UpdateRoundResponse);
+}

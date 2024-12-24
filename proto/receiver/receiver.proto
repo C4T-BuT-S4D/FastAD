@@ -1,29 +1,49 @@
 syntax = "proto3";
 
 package receiver;
-option go_package = "github.com/c4t-but-s4d/fastad/pkg/proto/receiver";
 
 message SubmitFlagsRequest {
-    repeated string flags = 1;
+  repeated string flags = 1;
 }
 
 message FlagResponse {
-    enum Verdict {
-        VERDICT_UNSPECIFIED = 0;
-        VERDICT_ACCEPTED = 1;
-        VERDICT_OWN = 2;
-        VERDICT_OLD = 3;
-        VERDICT_INVALID = 4;
-    }
+  enum Verdict {
+    VERDICT_UNSPECIFIED = 0;
+    VERDICT_ACCEPTED = 1;
+    VERDICT_OWN = 2;
+    VERDICT_OLD = 3;
+    VERDICT_INVALID = 4;
+    VERDICT_DUPLICATE = 5;
+  }
 
-    string flag = 1;
-    FlagResponse.Verdict verdict = 2;
-    string message = 3;
-    double flag_points = 4;
+  string flag = 1;
+  FlagResponse.Verdict verdict = 2;
+  string message = 3;
+  int64 victim_id = 4;
+  int64 service_id = 5;
+  double attacker_delta = 6;
+  double victim_delta = 7;
+}
 
-    // Next: 5
+message State {
+  message TeamService {
+    int64 team_id = 1;
+    int64 service_id = 2;
+    double points = 3;
+    int64 stolen_flags = 4;
+    int64 lost_flags = 5;
+  }
+
+  repeated TeamService team_services = 1;
 }
 
 message SubmitFlagsResponse {
-    repeated FlagResponse responses = 1;
+  repeated FlagResponse responses = 1;
+}
+
+message GetStateRequest {
+}
+
+message GetStateResponse {
+  State state = 1;
 }

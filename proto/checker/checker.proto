@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package checker;
+
+enum Action {
+    ACTION_UNSPECIFIED = 0;
+    ACTION_CHECK = 1;
+    ACTION_PUT = 2;
+    ACTION_GET = 3;
+}
+
+enum Status {
+    STATUS_UNSPECIFIED = 0;
+    STATUS_UP = 1;
+    STATUS_MUMBLE = 2;
+    STATUS_CORRUPT = 3;
+    STATUS_DOWN = 4;
+    STATUS_CHECK_FAILED = 5;
+}
+
+enum Type {
+    TYPE_UNSPECIFIED = 0;
+    TYPE_LEGACY = 1;
+}

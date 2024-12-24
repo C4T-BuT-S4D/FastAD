@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package scoreboard;
+
+import "scoreboard/scoreboard.proto";
+
+service ScoreboardService {
+  rpc GetState(GetStateRequest) returns (GetStateResponse);
+}

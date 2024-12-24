@@ -1,0 +1,32 @@
+game:
+  # start time in rfc3339 format
+  start_time: '2021-11-30T15:30:00+03:00'
+  end_time: '2022-11-30T15:30:00+03:00'
+  round_duration: '10s'
+  flag_lifetime_rounds: 10
+  mode: 'classic'
+  hardness: 15
+
+teams:
+  - name: 'team1'
+    address: 'addr3'
+
+  - name: 'team2'
+    address: 'addr2'
+
+services:
+  - name: 'service1'
+    default_score: 3000
+    checker:
+      default_timeout: 10s
+      path: 'service1/checker.py'
+
+  - name: 'service2'
+    default_score: 2000
+    checker:
+      default_timeout: 11s
+      path: 'service2/checker2.py'
+      actions:
+        get:
+          timeout: 12s
+          count: 2

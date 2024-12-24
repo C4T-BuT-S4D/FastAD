@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package data.services;
+
+import "google/protobuf/duration.proto";
+
+import "checker/checker.proto";
+import "data/version/version.proto";
+
+message Service {
+  message Checker {
+    message Action {
+      checker.Action action = 1;
+      google.protobuf.Duration timeout = 2;
+      int64 run_count = 3;
+    }
+
+    checker.Type type = 1;
+    string path = 2;
+
+    google.protobuf.Duration default_timeout = 3;
+    repeated Action actions = 4;
+  }
+
+  int64 id = 1;
+  string name = 2;
+
+  data.services.Service.Checker checker = 3;
+
+  double default_score = 4;
+
+  bool disabled = 5;
+}
+
+message ListRequest {
+  data.version.Version version = 1;
+}
+
+message ListResponse {
+  repeated Service services = 1;
+  data.version.Version version = 2;
+}
+
+message CreateBatchRequest {
+  repeated Service services = 1;
+}
+
+message CreateBatchResponse {
+  repeated Service services = 1;
+}

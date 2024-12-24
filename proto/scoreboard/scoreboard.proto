@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package scoreboard;
+
+message TeamServiceState {
+  int64 team_id = 1;
+  int64 service_id = 2;
+  int64 checks_total = 3;
+  int64 checks_passed = 4;
+}
+
+message Scoreboard {
+  repeated TeamServiceState team_service_states = 1;
+}
+
+message GetStateRequest {
+}
+
+message GetStateResponse {
+  Scoreboard scoreboard = 1;
+}
