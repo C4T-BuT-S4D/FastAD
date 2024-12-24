@@ -72,18 +72,16 @@ func (s *State) Apply(execution *models.CheckerExecution) {
 
 func (s *State) Clone() *State {
 	return &State{
-		TeamServiceStates: lo.MapValues(s.TeamServiceStates, func(value *TeamServiceState, key TeamServiceKey) *TeamServiceState {
-			return value.Clone()
-		}),
+		TeamServiceStates: lo.MapValues(
+			s.TeamServiceStates,
+			func(value *TeamServiceState, _ TeamServiceKey) *TeamServiceState {
+				return value.Clone()
+			},
+		),
 	}
 }
 
 func (s *State) ToProto() *scoreboardpb.Scoreboard {
-	teamServiceStates := make([]*scoreboardpb.TeamServiceState, 0, len(s.TeamServiceStates))
-	for _, tss := range s.TeamServiceStates {
-		teamServiceStates = append(teamServiceStates, tss.ToProto())
-	}
-
 	return &scoreboardpb.Scoreboard{
 		TeamServiceStates: lo.MapToSlice(
 			s.TeamServiceStates,

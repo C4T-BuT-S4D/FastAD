@@ -22,7 +22,7 @@ func init() {
 		}
 
 		return nil
-	}, func(ctx context.Context, db *bun.DB) error {
+	}, func(context.Context, *bun.DB) error {
 		fmt.Print(" [down migration] ")
 		return nil
 	})
