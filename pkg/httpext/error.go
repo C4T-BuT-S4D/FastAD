@@ -48,7 +48,6 @@ func (e *Error) Error() string {
 func ErrorHandler() echo.HTTPErrorHandler {
 	return func(err error, c echo.Context) {
 		logger := ContextLogger(c)
-		c.Response().Header().Set("X-Request-ID", RequestID(c))
 
 		var (
 			e  *Error

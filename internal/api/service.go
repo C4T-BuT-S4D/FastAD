@@ -36,7 +36,7 @@ func NewService(
 }
 
 func (s *Service) RegisterRoutes(e *echo.Echo) {
-	apiGroup := e.Group("/api", httpext.RequestIDMiddleware)
+	apiGroup := e.Group("/api", httpext.RequestIDMiddleware())
 
 	apiGroup.GET("/teams", s.HandleTeamsList())
 	apiGroup.GET("/services", s.HandleServicesList())

@@ -8,10 +8,19 @@ import (
 
 const RequestIDContextKey = "request_id"
 
-func RequestIDMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		c.Set(RequestIDContextKey, uuid.NewString())
-		return next(c)
+func RequestIDMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			req := c.Request()
+			res := c.Response()
+			rid := req.Header.Get(echo.HeaderXRequestID)
+			if rid == "" {
+				rid = uuid.NewString()
+			}
+			res.Header().Set(echo.HeaderXRequestID, rid)
+			c.Set(RequestIDContextKey, rid)
+			return next(c)
+		}
 	}
 }
 

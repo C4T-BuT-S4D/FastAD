@@ -7,6 +7,8 @@ import (
 type Config struct {
 	UserAgent string `mapstructure:"user_agent" default:"receiver"`
 
+	ListenAddress string `mapstructure:"listen_address" default:":8002"`
+
 	Postgres    config.Postgres    `mapstructure:"postgres"`
 	DataService config.DataService `mapstructure:"data_service"`
 }

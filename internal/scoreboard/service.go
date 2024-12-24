@@ -47,12 +47,12 @@ func (s *Service) Run(ctx context.Context) {
 	for {
 		select {
 		case <-t.C:
-			s.logger.Info("checking")
+			s.logger.Debug("checking")
 			start := time.Now()
 			if err := s.Check(ctx); err != nil {
 				s.logger.Error("check failed", zap.Error(err))
 			}
-			s.logger.Info("checked", zap.Duration("duration", time.Since(start)))
+			s.logger.Debug("checked", zap.Duration("duration", time.Since(start)))
 		case <-ctx.Done():
 			return
 		}
@@ -64,29 +64,32 @@ func (s *Service) Check(ctx context.Context) error {
 
 	if err := s.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		for {
-			// We only need to look through the last executions.
-			// Some executions can reappear in the "ids holes" if the transaction
-			// that inserted them was stuck for some reason.
-			// ExecutionTXCreateTimeout is the estimate of this "stuck" time.
-			// We select only executions that were created after the last check
-			// minus the timeout and minus the threshold ProcessorStateThreshold (just to be safe).
-			// This way JOIN with RIGHT IS NULL filter performs better and is
-			// simpler than the EXCEPT subquery.
-
-			threshold := s.lastProcessorIteration.
-				Add(-s.config.ProcessorStateThreshold).
-				Add(-s.config.ExecutionTXCreateTimeout)
-
 			var batch []*models.CheckerExecution
-			if err := tx.
+			query := tx.
 				NewSelect().
 				Model(&batch).
-				Where("created_at > ?", threshold).
 				Join("LEFT OUTER JOIN scoreboard_processed_items spi ON spi.checker_execution_id = ce.id").
 				Where("spi.id IS NULL").
 				Order("ce.id ASC").
-				Limit(s.config.BatchSize).
-				Scan(ctx); err != nil {
+				Limit(s.config.BatchSize)
+
+			if !s.lastProcessorIteration.IsZero() {
+				// We only need to look through the last executions.
+				// Some executions can reappear in the "ids holes" if the transaction
+				// that inserted them was stuck for some reason.
+				// ExecutionTXCreateTimeout is the estimate of this "stuck" time.
+				// We select only executions that were created after the last check
+				// minus the timeout and minus the threshold ProcessorStateThreshold (just to be safe).
+				// This way JOIN with RIGHT IS NULL filter performs better and is
+				// simpler than the EXCEPT subquery.
+
+				threshold := s.lastProcessorIteration.
+					Add(-s.config.ProcessorStateThreshold).
+					Add(-s.config.ExecutionTXCreateTimeout)
+				query = query.Where("created_at > ?", threshold)
+			}
+
+			if err := query.Scan(ctx); err != nil {
 				return fmt.Errorf("selecting executions: %w", err)
 			}
 
@@ -107,6 +110,10 @@ func (s *Service) Check(ctx context.Context) error {
 			if _, err := tx.NewInsert().Model(&itemsToInsert).Exec(ctx); err != nil {
 				return fmt.Errorf("inserting states: %w", err)
 			}
+
+			if len(batch) < s.config.BatchSize {
+				break
+			}
 		}
 
 		return nil
@@ -114,7 +121,6 @@ func (s *Service) Check(ctx context.Context) error {
 		return fmt.Errorf("in tx: %w", err)
 	}
 
-	s.logger.Info("check done")
 	s.logger.Sugar().Debugf("current state: %+v", stateClone)
 
 	s.state.Store(stateClone)
@@ -180,7 +186,6 @@ func (s *Service) RestoreState(ctx context.Context) error {
 	}
 
 	s.logger.Info("state restored", zap.Duration("duration", time.Since(start)))
-	s.lastProcessorIteration = time.Now()
 
 	return nil
 }

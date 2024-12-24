@@ -16,7 +16,7 @@ type TemporalAdapter struct {
 }
 
 func NewTemporalAdapter(logger *zap.Logger) TemporalAdapter {
-	return TemporalAdapter{impl: logger.Sugar()}
+	return TemporalAdapter{impl: logger.WithOptions(zap.AddCallerSkip(1)).Sugar()}
 }
 
 func (a TemporalAdapter) With(keyvals ...any) log.Logger {

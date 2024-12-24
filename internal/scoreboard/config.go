@@ -9,6 +9,8 @@ import (
 type Config struct {
 	UserAgent string `mapstructure:"user_agent" default:"scoreboard"`
 
+	ListenAddress string `mapstructure:"listen_address" default:":8003"`
+
 	Postgres config.Postgres `mapstructure:"postgres"`
 
 	CheckInterval            time.Duration `mapstructure:"check_interval" default:"1s"`
