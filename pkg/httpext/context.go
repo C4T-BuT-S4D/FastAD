@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/labstack/echo/v4"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -21,4 +22,8 @@ func RequestID(c echo.Context) string {
 		}
 	}
 	panic("request id unset")
+}
+
+func EchoContextLogger(c echo.Context) *zap.Logger {
+	return zap.L().With(zap.String(RequestIDContextKey, RequestID(c)))
 }

@@ -159,6 +159,9 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 			// 	continue
 			// }
 
+			// TODO: reject flags with no "put_finished" flag set with a special verdict.
+			// Allow players to resubmit the flag later when the put is finished.
+
 			attacksToAdd = append(attacksToAdd, &models.Attack{
 				ServiceID:  flag.ServiceID,
 				AttackerID: attacker.ID,

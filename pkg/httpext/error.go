@@ -47,7 +47,7 @@ func (e *Error) Error() string {
 
 func ErrorHandler() echo.HTTPErrorHandler {
 	return func(err error, c echo.Context) {
-		logger := ContextLogger(c)
+		logger := EchoContextLogger(c)
 
 		var (
 			e  *Error

@@ -77,5 +77,8 @@ func (s *SaveRoundDataActivity) saveRoundData(
 		return fmt.Errorf("adding checker executions: %w", err)
 	}
 
+	// TODO: remove flags for failed PUTs.
+	// TODO: parse? and update flag public/private fields.
+
 	return nil
 }
