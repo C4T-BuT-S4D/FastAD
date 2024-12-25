@@ -138,3 +138,4 @@ linters-settings:
       - .Error(
       - .Errorf(
       - (context.Context).Err()
+      - (*google.golang.org/grpc/internal/status.Status).Err()

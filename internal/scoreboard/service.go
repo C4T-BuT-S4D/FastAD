@@ -98,7 +98,7 @@ func (s *Service) Check(ctx context.Context) error {
 			}
 
 			itemsToInsert := make([]*models.ScoreboardProcessedItem, 0, len(batch))
-			s.logger.Info("processing executions batch", zap.Int("batch_size", len(batch)))
+			s.logger.Debug("processing executions batch", zap.Int("batch_size", len(batch)))
 			for _, execution := range batch {
 				stateClone.Apply(execution)
 				itemsToInsert = append(itemsToInsert, &models.ScoreboardProcessedItem{

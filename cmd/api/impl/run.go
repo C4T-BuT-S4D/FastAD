@@ -16,6 +16,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
+	"github.com/c4t-but-s4d/fastad/pkg/metrics"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
@@ -24,7 +25,7 @@ import (
 )
 
 func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
-	dataServiceConn, err := grpcext.Dial(cfg.DataService.Address, cfg.UserAgent)
+	dataServiceConn, err := grpcext.Dial(cfg.DataService.Address, cfg.Installation)
 	if err != nil {
 		return fmt.Errorf("connecting to data service: %w", err)
 	}
@@ -33,13 +34,13 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn))
 	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn))
 
-	receiverConn, err := grpcext.Dial(cfg.ReceiverAddress, cfg.UserAgent)
+	receiverConn, err := grpcext.Dial(cfg.ReceiverAddress, cfg.Installation)
 	if err != nil {
 		return fmt.Errorf("connecting to receiver service: %w", err)
 	}
 	receiverClient := receiverpb.NewReceiverServiceClient(receiverConn)
 
-	scoreboardConn, err := grpcext.Dial(cfg.ScoreboardAddress, cfg.UserAgent)
+	scoreboardConn, err := grpcext.Dial(cfg.ScoreboardAddress, cfg.Installation)
 	if err != nil {
 		return fmt.Errorf("connecting to scoreboard service: %w", err)
 	}
@@ -97,6 +98,10 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 			zap.L().Error("error shutting down api server", zap.Error(err))
 		}
 	}()
+
+	if cfg.MetricsAddress != "" {
+		go metrics.RunServer(runCtx, shutdownCtx, cfg.MetricsAddress)
+	}
 
 	if err := e.Start(cfg.ListenAddress); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("running server: %w", err)

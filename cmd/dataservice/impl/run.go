@@ -10,6 +10,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/internal/dataservice/teams"
 	"github.com/c4t-but-s4d/fastad/internal/version"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
+	"github.com/c4t-but-s4d/fastad/pkg/metrics"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
@@ -29,10 +30,14 @@ func Run(runCtx, shutdownCtx context.Context, cfg *dataservice.Config) error {
 	gameStateController := gamestate.NewController(db, versionController)
 	gameStateService := gamestate.NewService(gameStateController)
 
-	server := grpcext.NewServer()
+	server := grpcext.NewServer(grpcext.WithServerInstallation(cfg.Installation))
 	teamspb.RegisterTeamsServiceServer(server, teamsService)
 	servicespb.RegisterServicesServiceServer(server, servicesService)
 	gspb.RegisterGameStateServiceServer(server, gameStateService)
+
+	if cfg.MetricsAddress != "" {
+		go metrics.RunServer(runCtx, shutdownCtx, cfg.MetricsAddress)
+	}
 
 	if err := grpcext.RunServer(runCtx, shutdownCtx, server, cfg.ListenAddress); err != nil {
 		return fmt.Errorf("running server: %w", err)

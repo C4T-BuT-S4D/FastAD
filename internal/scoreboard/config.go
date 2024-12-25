@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	UserAgent string `mapstructure:"user_agent" default:"scoreboard"`
+	Installation string `mapstructure:"installation" default:"scoreboard"`
 
-	ListenAddress string `mapstructure:"listen_address" default:":8003"`
+	ListenAddress  string `mapstructure:"listen_address" default:":8003"`
+	MetricsAddress string `mapstructure:"metrics_address" default:":3003"`
 
 	Postgres config.Postgres `mapstructure:"postgres"`
 

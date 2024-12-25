@@ -14,10 +14,11 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
 	"github.com/c4t-but-s4d/fastad/pkg/logging"
+	"github.com/c4t-but-s4d/fastad/pkg/metrics"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 )
 
-func Run(runCtx, _ context.Context, cfg *scheduler.Config) error {
+func Run(runCtx, shutdownCtx context.Context, cfg *scheduler.Config) error {
 	temporalClient, err := client.Dial(client.Options{
 		HostPort: cfg.Temporal.Address,
 		Logger: logging.NewTemporalAdapter(
@@ -33,7 +34,7 @@ func Run(runCtx, _ context.Context, cfg *scheduler.Config) error {
 
 	dataServiceConn, err := grpcext.Dial(
 		cfg.DataService.Address,
-		cfg.UserAgent,
+		cfg.Installation,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -43,6 +44,10 @@ func Run(runCtx, _ context.Context, cfg *scheduler.Config) error {
 	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn))
 
 	t := scheduler.New(time.Second*10, temporalClient, gameStateClient, db)
+
+	if cfg.MetricsAddress != "" {
+		go metrics.RunServer(runCtx, shutdownCtx, cfg.MetricsAddress)
+	}
 
 	if err := t.Run(runCtx); err != nil {
 		return fmt.Errorf("running scheduler: %w", err)

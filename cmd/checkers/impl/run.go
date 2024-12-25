@@ -18,18 +18,27 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
 	"github.com/c4t-but-s4d/fastad/pkg/logging"
+	"github.com/c4t-but-s4d/fastad/pkg/metrics"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
-func Run(runCtx, _ context.Context, cfg *checkers.Config) error {
-	temporalClient, err := client.Dial(client.Options{
+func Run(runCtx, shutdownCtx context.Context, cfg *checkers.Config) error {
+	temporalClientOpts := client.Options{
 		HostPort: cfg.Temporal.Address,
 		Logger: logging.NewTemporalAdapter(
 			zap.L().With(zap.String("component", "checkers_worker")),
 		),
-	})
+	}
+	if cfg.MetricsAddress != "" {
+		handler, err := metrics.TemporalHandler(cfg.MetricsAddress)
+		if err != nil {
+			return fmt.Errorf("creating metrics handler: %w", err)
+		}
+		temporalClientOpts.MetricsHandler = handler
+	}
+	temporalClient, err := client.Dial(temporalClientOpts)
 	if err != nil {
 		return fmt.Errorf("creating temporal client: %w", err)
 	}
@@ -41,7 +50,7 @@ func Run(runCtx, _ context.Context, cfg *checkers.Config) error {
 
 	dataServiceConn, err := grpcext.Dial(
 		cfg.DataService.Address,
-		cfg.UserAgent,
+		cfg.Installation,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -113,6 +122,10 @@ func Run(runCtx, _ context.Context, cfg *checkers.Config) error {
 		workflow.RegisterOptions{Name: checkers.RoundWorkflowName},
 	)
 	// End of workflows.
+
+	if cfg.MetricsAddress != "" {
+		go metrics.RunServer(runCtx, shutdownCtx, cfg.MetricsAddress)
+	}
 
 	go func() {
 		<-runCtx.Done()

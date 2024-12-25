@@ -7,6 +7,7 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/scoreboard"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
+	"github.com/c4t-but-s4d/fastad/pkg/metrics"
 	scoreboardpb "github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
 )
 
@@ -28,8 +29,12 @@ func Run(runCtx, shutdownCtx context.Context, cfg *scoreboard.Config) error {
 		service.Run(runCtx)
 	}()
 
-	grpcServer := grpcext.NewServer()
+	grpcServer := grpcext.NewServer(grpcext.WithServerInstallation(cfg.Installation))
 	scoreboardpb.RegisterScoreboardServiceServer(grpcServer, service)
+
+	if cfg.MetricsAddress != "" {
+		go metrics.RunServer(runCtx, shutdownCtx, cfg.MetricsAddress)
+	}
 
 	if err := grpcext.RunServer(runCtx, shutdownCtx, grpcServer, cfg.ListenAddress); err != nil {
 		return fmt.Errorf("running server: %w", err)

@@ -5,9 +5,10 @@ import (
 )
 
 type Config struct {
-	UserAgent string `mapstructure:"user_agent" default:"receiver"`
+	Installation string `mapstructure:"installation" default:"receiver"`
 
-	ListenAddress string `mapstructure:"listen_address" default:":8002"`
+	ListenAddress  string `mapstructure:"listen_address" default:":8002"`
+	MetricsAddress string `mapstructure:"metrics_address" default:":3002"`
 
 	Postgres    config.Postgres    `mapstructure:"postgres"`
 	DataService config.DataService `mapstructure:"data_service"`

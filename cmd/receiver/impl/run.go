@@ -12,6 +12,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
+	"github.com/c4t-but-s4d/fastad/pkg/metrics"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
@@ -23,7 +24,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *receiver.Config) error {
 
 	dataServiceConn, err := grpcext.Dial(
 		cfg.DataService.Address,
-		cfg.UserAgent,
+		cfg.Installation,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
@@ -40,8 +41,12 @@ func Run(runCtx, shutdownCtx context.Context, cfg *receiver.Config) error {
 		return fmt.Errorf("restoring state: %w", err)
 	}
 
-	grpcServer := grpcext.NewServer()
+	grpcServer := grpcext.NewServer(grpcext.WithServerInstallation(cfg.Installation))
 	receiverpb.RegisterReceiverServiceServer(grpcServer, receiverService)
+
+	if cfg.MetricsAddress != "" {
+		go metrics.RunServer(runCtx, shutdownCtx, cfg.MetricsAddress)
+	}
 
 	if err := grpcext.RunServer(runCtx, shutdownCtx, grpcServer, cfg.ListenAddress); err != nil {
 		return fmt.Errorf("running server: %w", err)

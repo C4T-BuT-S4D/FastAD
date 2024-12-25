@@ -5,9 +5,10 @@ import (
 )
 
 type Config struct {
-	UserAgent string `mapstructure:"user_agent" default:"api"`
+	Installation string `mapstructure:"installation" default:"api"`
 
-	ListenAddress string `mapstructure:"listen_address" default:"localhost:8001"`
+	ListenAddress  string `mapstructure:"listen_address" default:":8001"`
+	MetricsAddress string `mapstructure:"metrics_address" default:":3001"`
 
 	DataService config.DataService `mapstructure:"data_service"`
 

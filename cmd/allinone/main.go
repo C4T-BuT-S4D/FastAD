@@ -21,11 +21,14 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/baseconfig"
 	"github.com/c4t-but-s4d/fastad/pkg/config"
 	"github.com/c4t-but-s4d/fastad/pkg/logging"
+	"github.com/c4t-but-s4d/fastad/pkg/metrics"
 	"github.com/c4t-but-s4d/fastad/pkg/stop"
 )
 
 type Config struct {
 	UserAgent string `mapstructure:"user_agent" default:"allinone"`
+
+	MetricsAddress string `mapstructure:"metrics_address" default:":3000"`
 
 	Postgres    config.Postgres    `mapstructure:"postgres"`
 	Temporal    config.Temporal    `mapstructure:"temporal"`
@@ -42,11 +45,20 @@ func main() {
 
 	cfg := baseconfig.MustSetupAll(&Config{}, baseconfig.WithEnvPrefix("FASTAD_ALLINONE"))
 
-	cfg.Scheduler.UserAgent = fmt.Sprintf("%s/scheduler", cfg.UserAgent)
-	cfg.Scoreboard.UserAgent = fmt.Sprintf("%s/scoreboard", cfg.UserAgent)
-	cfg.API.UserAgent = fmt.Sprintf("%s/api", cfg.UserAgent)
-	cfg.Checkers.UserAgent = fmt.Sprintf("%s/checkers", cfg.UserAgent)
-	cfg.Receiver.UserAgent = fmt.Sprintf("%s/receiver", cfg.UserAgent)
+	cfg.DataService.Installation = fmt.Sprintf("%s/dataservice", cfg.UserAgent)
+	cfg.Scheduler.Installation = fmt.Sprintf("%s/scheduler", cfg.UserAgent)
+	cfg.Scoreboard.Installation = fmt.Sprintf("%s/scoreboard", cfg.UserAgent)
+	cfg.API.Installation = fmt.Sprintf("%s/api", cfg.UserAgent)
+	cfg.Checkers.Installation = fmt.Sprintf("%s/checkers", cfg.UserAgent)
+	cfg.Receiver.Installation = fmt.Sprintf("%s/receiver", cfg.UserAgent)
+
+	cfg.DataService.MetricsAddress = ""
+	cfg.Scheduler.MetricsAddress = ""
+	cfg.Scoreboard.MetricsAddress = ""
+	cfg.API.MetricsAddress = ""
+	cfg.Receiver.MetricsAddress = ""
+
+	// Checkers are listening on a different port.
 
 	runCtx, shutdownCtx, cancel := stop.SetupCtx()
 	defer cancel()
@@ -98,6 +110,11 @@ func main() {
 		if err := apiImpl.Run(gctx, shutdownCtx, &cfg.API); err != nil {
 			return fmt.Errorf("running api: %w", err)
 		}
+		return nil
+	})
+
+	g.Go(func() error {
+		metrics.RunServer(gctx, shutdownCtx, cfg.MetricsAddress)
 		return nil
 	})
 

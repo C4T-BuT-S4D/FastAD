@@ -5,7 +5,9 @@ import (
 )
 
 type Config struct {
-	UserAgent string `mapstructure:"user_agent" default:"checkers/worker"`
+	Installation string `mapstructure:"installation" default:"checkers/worker"`
+
+	MetricsAddress string `mapstructure:"metrics_address" default:":3006"`
 
 	DataService config.DataService `mapstructure:"data_service"`
 	Temporal    config.Temporal    `mapstructure:"temporal"`
