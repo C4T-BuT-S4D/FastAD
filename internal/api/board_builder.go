@@ -12,17 +12,18 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
-	scoreboardpb "github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
+	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
 )
 
 const scoreboardRefreshInterval = 2 * time.Second
 
 type BoardBuilder struct {
-	teamsClient      *teams.Client
-	servicesClient   *services.Client
-	receiverClient   receiverpb.ReceiverServiceClient
-	scoreboardClient scoreboardpb.ScoreboardServiceClient
+	teamsClient    *teams.Client
+	servicesClient *services.Client
+	receiverClient receiverpb.ReceiverServiceClient
+	slacClient     slacpb.SlacServiceClient
 
 	mu          sync.RWMutex
 	lastRefresh time.Time
@@ -37,13 +38,13 @@ func NewBoardBuilder(
 	teamsClient *teams.Client,
 	servicesClient *services.Client,
 	receiverClient receiverpb.ReceiverServiceClient,
-	scoreboardClient scoreboardpb.ScoreboardServiceClient,
+	slacClient slacpb.SlacServiceClient,
 ) *BoardBuilder {
 	return &BoardBuilder{
-		teamsClient:      teamsClient,
-		servicesClient:   servicesClient,
-		receiverClient:   receiverClient,
-		scoreboardClient: scoreboardClient,
+		teamsClient:    teamsClient,
+		servicesClient: servicesClient,
+		receiverClient: receiverClient,
+		slacClient:     slacClient,
 	}
 }
 
@@ -147,9 +148,9 @@ func (b *BoardBuilder) buildScoreboardStateUnlocked(ctx context.Context) (*Score
 		}
 	}
 
-	slaState, err := b.scoreboardClient.GetState(ctx, &scoreboardpb.GetStateRequest{})
+	slaState, err := b.slacClient.GetState(ctx, &slacpb.GetStateRequest{})
 	if err != nil {
-		return nil, httpext.NewErrorFromStatus(err, "getting scoreboard state")
+		return nil, httpext.NewErrorFromStatus(err, "getting slac state")
 	}
 
 	receiverState, err := b.receiverClient.GetState(ctx, &receiverpb.GetStateRequest{})
@@ -157,11 +158,12 @@ func (b *BoardBuilder) buildScoreboardStateUnlocked(ctx context.Context) (*Score
 		return nil, httpext.NewErrorFromStatus(err, "getting receiver state")
 	}
 
-	for _, tss := range slaState.GetScoreboard().GetTeamServiceStates() {
+	for _, tss := range slaState.GetState().GetTeamServiceStates() {
 		key := teamServiceKey{TeamID: int(tss.GetTeamId()), ServiceID: int(tss.GetServiceId())}
 		if sbs, ok := sbMap[key]; ok {
 			sbs.ChecksTotal = int(tss.GetChecksTotal())
 			sbs.ChecksPassed = int(tss.GetChecksPassed())
+			sbs.Status = StatusWrapper(tss.GetStatus())
 		}
 	}
 
@@ -183,15 +185,22 @@ type teamServiceKey struct {
 }
 
 type TeamServiceState struct {
-	TeamID       int     `json:"team_id"`
-	ServiceID    int     `json:"service_id"`
-	ChecksTotal  int     `json:"checks_total"`
-	ChecksPassed int     `json:"checks_passed"`
-	StolenFlags  int     `json:"stolen_flags"`
-	LostFlags    int     `json:"lost_flags"`
-	Points       float64 `json:"points"`
+	TeamID       int           `json:"team_id"`
+	ServiceID    int           `json:"service_id"`
+	ChecksTotal  int           `json:"checks_total"`
+	ChecksPassed int           `json:"checks_passed"`
+	StolenFlags  int           `json:"stolen_flags"`
+	LostFlags    int           `json:"lost_flags"`
+	Points       float64       `json:"points"`
+	Status       StatusWrapper `json:"status"`
 }
 
 type ScoreboardState struct {
 	TeamServiceStates []*TeamServiceState `json:"team_service_states"`
+}
+
+type StatusWrapper checkerpb.Status
+
+func (s StatusWrapper) MarshalJSON() ([]byte, error) {
+	return []byte(fmt.Sprintf(`"%s"`, checkerpb.Status(s).String())), nil
 }

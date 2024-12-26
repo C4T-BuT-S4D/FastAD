@@ -22,7 +22,7 @@ import (
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
-	scoreboardpb "github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
+	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
 )
 
 func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
@@ -37,15 +37,15 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 
 	receiverConn, err := grpcext.Dial(cfg.ReceiverAddress, cfg.Installation)
 	if err != nil {
-		return fmt.Errorf("connecting to receiver service: %w", err)
+		return fmt.Errorf("connecting to receiver: %w", err)
 	}
 	receiverClient := receiverpb.NewReceiverServiceClient(receiverConn)
 
-	scoreboardConn, err := grpcext.Dial(cfg.ScoreboardAddress, cfg.Installation)
+	slacConn, err := grpcext.Dial(cfg.SlacAddress, cfg.Installation)
 	if err != nil {
-		return fmt.Errorf("connecting to scoreboard service: %w", err)
+		return fmt.Errorf("connecting to slac: %w", err)
 	}
-	scoreboardClient := scoreboardpb.NewScoreboardServiceClient(scoreboardConn)
+	slacClient := slacpb.NewSlacServiceClient(slacConn)
 
 	centConfig := centrifuge.Config{
 		Name:     cfg.Installation,
@@ -70,7 +70,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 		servicesClient,
 		gameStateClient,
 		receiverClient,
-		scoreboardClient,
+		slacClient,
 	)
 
 	e := echo.New()

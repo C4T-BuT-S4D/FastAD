@@ -1,4 +1,4 @@
-package scoreboard
+package slac
 
 import (
 	"context"
@@ -12,11 +12,11 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/centclient"
 	"github.com/c4t-but-s4d/fastad/internal/models"
-	scoreboardpb "github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
+	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
 )
 
 type Service struct {
-	scoreboardpb.UnimplementedScoreboardServiceServer
+	slacpb.UnimplementedSlacServiceServer
 
 	db         *bun.DB
 	config     *Config
@@ -35,12 +35,12 @@ func NewService(db *bun.DB, cfg *Config, centClient *centclient.Producer) *Servi
 		centClient: centClient,
 
 		state:  atomic.NewPointer(NewState()),
-		logger: zap.L().With(zap.String("component", "scoreboard")),
+		logger: zap.L().With(zap.String("component", "slac")),
 	}
 }
 
-func (s *Service) GetState(context.Context, *scoreboardpb.GetStateRequest) (*scoreboardpb.GetStateResponse, error) {
-	return &scoreboardpb.GetStateResponse{Scoreboard: s.state.Load().ToProto()}, nil
+func (s *Service) GetState(context.Context, *slacpb.GetStateRequest) (*slacpb.GetStateResponse, error) {
+	return &slacpb.GetStateResponse{State: s.state.Load().ToProto()}, nil
 }
 
 func (s *Service) Run(ctx context.Context) {
@@ -80,7 +80,7 @@ func (s *Service) Check(ctx context.Context) (bool, error) {
 			query := tx.
 				NewSelect().
 				Model(&batch).
-				Join("LEFT OUTER JOIN scoreboard_processed_items spi ON spi.checker_execution_id = ce.id").
+				Join("LEFT OUTER JOIN slac_processed_items spi ON spi.checker_execution_id = ce.id").
 				Where("spi.id IS NULL").
 				Order("ce.id ASC").
 				Limit(s.config.BatchSize)
@@ -109,11 +109,11 @@ func (s *Service) Check(ctx context.Context) (bool, error) {
 				break
 			}
 
-			itemsToInsert := make([]*models.ScoreboardProcessedItem, 0, len(batch))
+			itemsToInsert := make([]*models.SlacProcessedItem, 0, len(batch))
 			s.logger.Debug("processing executions batch", zap.Int("batch_size", len(batch)))
 			for _, execution := range batch {
 				stateClone.Apply(execution)
-				itemsToInsert = append(itemsToInsert, &models.ScoreboardProcessedItem{
+				itemsToInsert = append(itemsToInsert, &models.SlacProcessedItem{
 					CheckerExecutionID: execution.ID,
 					ProcessedAt:        time.Now(),
 				})
@@ -149,7 +149,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 	if err := s.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		processedExecutionsCount, err := tx.
 			NewSelect().
-			Model(&models.ScoreboardProcessedItem{}).
+			Model(&models.SlacProcessedItem{}).
 			Count(ctx)
 		if err != nil {
 			return fmt.Errorf("counting executions: %w", err)
@@ -165,10 +165,10 @@ func (s *Service) RestoreState(ctx context.Context) error {
 		for {
 			const batchSize = 1000
 
-			var batch []*models.ScoreboardProcessedItem
+			var batch []*models.SlacProcessedItem
 			if err := tx.
 				NewSelect().
-				Model(&models.ScoreboardProcessedItem{}).
+				Model(&models.SlacProcessedItem{}).
 				// No need for INNER JOIN as we pretty much know that all processed executions exist.
 				Relation("CheckerExecution").
 				Where("spi.id > ?", lastID).

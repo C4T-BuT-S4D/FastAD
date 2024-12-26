@@ -7,13 +7,13 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/c4t-but-s4d/fastad/internal/centclient"
-	"github.com/c4t-but-s4d/fastad/internal/scoreboard"
+	"github.com/c4t-but-s4d/fastad/internal/slac"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
 	"github.com/c4t-but-s4d/fastad/pkg/metrics"
-	scoreboardpb "github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
+	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
 )
 
-func Run(runCtx, shutdownCtx context.Context, cfg *scoreboard.Config) error {
+func Run(runCtx, shutdownCtx context.Context, cfg *slac.Config) error {
 	db := cfg.Postgres.BunDB()
 
 	producer, err := centclient.NewProducer(
@@ -26,7 +26,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *scoreboard.Config) error {
 		return fmt.Errorf("creating centrifuge producer: %w", err)
 	}
 
-	service := scoreboard.NewService(db, cfg, producer)
+	service := slac.NewService(db, cfg, producer)
 
 	if err := service.RestoreState(runCtx); err != nil {
 		return fmt.Errorf("restoring state: %w", err)
@@ -35,7 +35,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *scoreboard.Config) error {
 	g, gctx := errgroup.WithContext(runCtx)
 
 	grpcServer := grpcext.NewServer(grpcext.WithServerInstallation(cfg.Installation))
-	scoreboardpb.RegisterScoreboardServiceServer(grpcServer, service)
+	slacpb.RegisterSlacServiceServer(grpcServer, service)
 
 	if cfg.MetricsAddress != "" {
 		g.Go(func() error {

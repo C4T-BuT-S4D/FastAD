@@ -6,8 +6,8 @@ import (
 	"github.com/uptrace/bun"
 )
 
-type ScoreboardProcessedItem struct {
-	bun.BaseModel `bun:"scoreboard_processed_items,alias:spi"`
+type SlacProcessedItem struct {
+	bun.BaseModel `bun:"slac_processed_items,alias:spi"`
 
 	ID                 int       `bun:"id,pk,autoincrement"`
 	CheckerExecutionID int       `bun:"checker_execution_id,unique"`

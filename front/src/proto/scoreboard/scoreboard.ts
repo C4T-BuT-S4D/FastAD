@@ -6,6 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
+import { Status, statusFromJSON, statusToJSON } from "../checker/checker";
 
 export const protobufPackage = "scoreboard";
 
@@ -14,6 +15,7 @@ export interface TeamServiceState {
   serviceId: bigint;
   checksTotal: bigint;
   checksPassed: bigint;
+  status: Status;
 }
 
 export interface Scoreboard {
@@ -28,7 +30,7 @@ export interface GetStateResponse {
 }
 
 function createBaseTeamServiceState(): TeamServiceState {
-  return { teamId: 0n, serviceId: 0n, checksTotal: 0n, checksPassed: 0n };
+  return { teamId: 0n, serviceId: 0n, checksTotal: 0n, checksPassed: 0n, status: 0 };
 }
 
 export const TeamServiceState: MessageFns<TeamServiceState> = {
@@ -56,6 +58,9 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
         throw new globalThis.Error("value provided for field message.checksPassed of type int64 too large");
       }
       writer.uint32(32).int64(message.checksPassed);
+    }
+    if (message.status !== 0) {
+      writer.uint32(40).int32(message.status);
     }
     return writer;
   },
@@ -97,6 +102,14 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
           }
 
           message.checksPassed = reader.int64() as bigint;
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.status = reader.int32() as any;
           continue;
         }
       }
@@ -146,6 +159,7 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
       serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
       checksTotal: isSet(object.checksTotal) ? BigInt(object.checksTotal) : 0n,
       checksPassed: isSet(object.checksPassed) ? BigInt(object.checksPassed) : 0n,
+      status: isSet(object.status) ? statusFromJSON(object.status) : 0,
     };
   },
 
@@ -163,6 +177,9 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
     if (message.checksPassed !== 0n) {
       obj.checksPassed = message.checksPassed.toString();
     }
+    if (message.status !== 0) {
+      obj.status = statusToJSON(message.status);
+    }
     return obj;
   },
 
@@ -175,6 +192,7 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
     message.serviceId = object.serviceId ?? 0n;
     message.checksTotal = object.checksTotal ?? 0n;
     message.checksPassed = object.checksPassed ?? 0n;
+    message.status = object.status ?? 0;
     return message;
   },
 };

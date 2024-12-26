@@ -1,4 +1,4 @@
-package scoreboard
+package slac
 
 import (
 	"time"
@@ -7,12 +7,12 @@ import (
 )
 
 type Config struct {
-	Installation string `mapstructure:"installation" default:"scoreboard"`
+	Installation string `mapstructure:"installation" default:"slac"`
 
 	ListenAddress  string `mapstructure:"listen_address" default:":8003"`
 	MetricsAddress string `mapstructure:"metrics_address" default:":3003"`
 
-	Channel       string `mapstructure:"channel" default:"scoreboard"`
+	Channel       string `mapstructure:"channel" default:"slac"`
 	IntercomToken string `mapstructure:"intercom_token"`
 
 	Postgres         config.Postgres         `mapstructure:"postgres"`

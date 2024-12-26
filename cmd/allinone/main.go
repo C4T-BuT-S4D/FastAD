@@ -12,13 +12,13 @@ import (
 	dataserviceImpl "github.com/c4t-but-s4d/fastad/cmd/dataservice/impl"
 	receiverImpl "github.com/c4t-but-s4d/fastad/cmd/receiver/impl"
 	schedulerImpl "github.com/c4t-but-s4d/fastad/cmd/scheduler/impl"
-	scoreboardImpl "github.com/c4t-but-s4d/fastad/cmd/scoreboard/impl"
+	slacImpl "github.com/c4t-but-s4d/fastad/cmd/slac/impl"
 	"github.com/c4t-but-s4d/fastad/internal/api"
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
 	"github.com/c4t-but-s4d/fastad/internal/dataservice"
 	"github.com/c4t-but-s4d/fastad/internal/receiver"
 	"github.com/c4t-but-s4d/fastad/internal/scheduler"
-	"github.com/c4t-but-s4d/fastad/internal/scoreboard"
+	"github.com/c4t-but-s4d/fastad/internal/slac"
 	"github.com/c4t-but-s4d/fastad/pkg/apiwait"
 	"github.com/c4t-but-s4d/fastad/pkg/baseconfig"
 	"github.com/c4t-but-s4d/fastad/pkg/config"
@@ -37,7 +37,7 @@ type Config struct {
 	Temporal    config.Temporal    `mapstructure:"temporal"`
 	DataService dataservice.Config `mapstructure:"data_service"`
 	Scheduler   scheduler.Config   `mapstructure:"scheduler"`
-	Scoreboard  scoreboard.Config  `mapstructure:"scoreboard"`
+	Slac        slac.Config        `mapstructure:"slac"`
 	API         api.Config         `mapstructure:"api"`
 	Checkers    checkers.Config    `mapstructure:"checkers"`
 	Receiver    receiver.Config    `mapstructure:"receiver"`
@@ -78,9 +78,9 @@ func main() {
 		return nil
 	})
 
-	// Receiver and scoreboard depend on API, start it first.
+	// Receiver and slac depend on API, start it first.
 	cfg.API.DataService.Address = cfg.DataService.ListenAddress
-	cfg.API.ScoreboardAddress = cfg.Scoreboard.ListenAddress
+	cfg.API.SlacAddress = cfg.Slac.ListenAddress
 	cfg.API.ReceiverAddress = cfg.Receiver.ListenAddress
 	g.Go(func() error {
 		if err := apiImpl.Run(gctx, shutdownCtx, &cfg.API); err != nil {
@@ -95,8 +95,8 @@ func main() {
 	}
 
 	g.Go(func() error {
-		if err := scoreboardImpl.Run(gctx, shutdownCtx, &cfg.Scoreboard); err != nil {
-			return fmt.Errorf("running scoreboard: %w", err)
+		if err := slacImpl.Run(gctx, shutdownCtx, &cfg.Slac); err != nil {
+			return fmt.Errorf("running slac: %w", err)
 		}
 		return nil
 	})
@@ -125,19 +125,19 @@ func setupConfig(cfg *Config) {
 	}
 
 	cfg.API.IntercomToken = cfg.IntercomToken
-	cfg.Scoreboard.IntercomToken = cfg.IntercomToken
+	cfg.Slac.IntercomToken = cfg.IntercomToken
 	cfg.Receiver.IntercomToken = cfg.IntercomToken
 
 	cfg.DataService.Installation = fmt.Sprintf("%s/dataservice", cfg.UserAgent)
 	cfg.Scheduler.Installation = fmt.Sprintf("%s/scheduler", cfg.UserAgent)
-	cfg.Scoreboard.Installation = fmt.Sprintf("%s/scoreboard", cfg.UserAgent)
+	cfg.Slac.Installation = fmt.Sprintf("%s/slac", cfg.UserAgent)
 	cfg.API.Installation = fmt.Sprintf("%s/api", cfg.UserAgent)
 	cfg.Checkers.Installation = fmt.Sprintf("%s/checkers", cfg.UserAgent)
 	cfg.Receiver.Installation = fmt.Sprintf("%s/receiver", cfg.UserAgent)
 
 	cfg.DataService.MetricsAddress = ""
 	cfg.Scheduler.MetricsAddress = ""
-	cfg.Scoreboard.MetricsAddress = ""
+	cfg.Slac.MetricsAddress = ""
 	cfg.API.MetricsAddress = ""
 	cfg.Receiver.MetricsAddress = ""
 

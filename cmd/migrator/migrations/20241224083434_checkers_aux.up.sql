@@ -7,5 +7,5 @@ CREATE INDEX IF NOT EXISTS idx_flags_team_service_round ON flags (team_id, servi
 
 --bun:split
 
---For faster scoreboard processing
+--For faster slac processing
 CREATE INDEX IF NOT EXISTS idx_checker_executions_created_at ON checker_executions (created_at);

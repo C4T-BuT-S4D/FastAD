@@ -1,11 +1,11 @@
-package scoreboard
+package slac
 
 import (
 	"github.com/samber/lo"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
-	scoreboardpb "github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
+	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
 )
 
 type TeamServiceState struct {
@@ -13,6 +13,7 @@ type TeamServiceState struct {
 	ServiceID    int
 	ChecksTotal  int
 	ChecksPassed int
+	Status       checkerpb.Status
 }
 
 func (s *TeamServiceState) Clone() *TeamServiceState {
@@ -24,12 +25,13 @@ func (s *TeamServiceState) Clone() *TeamServiceState {
 	}
 }
 
-func (s *TeamServiceState) ToProto() *scoreboardpb.TeamServiceState {
-	return &scoreboardpb.TeamServiceState{
+func (s *TeamServiceState) ToProto() *slacpb.TeamServiceState {
+	return &slacpb.TeamServiceState{
 		TeamId:       int64(s.TeamID),
 		ServiceId:    int64(s.ServiceID),
 		ChecksTotal:  int64(s.ChecksTotal),
 		ChecksPassed: int64(s.ChecksPassed),
+		Status:       s.Status,
 	}
 }
 
@@ -64,6 +66,7 @@ func (s *State) Apply(execution *models.CheckerExecution) {
 		s.TeamServiceStates[key] = tss
 	}
 
+	tss.Status = execution.Status
 	tss.ChecksTotal++
 	if execution.Status == checkerpb.Status_STATUS_UP {
 		tss.ChecksPassed++
@@ -81,11 +84,11 @@ func (s *State) Clone() *State {
 	}
 }
 
-func (s *State) ToProto() *scoreboardpb.Scoreboard {
-	return &scoreboardpb.Scoreboard{
+func (s *State) ToProto() *slacpb.State {
+	return &slacpb.State{
 		TeamServiceStates: lo.MapToSlice(
 			s.TeamServiceStates,
-			func(_ TeamServiceKey, value *TeamServiceState) *scoreboardpb.TeamServiceState {
+			func(_ TeamServiceKey, value *TeamServiceState) *slacpb.TeamServiceState {
 				return value.ToProto()
 			},
 		),

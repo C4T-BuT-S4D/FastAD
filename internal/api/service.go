@@ -12,18 +12,18 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
-	"github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
+	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
 )
 
 type Service struct {
 	config *Config
 
-	centNode         *centrifuge.Node
-	teamsClient      *teams.Client
-	servicesClient   *services.Client
-	gameStateClient  *gamestate.Client
-	receiverClient   receiverpb.ReceiverServiceClient
-	scoreboardClient scoreboard.ScoreboardServiceClient
+	centNode        *centrifuge.Node
+	teamsClient     *teams.Client
+	servicesClient  *services.Client
+	gameStateClient *gamestate.Client
+	receiverClient  receiverpb.ReceiverServiceClient
+	slacClient      slacpb.SlacServiceClient
 
 	boardBuilder *BoardBuilder
 }
@@ -35,23 +35,23 @@ func NewService(
 	servicesClient *services.Client,
 	gameStateClient *gamestate.Client,
 	receiverClient receiverpb.ReceiverServiceClient,
-	scoreboardClient scoreboard.ScoreboardServiceClient,
+	slacClient slacpb.SlacServiceClient,
 ) *Service {
 	return &Service{
 		config: cfg,
 
-		centNode:         centNode,
-		teamsClient:      teamsClient,
-		servicesClient:   servicesClient,
-		gameStateClient:  gameStateClient,
-		receiverClient:   receiverClient,
-		scoreboardClient: scoreboardClient,
+		centNode:        centNode,
+		teamsClient:     teamsClient,
+		servicesClient:  servicesClient,
+		gameStateClient: gameStateClient,
+		receiverClient:  receiverClient,
+		slacClient:      slacClient,
 
 		boardBuilder: NewBoardBuilder(
 			teamsClient,
 			servicesClient,
 			receiverClient,
-			scoreboardClient,
+			slacClient,
 		),
 	}
 }

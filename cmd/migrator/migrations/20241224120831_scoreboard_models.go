@@ -15,7 +15,7 @@ func init() {
 		fmt.Print(" [up migration] ")
 
 		if _, err := db.NewCreateTable().
-			Model((*models.ScoreboardProcessedItem)(nil)).
+			Model((*models.SlacProcessedItem)(nil)).
 			IfNotExists().
 			// Don't create foreign keys here.
 			Exec(ctx); err != nil {

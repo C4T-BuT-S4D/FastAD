@@ -14,6 +14,6 @@ type Config struct {
 
 	DataService config.DataService `mapstructure:"data_service"`
 
-	ReceiverAddress   string `mapstructure:"receiver_address" default:"localhost:8002"`
-	ScoreboardAddress string `mapstructure:"scoreboard_address" default:"localhost:8003"`
+	ReceiverAddress string `mapstructure:"receiver_address" default:"localhost:8002"`
+	SlacAddress     string `mapstructure:"slac_address" default:"localhost:8003"`
 }

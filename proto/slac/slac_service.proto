@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package slac;
+
+import "slac/slac.proto";
+
+service SlacService {
+  rpc GetState(GetStateRequest) returns (GetStateResponse);
+}
