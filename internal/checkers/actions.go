@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
-	"path/filepath"
 	"syscall"
 	"time"
 
@@ -27,10 +26,9 @@ func RunCheckAction(
 	ctx context.Context,
 	params *CheckActivityParameters,
 ) *Verdict {
-	checkerPath := filepath.Join("checkers", params.Service.CheckerPath)
 	return RunAction(
 		ctx,
-		checkerPath,
+		params.Service.CheckerPath,
 		checkerpb.Action_ACTION_CHECK,
 		[]string{checkAction, params.Team.Address},
 		params.Service.CheckerTimeout(checkerpb.Action_ACTION_CHECK),
@@ -41,10 +39,9 @@ func RunPutAction(
 	ctx context.Context,
 	params *PutActivityParameters,
 ) *Verdict {
-	checkerPath := filepath.Join("checkers", params.FlagInfo.Service.CheckerPath)
 	return RunAction(
 		ctx,
-		checkerPath,
+		params.FlagInfo.Service.CheckerPath,
 		checkerpb.Action_ACTION_PUT,
 		[]string{
 			putAction,
@@ -61,10 +58,9 @@ func RunGetAction(
 	ctx context.Context,
 	params *GetActivityParameters,
 ) *Verdict {
-	checkerPath := filepath.Join("checkers", params.Service.CheckerPath)
 	return RunAction(
 		ctx,
-		checkerPath,
+		params.Service.CheckerPath,
 		checkerpb.Action_ACTION_GET,
 		[]string{
 			getAction,
@@ -109,23 +105,54 @@ func RunAction(
 	}
 
 	err := cmd.Run()
+	var procErr *exec.ExitError
 	switch {
-	case err == nil:
-		verdict.Status = checkerpb.Status_STATUS_UP
-		verdict.Public = stdout.String()
-		verdict.Private = stderr.String()
-
 	case errors.Is(err, context.DeadlineExceeded):
 		verdict.Status = checkerpb.Status_STATUS_DOWN
 		verdict.Public = "timeout"
 		// TODO: truncate.
 		verdict.Private = fmt.Sprintf("err: %v\nstdout: %s\nstderr: %s", err, stdout.String(), stderr.String())
 
+	case errors.As(err, &procErr):
+		switch procErr.ExitCode() {
+		case 101:
+			verdict.Status = checkerpb.Status_STATUS_UP
+			verdict.Public = stdout.String()
+			verdict.Private = stderr.String()
+		case 102:
+			verdict.Status = checkerpb.Status_STATUS_CORRUPT
+			verdict.Public = stdout.String()
+			verdict.Private = stderr.String()
+		case 103:
+			verdict.Status = checkerpb.Status_STATUS_MUMBLE
+			verdict.Public = stdout.String()
+			verdict.Private = stderr.String()
+		case 104:
+			verdict.Status = checkerpb.Status_STATUS_DOWN
+			verdict.Public = stdout.String()
+			verdict.Private = stderr.String()
+		default:
+			verdict.Status = checkerpb.Status_STATUS_CHECK_FAILED
+			verdict.Public = "internal error"
+			verdict.Private = fmt.Sprintf(
+				"err: %v, code: %v\nstdout: %s\nstderr: %s",
+				err,
+				procErr.ExitCode(),
+				stdout.String(),
+				stderr.String(),
+			)
+		}
+
 	default:
 		verdict.Status = checkerpb.Status_STATUS_CHECK_FAILED
 		verdict.Public = "internal error"
 		// TODO: truncate.
-		verdict.Private = fmt.Sprintf("err: %v\nstdout: %s\nstderr: %s", err, stdout.String(), stderr.String())
+		verdict.Private = fmt.Sprintf(
+			"err: %v\nstdout: %s\nstderr: %s",
+			err,
+			stdout.String(),
+			stderr.String(),
+		)
 	}
 	return verdict
 }

@@ -3,6 +3,7 @@ package setup
 import (
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/samber/lo"
@@ -25,6 +26,8 @@ type Game struct {
 	Hardness           float64       `yaml:"hardness"`
 	Inflation          bool          `yaml:"inflation"`
 
+	CheckersBasePath string `yaml:"checkers_base_path"`
+
 	Mode GameMode `yaml:"mode"`
 }
 
@@ -37,6 +40,9 @@ func (g *Game) Validate() error {
 	}
 	if g.Hardness <= 0 {
 		return errors.New("hardness must be positive")
+	}
+	if g.CheckersBasePath == "" {
+		g.CheckersBasePath = "checkers"
 	}
 	return nil
 }
@@ -184,6 +190,7 @@ func (c *GameConfig) Validate() error {
 		if err := service.Validate(); err != nil {
 			return fmt.Errorf("service %d: %w", i, err)
 		}
+		service.Checker.Path = filepath.Join(c.Game.CheckersBasePath, service.Checker.Path)
 	}
 	return nil
 }
