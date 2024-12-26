@@ -49,7 +49,14 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 
 	centConfig := centrifuge.Config{
 		Name:     cfg.Installation,
-		LogLevel: centrifuge.LogLevelInfo,
+		LogLevel: centrifuge.LogLevelDebug,
+		LogHandler: func(entry centrifuge.LogEntry) {
+			zap.L().Debug(
+				"centrifuge log",
+				zap.String("message", entry.Message),
+				zap.Any("entry", entry.Fields),
+			)
+		},
 	}
 	node, err := centrifuge.New(centConfig)
 	if err != nil {
@@ -57,6 +64,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 	}
 
 	apiService := api.NewService(
+		cfg,
 		node,
 		teamsClient,
 		servicesClient,

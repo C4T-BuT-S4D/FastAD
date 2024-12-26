@@ -52,8 +52,6 @@ func (s *Service) Get(ctx context.Context, req *gspb.GetRequest) (*gspb.GetRespo
 func (s *Service) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.UpdateResponse, error) {
 	zap.L().Debug("GameStateService/Update", zap.Any("request", req))
 
-	// FiXME: security.
-
 	if err := s.validateUpdateRequest(req); err != nil {
 		return nil, fmt.Errorf("validating request: %w", err)
 	}
@@ -71,8 +69,6 @@ func (s *Service) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.Up
 
 func (s *Service) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*gspb.UpdateRoundResponse, error) {
 	zap.L().Debug("GameStateService/UpdateRound", zap.Any("request", req))
-
-	// FiXME: security.
 
 	if err := s.validateUpdateRoundRequest(req); err != nil {
 		return nil, fmt.Errorf("validating request: %w", err)

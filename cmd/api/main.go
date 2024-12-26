@@ -13,7 +13,7 @@ import (
 func main() {
 	defer logging.Init().Close()
 
-	cfg := baseconfig.MustSetupAll(&api.Config{}, baseconfig.WithEnvPrefix("API"))
+	cfg := baseconfig.MustSetupAll(&api.Config{}, baseconfig.WithEnvPrefix("FASTAD_API"))
 
 	runCtx, shutdownCtx, cancel := stop.SetupCtx()
 	defer cancel()

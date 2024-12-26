@@ -71,17 +71,20 @@ class ClientEventLoggerHandler(ClientEventHandler):
 class SubscriptionEventLoggerHandler(SubscriptionEventHandler):
     """Check out comments of SubscriptionEventHandler methods to see when they are called."""
 
+    def __init__(self, channel: str = None):
+        self.channel = channel
+
     async def on_subscribing(self, ctx: SubscribingContext) -> None:
-        logging.info("subscribing: %s", ctx)
+        logging.info("[%s] subscribing: %s", self.channel, ctx)
 
     async def on_subscribed(self, ctx: SubscribedContext) -> None:
-        logging.info("subscribed: %s", ctx)
+        logging.info("[%s] subscribed: %s", self.channel, ctx)
 
     async def on_unsubscribed(self, ctx: UnsubscribedContext) -> None:
-        logging.info("unsubscribed: %s", ctx)
+        logging.info("[%s] unsubscribed: %s", self.channel, ctx)
 
     async def on_publication(self, ctx: PublicationContext) -> None:
-        logging.info("publication: %s", ctx.pub.data)
+        logging.info("[%s] publication: %s", self.channel, ctx.pub.data)
 
     async def on_join(self, ctx: JoinContext) -> None:
         logging.info("join: %s", ctx)
@@ -90,7 +93,7 @@ class SubscriptionEventLoggerHandler(SubscriptionEventHandler):
         logging.info("leave: %s", ctx)
 
     async def on_error(self, ctx: SubscriptionErrorContext) -> None:
-        logging.error("subscription error: %s", ctx)
+        logging.error("[%s] subscription error: %s", self.channel, ctx)
 
 
 def run_example():
@@ -100,14 +103,21 @@ def run_example():
         use_protobuf=False,
     )
 
-    sub = client.new_subscription(
+    attacks_sub = client.new_subscription(
         "attacks",
-        events=SubscriptionEventLoggerHandler(),
+        events=SubscriptionEventLoggerHandler("attacks"),
+    )
+
+    scoreboard_sub = client.new_subscription(
+        "scoreboard",
+        events=SubscriptionEventLoggerHandler("scoreboard"),
     )
 
     async def run():
         await client.connect()
-        await sub.subscribe()
+        await attacks_sub.subscribe()
+        await scoreboard_sub.subscribe()
+
         logging.info("all done, client connection is still alive, press Ctrl+C to exit")
 
     asyncio.ensure_future(run())

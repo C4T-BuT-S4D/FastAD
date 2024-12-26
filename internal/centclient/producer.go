@@ -20,8 +20,20 @@ type Producer struct {
 	logger *zap.Logger
 }
 
-func NewProducer(client *centrifuge.Client, channel string) *Producer {
-	return &Producer{
+func NewProducer(address, channel, name, token string) (*Producer, error) {
+	rawData, err := json.Marshal(clientData{Name: name})
+	if err != nil {
+		return nil, fmt.Errorf("marshaling client data: %w", err)
+	}
+
+	client := centrifuge.NewJsonClient(address, centrifuge.Config{
+		Token:             token,
+		Data:              rawData,
+		Name:              name,
+		EnableCompression: true,
+	})
+
+	p := &Producer{
 		client:       client,
 		channel:      channel,
 		disconnected: make(chan struct{}),
@@ -30,31 +42,11 @@ func NewProducer(client *centrifuge.Client, channel string) *Producer {
 			zap.String("channel", channel),
 		),
 	}
-}
-
-func (c *Producer) Init() error {
-	c.client.OnConnected(func(event centrifuge.ConnectedEvent) {
-		c.logger.Debug("connected", zap.String("client_id", event.ClientID))
-	})
-
-	c.client.OnError(func(event centrifuge.ErrorEvent) {
-		c.logger.Error("error", zap.Error(event.Error))
-	})
-
-	c.client.OnDisconnected(func(event centrifuge.DisconnectedEvent) {
-		c.logger.Debug(
-			"disconnected",
-			zap.Uint32("code", event.Code),
-			zap.String("reason", event.Reason),
-		)
-		close(c.disconnected)
-	})
-
-	if err := c.client.Connect(); err != nil {
-		return fmt.Errorf("connecting to centrifuge: %w", err)
+	if err := p.init(); err != nil {
+		return nil, fmt.Errorf("initializing producer: %w", err)
 	}
 
-	return nil
+	return p, nil
 }
 
 func (c *Producer) Run(ctx context.Context) error {
@@ -90,4 +82,37 @@ func (c *Producer) PublishProto(ctx context.Context, msg proto.Message) error {
 		return fmt.Errorf("publishing message: %w", err)
 	}
 	return nil
+}
+
+func (c *Producer) init() error {
+	c.client.OnError(func(event centrifuge.ErrorEvent) {
+		c.logger.Error("error", zap.Error(event.Error))
+	})
+
+	c.client.OnDisconnected(func(event centrifuge.DisconnectedEvent) {
+		c.logger.Debug(
+			"disconnected",
+			zap.Uint32("code", event.Code),
+			zap.String("reason", event.Reason),
+		)
+		close(c.disconnected)
+	})
+
+	if err := c.client.Connect(); err != nil {
+		return fmt.Errorf("connecting to centrifuge: %w", err)
+	}
+
+	return nil
+}
+
+type clientData struct {
+	Name string `json:"name"`
+}
+
+func ClientNameFromData(data []byte) (string, error) {
+	var d clientData
+	if err := json.Unmarshal(data, &d); err != nil {
+		return "", fmt.Errorf("unmarshaling client data: %w", err)
+	}
+	return d.Name, nil
 }

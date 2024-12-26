@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/centrifugal/centrifuge-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -24,14 +23,14 @@ import (
 func Run(runCtx, shutdownCtx context.Context, cfg *receiver.Config) error {
 	db := cfg.Postgres.BunDB()
 
-	centClient := centrifuge.NewJsonClient(
+	producer, err := centclient.NewProducer(
 		cfg.CentrifugeClient.Address,
-		centrifuge.Config{},
+		cfg.Channel,
+		cfg.Installation,
+		cfg.IntercomToken,
 	)
-
-	producer := centclient.NewProducer(centClient, cfg.Channel)
-	if err := producer.Init(); err != nil {
-		return fmt.Errorf("initializing producer: %w", err)
+	if err != nil {
+		return fmt.Errorf("creating centrifuge producer: %w", err)
 	}
 
 	dataServiceConn, err := grpcext.Dial(

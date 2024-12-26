@@ -28,8 +28,6 @@ func NewService(controller *Controller) *Service {
 func (s *Service) List(ctx context.Context, req *servicespb.ListRequest) (*servicespb.ListResponse, error) {
 	zap.L().Debug("ServicesService/List", zap.Any("request", req))
 
-	// FIXME: check admin rights.
-
 	gotVersion, err := s.controller.Versions.Get(ctx, VersionKey)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "getting version: %v", err)
@@ -58,8 +56,6 @@ func (s *Service) List(ctx context.Context, req *servicespb.ListRequest) (*servi
 
 func (s *Service) CreateBatch(ctx context.Context, req *servicespb.CreateBatchRequest) (*servicespb.CreateBatchResponse, error) {
 	zap.L().Debug("ServicesService/CreateBatch", zap.Any("request", req))
-
-	// FIXME: check admin rights.
 
 	if err := s.validateCreateBatch(req); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "validating request: %v", err)

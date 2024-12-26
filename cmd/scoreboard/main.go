@@ -13,7 +13,7 @@ import (
 func main() {
 	defer logging.Init().Close()
 
-	cfg := baseconfig.MustSetupAll(&scoreboard.Config{}, baseconfig.WithEnvPrefix("FASTAD_DATA_SERVICE"))
+	cfg := baseconfig.MustSetupAll(&scoreboard.Config{}, baseconfig.WithEnvPrefix("FASTAD_SCOREBOARD"))
 
 	runCtx, shutdownCtx, cancel := stop.SetupCtx()
 	defer cancel()

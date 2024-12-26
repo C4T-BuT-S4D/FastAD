@@ -10,6 +10,8 @@ type Config struct {
 	ListenAddress  string `mapstructure:"listen_address" default:":8001"`
 	MetricsAddress string `mapstructure:"metrics_address" default:":3001"`
 
+	IntercomToken string `mapstructure:"intercom_token"`
+
 	DataService config.DataService `mapstructure:"data_service"`
 
 	ReceiverAddress   string `mapstructure:"receiver_address" default:"localhost:8002"`

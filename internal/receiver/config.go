@@ -9,7 +9,9 @@ type Config struct {
 
 	ListenAddress  string `mapstructure:"listen_address" default:":8002"`
 	MetricsAddress string `mapstructure:"metrics_address" default:":3002"`
-	Channel        string `mapstructure:"channel" default:"attacks"`
+
+	Channel       string `mapstructure:"channel" default:"attacks"`
+	IntercomToken string `mapstructure:"intercom_token"`
 
 	Postgres         config.Postgres         `mapstructure:"postgres"`
 	DataService      config.DataService      `mapstructure:"data_service"`

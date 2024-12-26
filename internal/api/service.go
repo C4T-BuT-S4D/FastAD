@@ -1,10 +1,13 @@
 package api
 
 import (
+	"context"
+
 	"github.com/centrifugal/centrifuge"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 
+	"github.com/c4t-but-s4d/fastad/internal/centclient"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
@@ -13,8 +16,9 @@ import (
 )
 
 type Service struct {
-	centNode *centrifuge.Node
+	config *Config
 
+	centNode         *centrifuge.Node
 	teamsClient      *teams.Client
 	servicesClient   *services.Client
 	gameStateClient  *gamestate.Client
@@ -25,6 +29,7 @@ type Service struct {
 }
 
 func NewService(
+	cfg *Config,
 	centNode *centrifuge.Node,
 	teamsClient *teams.Client,
 	servicesClient *services.Client,
@@ -33,8 +38,9 @@ func NewService(
 	scoreboardClient scoreboard.ScoreboardServiceClient,
 ) *Service {
 	return &Service{
-		centNode: centNode,
+		config: cfg,
 
+		centNode:         centNode,
 		teamsClient:      teamsClient,
 		servicesClient:   servicesClient,
 		gameStateClient:  gameStateClient,
@@ -59,58 +65,78 @@ func (s *Service) RegisterRoutes(e *echo.Echo) {
 	apiGroup.GET("/game_state", s.HandleGetGameState())
 
 	wsHandler := centrifuge.NewWebsocketHandler(s.centNode, centrifuge.WebsocketConfig{})
-	e.Any("/centrifuge", echo.WrapHandler(wsHandler), centrifugeAuthMiddleware())
+	e.Any("/centrifuge", echo.WrapHandler(wsHandler))
 }
 
 func (s *Service) RegisterNode() {
+	s.centNode.OnConnecting(func(_ context.Context, e centrifuge.ConnectEvent) (centrifuge.ConnectReply, error) {
+		// Anonymous user.
+		if e.Token == "" {
+			return centrifuge.ConnectReply{
+				Credentials: &centrifuge.Credentials{
+					UserID: "",
+				},
+			}, nil
+		}
+
+		// Intercom user.
+		if e.Token != s.config.IntercomToken {
+			return centrifuge.ConnectReply{}, centrifuge.DisconnectInvalidToken
+		}
+
+		userID, err := centclient.ClientNameFromData(e.Data)
+		if err != nil {
+			return centrifuge.ConnectReply{}, centrifuge.DisconnectBadRequest
+		}
+
+		return centrifuge.ConnectReply{
+			Credentials: &centrifuge.Credentials{
+				UserID: userID,
+			},
+		}, nil
+	})
+
 	s.centNode.OnConnect(func(client *centrifuge.Client) {
-		transportName := client.Transport().Name()
-		transportProto := client.Transport().Protocol()
-		zap.L().Debug(
-			"client connected",
-			zap.String("transport", transportName),
-			zap.Any("proto", transportProto),
+		logger := zap.L().With(
+			zap.String("client_id", client.ID()),
+			zap.String("user_id", client.UserID()),
 		)
 
+		transportName := client.Transport().Name()
+		transportProto := client.Transport().Protocol()
+		logger.Debug(
+			"client connected",
+			zap.String("transport", transportName),
+			zap.String("proto", string(transportProto)),
+		)
+
+		// Allow all subscriptions.
 		client.OnSubscribe(func(event centrifuge.SubscribeEvent, callback centrifuge.SubscribeCallback) {
-			zap.L().Debug(
+			logger.Debug(
 				"client subscribed",
 				zap.String("channel", event.Channel),
 			)
-			// Allow all subscriptions.
 			callback(centrifuge.SubscribeReply{}, nil)
 		})
 
-		// FIXME: Only allow publishing from internal services (receiver, scoreboard).
-		client.OnPublish(func(event centrifuge.PublishEvent, callback centrifuge.PublishCallback) {
-			zap.L().Debug(
-				"publish event",
-				zap.Any("event", event),
-			)
-			callback(centrifuge.PublishReply{}, nil)
-		})
+		// Only allow publishing for authenticated users.
+		if client.UserID() != "" {
+			client.OnPublish(func(event centrifuge.PublishEvent, callback centrifuge.PublishCallback) {
+				logger.Debug(
+					"publish event",
+					zap.Any("channel", event.Channel),
+					zap.ByteString("data", event.Data),
+				)
+				callback(centrifuge.PublishReply{}, nil)
+			})
+		}
 
-		// Set Disconnect handler to react on client disconnect events.
 		client.OnDisconnect(func(e centrifuge.DisconnectEvent) {
-			zap.L().Debug(
+			logger.Debug(
 				"client disconnected",
 				zap.Uint32("code", e.Code),
 				zap.String("reason", e.Reason),
 			)
 		})
 	})
-}
-
-func centrifugeAuthMiddleware() echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			ctx := c.Request().Context()
-			cred := &centrifuge.Credentials{
-				UserID: "",
-			}
-			newCtx := centrifuge.SetCredentials(ctx, cred)
-			c.SetRequest(c.Request().WithContext(newCtx))
-			return next(c)
-		}
-	}
 }

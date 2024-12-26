@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
@@ -30,6 +31,7 @@ type Config struct {
 	UserAgent string `mapstructure:"user_agent" default:"allinone"`
 
 	MetricsAddress string `mapstructure:"metrics_address" default:":3000"`
+	IntercomToken  string `mapstructure:"intercom_token"`
 
 	Postgres    config.Postgres    `mapstructure:"postgres"`
 	Temporal    config.Temporal    `mapstructure:"temporal"`
@@ -46,21 +48,7 @@ func main() {
 
 	cfg := baseconfig.MustSetupAll(&Config{}, baseconfig.WithEnvPrefix("FASTAD_ALLINONE"))
 
-	cfg.DataService.Installation = fmt.Sprintf("%s/dataservice", cfg.UserAgent)
-	cfg.Scheduler.Installation = fmt.Sprintf("%s/scheduler", cfg.UserAgent)
-	cfg.Scoreboard.Installation = fmt.Sprintf("%s/scoreboard", cfg.UserAgent)
-	cfg.API.Installation = fmt.Sprintf("%s/api", cfg.UserAgent)
-	cfg.Checkers.Installation = fmt.Sprintf("%s/checkers", cfg.UserAgent)
-	cfg.Receiver.Installation = fmt.Sprintf("%s/receiver", cfg.UserAgent)
-
-	cfg.DataService.MetricsAddress = ""
-	cfg.Scheduler.MetricsAddress = ""
-	cfg.Scoreboard.MetricsAddress = ""
-	cfg.API.MetricsAddress = ""
-	cfg.Receiver.MetricsAddress = ""
-
-	// Checkers are listening on a different port.
-	cfg.Checkers.MetricsAddress = ""
+	setupConfig(cfg)
 
 	runCtx, shutdownCtx, cancel := stop.SetupCtx()
 	defer cancel()
@@ -129,4 +117,30 @@ func main() {
 	if err := g.Wait(); err != nil {
 		zap.L().Fatal("all-in-one run failed", zap.Error(err))
 	}
+}
+
+func setupConfig(cfg *Config) {
+	if cfg.IntercomToken == "" {
+		cfg.IntercomToken = uuid.NewString()
+	}
+
+	cfg.API.IntercomToken = cfg.IntercomToken
+	cfg.Scoreboard.IntercomToken = cfg.IntercomToken
+	cfg.Receiver.IntercomToken = cfg.IntercomToken
+
+	cfg.DataService.Installation = fmt.Sprintf("%s/dataservice", cfg.UserAgent)
+	cfg.Scheduler.Installation = fmt.Sprintf("%s/scheduler", cfg.UserAgent)
+	cfg.Scoreboard.Installation = fmt.Sprintf("%s/scoreboard", cfg.UserAgent)
+	cfg.API.Installation = fmt.Sprintf("%s/api", cfg.UserAgent)
+	cfg.Checkers.Installation = fmt.Sprintf("%s/checkers", cfg.UserAgent)
+	cfg.Receiver.Installation = fmt.Sprintf("%s/receiver", cfg.UserAgent)
+
+	cfg.DataService.MetricsAddress = ""
+	cfg.Scheduler.MetricsAddress = ""
+	cfg.Scoreboard.MetricsAddress = ""
+	cfg.API.MetricsAddress = ""
+	cfg.Receiver.MetricsAddress = ""
+
+	// Checkers are listening on a different port.
+	cfg.Checkers.MetricsAddress = ""
 }
