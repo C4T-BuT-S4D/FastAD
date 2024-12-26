@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/uptrace/bun"
+
+	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 )
 
 type Attack struct {
@@ -28,4 +30,14 @@ type Attack struct {
 	Attacker *Team    `bun:"rel:belongs-to,join:attacker_id=id"`
 	Victim   *Team    `bun:"rel:belongs-to,join:victim_id=id"`
 	Flag     *Flag    `bun:"rel:belongs-to,join:flag_id=id"`
+}
+
+func (a *Attack) ToNotificationProto() *receiverpb.AttackNotification {
+	return &receiverpb.AttackNotification{
+		ServiceId:     int64(a.ServiceID),
+		AttackerId:    int64(a.AttackerID),
+		VictimId:      int64(a.VictimID),
+		AttackerDelta: a.AttackerDelta,
+		VictimDelta:   a.VictimDelta,
+	}
 }

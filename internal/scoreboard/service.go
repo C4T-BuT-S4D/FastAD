@@ -59,6 +59,7 @@ func (s *Service) Run(ctx context.Context) {
 			if changed {
 				s.logger.Debug("publishing state")
 				if err := s.centClient.PublishProto(ctx, s.state.Load().ToProto()); err != nil {
+					// Not a critical error, we can continue without publishing the state.
 					s.logger.Error("publishing state failed", zap.Error(err))
 				}
 			}
@@ -204,6 +205,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 
 	s.logger.Debug("publishing state")
 	if err := s.centClient.PublishProto(ctx, state.ToProto()); err != nil {
+		// Not a critical error, we can continue without publishing the state.
 		s.logger.Error("publishing state failed", zap.Error(err))
 	}
 

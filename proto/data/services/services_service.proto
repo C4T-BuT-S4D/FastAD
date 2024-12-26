@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package data.services;
 
-import "google/api/annotations.proto";
-
 import "data/services/services.proto";
 
 service ServicesService {

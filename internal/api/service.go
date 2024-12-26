@@ -1,12 +1,9 @@
 package api
 
 import (
-	"context"
-
 	"github.com/centrifugal/centrifuge"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/metadata"
 
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
@@ -84,6 +81,7 @@ func (s *Service) RegisterNode() {
 			callback(centrifuge.SubscribeReply{}, nil)
 		})
 
+		// FIXME: Only allow publishing from internal services (receiver, scoreboard).
 		client.OnPublish(func(event centrifuge.PublishEvent, callback centrifuge.PublishCallback) {
 			zap.L().Debug(
 				"publish event",
@@ -115,14 +113,4 @@ func centrifugeAuthMiddleware() echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
-}
-
-func (s *Service) logger(ctx context.Context) *zap.Logger {
-	logger := zap.L().With(zap.String("component", "api"))
-	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		if requestID, ok := md["request_id"]; ok && len(requestID) > 0 {
-			logger = logger.With(zap.String("request_id", requestID[0]))
-		}
-	}
-	return logger
 }

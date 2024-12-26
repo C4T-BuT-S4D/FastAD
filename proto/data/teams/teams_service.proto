@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package data.teams;
 
-import "google/api/annotations.proto";
-
 import "data/teams/teams.proto";
 
 service TeamsService {

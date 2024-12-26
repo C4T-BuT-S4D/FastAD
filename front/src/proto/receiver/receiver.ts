@@ -87,6 +87,18 @@ export function flagResponse_VerdictToJSON(object: FlagResponse_Verdict): string
   }
 }
 
+export interface AttackNotification {
+  attackerId: bigint;
+  victimId: bigint;
+  serviceId: bigint;
+  attackerDelta: number;
+  victimDelta: number;
+}
+
+export interface AttackNotification_Batch {
+  attacks: AttackNotification[];
+}
+
 export interface State {
   teamServices: State_TeamService[];
 }
@@ -392,6 +404,269 @@ export const FlagResponse: MessageFns<FlagResponse> = {
     message.serviceId = object.serviceId ?? 0n;
     message.attackerDelta = object.attackerDelta ?? 0;
     message.victimDelta = object.victimDelta ?? 0;
+    return message;
+  },
+};
+
+function createBaseAttackNotification(): AttackNotification {
+  return { attackerId: 0n, victimId: 0n, serviceId: 0n, attackerDelta: 0, victimDelta: 0 };
+}
+
+export const AttackNotification: MessageFns<AttackNotification> = {
+  encode(message: AttackNotification, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.attackerId !== 0n) {
+      if (BigInt.asIntN(64, message.attackerId) !== message.attackerId) {
+        throw new globalThis.Error("value provided for field message.attackerId of type int64 too large");
+      }
+      writer.uint32(8).int64(message.attackerId);
+    }
+    if (message.victimId !== 0n) {
+      if (BigInt.asIntN(64, message.victimId) !== message.victimId) {
+        throw new globalThis.Error("value provided for field message.victimId of type int64 too large");
+      }
+      writer.uint32(16).int64(message.victimId);
+    }
+    if (message.serviceId !== 0n) {
+      if (BigInt.asIntN(64, message.serviceId) !== message.serviceId) {
+        throw new globalThis.Error("value provided for field message.serviceId of type int64 too large");
+      }
+      writer.uint32(24).int64(message.serviceId);
+    }
+    if (message.attackerDelta !== 0) {
+      writer.uint32(33).double(message.attackerDelta);
+    }
+    if (message.victimDelta !== 0) {
+      writer.uint32(41).double(message.victimDelta);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AttackNotification {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAttackNotification();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.attackerId = reader.int64() as bigint;
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.victimId = reader.int64() as bigint;
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.serviceId = reader.int64() as bigint;
+          continue;
+        }
+        case 4: {
+          if (tag !== 33) {
+            break;
+          }
+
+          message.attackerDelta = reader.double();
+          continue;
+        }
+        case 5: {
+          if (tag !== 41) {
+            break;
+          }
+
+          message.victimDelta = reader.double();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<AttackNotification, Uint8Array>
+  async *encodeTransform(
+    source:
+      | AsyncIterable<AttackNotification | AttackNotification[]>
+      | Iterable<AttackNotification | AttackNotification[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [AttackNotification.encode(p).finish()];
+        }
+      } else {
+        yield* [AttackNotification.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, AttackNotification>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<AttackNotification> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [AttackNotification.decode(p)];
+        }
+      } else {
+        yield* [AttackNotification.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): AttackNotification {
+    return {
+      attackerId: isSet(object.attackerId) ? BigInt(object.attackerId) : 0n,
+      victimId: isSet(object.victimId) ? BigInt(object.victimId) : 0n,
+      serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
+      attackerDelta: isSet(object.attackerDelta) ? globalThis.Number(object.attackerDelta) : 0,
+      victimDelta: isSet(object.victimDelta) ? globalThis.Number(object.victimDelta) : 0,
+    };
+  },
+
+  toJSON(message: AttackNotification): unknown {
+    const obj: any = {};
+    if (message.attackerId !== 0n) {
+      obj.attackerId = message.attackerId.toString();
+    }
+    if (message.victimId !== 0n) {
+      obj.victimId = message.victimId.toString();
+    }
+    if (message.serviceId !== 0n) {
+      obj.serviceId = message.serviceId.toString();
+    }
+    if (message.attackerDelta !== 0) {
+      obj.attackerDelta = message.attackerDelta;
+    }
+    if (message.victimDelta !== 0) {
+      obj.victimDelta = message.victimDelta;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AttackNotification>, I>>(base?: I): AttackNotification {
+    return AttackNotification.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AttackNotification>, I>>(object: I): AttackNotification {
+    const message = createBaseAttackNotification();
+    message.attackerId = object.attackerId ?? 0n;
+    message.victimId = object.victimId ?? 0n;
+    message.serviceId = object.serviceId ?? 0n;
+    message.attackerDelta = object.attackerDelta ?? 0;
+    message.victimDelta = object.victimDelta ?? 0;
+    return message;
+  },
+};
+
+function createBaseAttackNotification_Batch(): AttackNotification_Batch {
+  return { attacks: [] };
+}
+
+export const AttackNotification_Batch: MessageFns<AttackNotification_Batch> = {
+  encode(message: AttackNotification_Batch, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.attacks) {
+      AttackNotification.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AttackNotification_Batch {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAttackNotification_Batch();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.attacks.push(AttackNotification.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<AttackNotification_Batch, Uint8Array>
+  async *encodeTransform(
+    source:
+      | AsyncIterable<AttackNotification_Batch | AttackNotification_Batch[]>
+      | Iterable<AttackNotification_Batch | AttackNotification_Batch[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [AttackNotification_Batch.encode(p).finish()];
+        }
+      } else {
+        yield* [AttackNotification_Batch.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, AttackNotification_Batch>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<AttackNotification_Batch> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [AttackNotification_Batch.decode(p)];
+        }
+      } else {
+        yield* [AttackNotification_Batch.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): AttackNotification_Batch {
+    return {
+      attacks: globalThis.Array.isArray(object?.attacks)
+        ? object.attacks.map((e: any) => AttackNotification.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: AttackNotification_Batch): unknown {
+    const obj: any = {};
+    if (message.attacks?.length) {
+      obj.attacks = message.attacks.map((e) => AttackNotification.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AttackNotification_Batch>, I>>(base?: I): AttackNotification_Batch {
+    return AttackNotification_Batch.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AttackNotification_Batch>, I>>(object: I): AttackNotification_Batch {
+    const message = createBaseAttackNotification_Batch();
+    message.attacks = object.attacks?.map((e) => AttackNotification.fromPartial(e)) || [];
     return message;
   },
 };

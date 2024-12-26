@@ -101,7 +101,7 @@ def run_example():
     )
 
     sub = client.new_subscription(
-        "scoreboard",
+        "attacks",
         events=SubscriptionEventLoggerHandler(),
     )
 

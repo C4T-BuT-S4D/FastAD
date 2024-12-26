@@ -9,7 +9,9 @@ type Config struct {
 
 	ListenAddress  string `mapstructure:"listen_address" default:":8002"`
 	MetricsAddress string `mapstructure:"metrics_address" default:":3002"`
+	Channel        string `mapstructure:"channel" default:"attacks"`
 
-	Postgres    config.Postgres    `mapstructure:"postgres"`
-	DataService config.DataService `mapstructure:"data_service"`
+	Postgres         config.Postgres         `mapstructure:"postgres"`
+	DataService      config.DataService      `mapstructure:"data_service"`
+	CentrifugeClient config.CentrifugeClient `mapstructure:"centrifuge_client"`
 }

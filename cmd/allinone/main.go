@@ -90,14 +90,7 @@ func main() {
 		return nil
 	})
 
-	cfg.Receiver.DataService.Address = cfg.DataService.ListenAddress
-	g.Go(func() error {
-		if err := receiverImpl.Run(gctx, shutdownCtx, &cfg.Receiver); err != nil {
-			return fmt.Errorf("running receiver: %w", err)
-		}
-		return nil
-	})
-
+	// Receiver and scoreboard depend on API, start it first.
 	cfg.API.DataService.Address = cfg.DataService.ListenAddress
 	cfg.API.ScoreboardAddress = cfg.Scoreboard.ListenAddress
 	cfg.API.ReceiverAddress = cfg.Receiver.ListenAddress
@@ -109,12 +102,21 @@ func main() {
 	})
 
 	if err := apiwait.HTTP(gctx, cfg.API.ListenAddress); err != nil {
-		zap.L().Fatal("waiting for API", zap.Error(err))
+		zap.L().Error("waiting for API", zap.Error(err))
+		cancel()
 	}
 
 	g.Go(func() error {
 		if err := scoreboardImpl.Run(gctx, shutdownCtx, &cfg.Scoreboard); err != nil {
 			return fmt.Errorf("running scoreboard: %w", err)
+		}
+		return nil
+	})
+
+	cfg.Receiver.DataService.Address = cfg.DataService.ListenAddress
+	g.Go(func() error {
+		if err := receiverImpl.Run(gctx, shutdownCtx, &cfg.Receiver); err != nil {
+			return fmt.Errorf("running receiver: %w", err)
 		}
 		return nil
 	})

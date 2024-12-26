@@ -21,11 +21,7 @@ export const ServicesServiceDefinition = {
       requestStream: false,
       responseType: ListResponse,
       responseStream: false,
-      options: {
-        _unknownFields: {
-          578365826: [new Uint8Array([15, 18, 13, 47, 97, 112, 105, 47, 115, 101, 114, 118, 105, 99, 101, 115])],
-        },
-      },
+      options: {},
     },
     createBatch: {
       name: "CreateBatch",

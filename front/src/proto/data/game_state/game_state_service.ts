@@ -28,13 +28,7 @@ export const GameStateServiceDefinition = {
       requestStream: false,
       responseType: GetResponse,
       responseStream: false,
-      options: {
-        _unknownFields: {
-          578365826: [
-            new Uint8Array([17, 18, 15, 47, 97, 112, 105, 47, 103, 97, 109, 101, 95, 115, 116, 97, 116, 101]),
-          ],
-        },
-      },
+      options: {},
     },
     update: {
       name: "Update",
@@ -42,13 +36,7 @@ export const GameStateServiceDefinition = {
       requestStream: false,
       responseType: UpdateResponse,
       responseStream: false,
-      options: {
-        _unknownFields: {
-          578365826: [
-            new Uint8Array([17, 34, 15, 47, 97, 112, 105, 47, 103, 97, 109, 101, 95, 115, 116, 97, 116, 101]),
-          ],
-        },
-      },
+      options: {},
     },
     updateRound: {
       name: "UpdateRound",
@@ -56,38 +44,7 @@ export const GameStateServiceDefinition = {
       requestStream: false,
       responseType: UpdateRoundResponse,
       responseStream: false,
-      options: {
-        _unknownFields: {
-          578365826: [
-            new Uint8Array([
-              23,
-              34,
-              21,
-              47,
-              97,
-              112,
-              105,
-              47,
-              103,
-              97,
-              109,
-              101,
-              95,
-              115,
-              116,
-              97,
-              116,
-              101,
-              47,
-              114,
-              111,
-              117,
-              110,
-              100,
-            ]),
-          ],
-        },
-      },
+      options: {},
     },
   },
 } as const;

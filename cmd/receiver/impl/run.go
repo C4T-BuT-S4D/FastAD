@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/centrifugal/centrifuge-go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/c4t-but-s4d/fastad/internal/centclient"
 	"github.com/c4t-but-s4d/fastad/internal/receiver"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
@@ -22,6 +24,16 @@ import (
 func Run(runCtx, shutdownCtx context.Context, cfg *receiver.Config) error {
 	db := cfg.Postgres.BunDB()
 
+	centClient := centrifuge.NewJsonClient(
+		cfg.CentrifugeClient.Address,
+		centrifuge.Config{},
+	)
+
+	producer := centclient.NewProducer(centClient, cfg.Channel)
+	if err := producer.Init(); err != nil {
+		return fmt.Errorf("initializing producer: %w", err)
+	}
+
 	dataServiceConn, err := grpcext.Dial(
 		cfg.DataService.Address,
 		cfg.Installation,
@@ -35,7 +47,13 @@ func Run(runCtx, shutdownCtx context.Context, cfg *receiver.Config) error {
 	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn))
 	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn))
 
-	receiverService := receiver.New(db, teamsClient, servicesClient, gameStateClient)
+	receiverService := receiver.New(
+		db,
+		teamsClient,
+		servicesClient,
+		gameStateClient,
+		producer,
+	)
 
 	if err := receiverService.RestoreState(runCtx); err != nil {
 		return fmt.Errorf("restoring state: %w", err)

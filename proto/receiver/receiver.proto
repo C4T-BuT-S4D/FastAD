@@ -25,6 +25,18 @@ message FlagResponse {
   double victim_delta = 7;
 }
 
+message AttackNotification {
+  message Batch {
+    repeated AttackNotification attacks = 1;
+  }
+
+  int64 attacker_id = 1;
+  int64 victim_id = 2;
+  int64 service_id = 3;
+  double attacker_delta = 4;
+  double victim_delta = 5;
+}
+
 message State {
   message TeamService {
     int64 team_id = 1;

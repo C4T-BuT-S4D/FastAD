@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
+	"github.com/c4t-but-s4d/fastad/internal/centclient"
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
@@ -37,6 +38,7 @@ func New(
 	teamsClient *teams.Client,
 	servicesClient *services.Client,
 	gameStateClient *gamestate.Client,
+	producer *centclient.Producer,
 ) *Service {
 	return &Service{
 		db:              db,
@@ -44,6 +46,7 @@ func New(
 		servicesClient:  servicesClient,
 		gameStateClient: gameStateClient,
 		state:           NewState(),
+		producer:        producer,
 	}
 }
 
@@ -54,6 +57,7 @@ type Service struct {
 	teamsClient     *teams.Client
 	servicesClient  *services.Client
 	gameStateClient *gamestate.Client
+	producer        *centclient.Producer
 
 	stateMu sync.Mutex
 	state   *State
@@ -98,6 +102,8 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 	}
 
 	attacksRequestID := uuid.NewString()
+
+	var addedAttacks []*models.Attack
 
 	uniqueFlags := lo.Uniq(req.Flags)
 	resp := &receiverpb.SubmitFlagsResponse{}
@@ -248,10 +254,23 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 		// Intentionally ignoring the potential issue of a missing state rollback in
 		// the improbable case all queries in tx finish but the tx is reverted afterward.
 		shouldRollbackState = false
+		addedAttacks = attacksToAdd
 
 		return nil
 	}); err != nil {
 		return nil, fmt.Errorf("in transaction: %w", err)
+	}
+
+	if len(addedAttacks) > 0 {
+		notification := &receiverpb.AttackNotification_Batch{
+			Attacks: lo.Map(addedAttacks, func(attack *models.Attack, _ int) *receiverpb.AttackNotification {
+				return attack.ToNotificationProto()
+			}),
+		}
+		if err := s.producer.PublishProto(ctx, notification); err != nil {
+			// It's not a critical error, so we don't return an error to the client.
+			zap.L().Error("publishing attack notification", zap.Error(err))
+		}
 	}
 
 	return resp, nil

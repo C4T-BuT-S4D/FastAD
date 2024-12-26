@@ -21,9 +21,7 @@ export const TeamsServiceDefinition = {
       requestStream: false,
       responseType: ListResponse,
       responseStream: false,
-      options: {
-        _unknownFields: { 578365826: [new Uint8Array([12, 18, 10, 47, 97, 112, 105, 47, 116, 101, 97, 109, 115])] },
-      },
+      options: {},
     },
     createBatch: {
       name: "CreateBatch",
