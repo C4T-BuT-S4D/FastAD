@@ -3,3 +3,4 @@
 .vscode
 /vol
 mise.local.toml
+__pycache__
