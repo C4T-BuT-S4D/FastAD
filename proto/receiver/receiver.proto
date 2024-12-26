@@ -43,8 +43,8 @@ message State {
     int64 team_id = 1;
     int64 service_id = 2;
     double points = 3;
-    int64 stolen_flags = 4;
-    int64 lost_flags = 5;
+    int64 flags_stolen = 4;
+    int64 flags_lost = 5;
   }
 
   repeated TeamService team_services = 1;

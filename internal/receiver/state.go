@@ -13,8 +13,8 @@ import (
 type TeamServiceState struct {
 	TeamID      int     `json:"team_id"`
 	Points      float64 `json:"points"`
-	StolenFlags int     `json:"stolen_flags"`
-	LostFlags   int     `json:"lost_flags"`
+	FlagsStolen int     `json:"flags_stolen"`
+	FlagsLost   int     `json:"flags_lost"`
 }
 
 func (s *TeamServiceState) ToProto(serviceID int) *receiverpb.State_TeamService {
@@ -22,16 +22,16 @@ func (s *TeamServiceState) ToProto(serviceID int) *receiverpb.State_TeamService 
 		TeamId:      int64(s.TeamID),
 		ServiceId:   int64(serviceID),
 		Points:      s.Points,
-		StolenFlags: int64(s.StolenFlags),
-		LostFlags:   int64(s.LostFlags),
+		FlagsStolen: int64(s.FlagsStolen),
+		FlagsLost:   int64(s.FlagsLost),
 	}
 }
 
 func (s *TeamServiceState) Clone() *TeamServiceState {
 	return &TeamServiceState{
 		Points:      s.Points,
-		StolenFlags: s.StolenFlags,
-		LostFlags:   s.LostFlags,
+		FlagsStolen: s.FlagsStolen,
+		FlagsLost:   s.FlagsLost,
 	}
 }
 
@@ -79,10 +79,10 @@ func (s *ServiceState) Apply(gs *models.GameState, attack *models.Attack) error 
 	attack.VictimDelta = victimDelta
 
 	attackerState.Points += attackerDelta
-	attackerState.StolenFlags++
+	attackerState.FlagsStolen++
 
 	victimState.Points += victimDelta
-	victimState.LostFlags++
+	victimState.FlagsLost++
 
 	return nil
 }
@@ -93,10 +93,10 @@ func (s *ServiceState) ApplyRaw(attacks ...*models.Attack) {
 		victimState := s.getOrCreate(attack.VictimID)
 
 		attackerState.Points += attack.AttackerDelta
-		attackerState.StolenFlags++
+		attackerState.FlagsStolen++
 
 		victimState.Points += attack.VictimDelta
-		victimState.LostFlags++
+		victimState.FlagsLost++
 	}
 }
 
