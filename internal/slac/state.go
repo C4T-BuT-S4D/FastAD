@@ -22,6 +22,7 @@ func (s *TeamServiceState) Clone() *TeamServiceState {
 		ServiceID:    s.ServiceID,
 		ChecksTotal:  s.ChecksTotal,
 		ChecksPassed: s.ChecksPassed,
+		Status:       s.Status,
 	}
 }
 

@@ -12,8 +12,8 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
-	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
+	scoreboardpb "github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
 	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
 )
 
@@ -31,7 +31,7 @@ type BoardBuilder struct {
 	// References to these fields are returned to the caller.
 	teamsCache      []*models.Team
 	servicesCache   []*models.Service
-	scoreboardCache *ScoreboardState
+	scoreboardCache *scoreboardpb.Scoreboard
 }
 
 func NewBoardBuilder(
@@ -48,7 +48,7 @@ func NewBoardBuilder(
 	}
 }
 
-func (b *BoardBuilder) GetScoreboard(ctx context.Context) (*ScoreboardState, error) {
+func (b *BoardBuilder) GetScoreboard(ctx context.Context) (*scoreboardpb.Scoreboard, error) {
 	b.mu.RLock()
 	board := b.scoreboardCache
 	lastRefresh := b.lastRefresh
@@ -136,13 +136,13 @@ func (b *BoardBuilder) getServicesUnlocked(ctx context.Context) error {
 	return nil
 }
 
-func (b *BoardBuilder) buildScoreboardStateUnlocked(ctx context.Context) (*ScoreboardState, error) {
-	sbMap := make(map[teamServiceKey]*TeamServiceState)
+func (b *BoardBuilder) buildScoreboardStateUnlocked(ctx context.Context) (*scoreboardpb.Scoreboard, error) {
+	sbMap := make(map[teamServiceKey]*scoreboardpb.Scoreboard_TeamServiceState)
 	for _, team := range b.teamsCache {
 		for _, service := range b.servicesCache {
-			sbMap[teamServiceKey{TeamID: team.ID, ServiceID: service.ID}] = &TeamServiceState{
-				TeamID:    team.ID,
-				ServiceID: service.ID,
+			sbMap[teamServiceKey{TeamID: team.ID, ServiceID: service.ID}] = &scoreboardpb.Scoreboard_TeamServiceState{
+				TeamId:    int64(team.ID),
+				ServiceId: int64(service.ID),
 				Points:    service.DefaultScore,
 			}
 		}
@@ -161,46 +161,25 @@ func (b *BoardBuilder) buildScoreboardStateUnlocked(ctx context.Context) (*Score
 	for _, tss := range slaState.GetState().GetTeamServiceStates() {
 		key := teamServiceKey{TeamID: int(tss.GetTeamId()), ServiceID: int(tss.GetServiceId())}
 		if sbs, ok := sbMap[key]; ok {
-			sbs.ChecksTotal = int(tss.GetChecksTotal())
-			sbs.ChecksPassed = int(tss.GetChecksPassed())
-			sbs.Status = StatusWrapper(tss.GetStatus())
+			sbs.ChecksTotal = tss.GetChecksTotal()
+			sbs.ChecksPassed = tss.GetChecksPassed()
+			sbs.Status = tss.GetStatus()
 		}
 	}
 
 	for _, tss := range receiverState.GetState().GetTeamServices() {
 		key := teamServiceKey{TeamID: int(tss.GetTeamId()), ServiceID: int(tss.GetServiceId())}
 		if sbs, ok := sbMap[key]; ok {
-			sbs.StolenFlags = int(tss.GetStolenFlags())
-			sbs.LostFlags = int(tss.GetLostFlags())
+			sbs.FlagsStolen = tss.GetFlagsStolen()
+			sbs.FlagsLost = tss.GetFlagsLost()
 			sbs.Points = tss.GetPoints()
 		}
 	}
 
-	return &ScoreboardState{TeamServiceStates: lo.Values(sbMap)}, nil
+	return &scoreboardpb.Scoreboard{TeamServiceStates: lo.Values(sbMap)}, nil
 }
 
 type teamServiceKey struct {
 	TeamID    int
 	ServiceID int
-}
-
-type TeamServiceState struct {
-	TeamID       int           `json:"team_id"`
-	ServiceID    int           `json:"service_id"`
-	ChecksTotal  int           `json:"checks_total"`
-	ChecksPassed int           `json:"checks_passed"`
-	StolenFlags  int           `json:"stolen_flags"`
-	LostFlags    int           `json:"lost_flags"`
-	Points       float64       `json:"points"`
-	Status       StatusWrapper `json:"status"`
-}
-
-type ScoreboardState struct {
-	TeamServiceStates []*TeamServiceState `json:"team_service_states"`
-}
-
-type StatusWrapper checkerpb.Status
-
-func (s StatusWrapper) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf(`"%s"`, checkerpb.Status(s).String())), nil
 }

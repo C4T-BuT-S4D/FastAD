@@ -2,18 +2,18 @@
 // versions:
 //   protoc-gen-ts_proto  v2.3.0
 //   protoc               unknown
-// source: scoreboard/scoreboard_service.proto
+// source: slac/slac_service.proto
 
 /* eslint-disable */
 import { type CallContext, type CallOptions } from "nice-grpc-common";
-import { GetStateRequest, GetStateResponse } from "./scoreboard";
+import { GetStateRequest, GetStateResponse } from "./slac";
 
-export const protobufPackage = "scoreboard";
+export const protobufPackage = "slac";
 
-export type ScoreboardServiceDefinition = typeof ScoreboardServiceDefinition;
-export const ScoreboardServiceDefinition = {
-  name: "ScoreboardService",
-  fullName: "scoreboard.ScoreboardService",
+export type SlacServiceDefinition = typeof SlacServiceDefinition;
+export const SlacServiceDefinition = {
+  name: "SlacService",
+  fullName: "slac.SlacService",
   methods: {
     getState: {
       name: "GetState",
@@ -26,11 +26,11 @@ export const ScoreboardServiceDefinition = {
   },
 } as const;
 
-export interface ScoreboardServiceImplementation<CallContextExt = {}> {
+export interface SlacServiceImplementation<CallContextExt = {}> {
   getState(request: GetStateRequest, context: CallContext & CallContextExt): Promise<DeepPartial<GetStateResponse>>;
 }
 
-export interface ScoreboardServiceClient<CallOptionsExt = {}> {
+export interface SlacServiceClient<CallOptionsExt = {}> {
   getState(request: DeepPartial<GetStateRequest>, options?: CallOptions & CallOptionsExt): Promise<GetStateResponse>;
 }
 

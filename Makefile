@@ -16,7 +16,7 @@ goimports:
 
 .PHONY: proto
 proto: lint-proto
-	rm -rf pkg/proto
+	rm -rf pkg/proto front/src/proto
 	cd proto && buf generate
 
 .PHONY: tidy

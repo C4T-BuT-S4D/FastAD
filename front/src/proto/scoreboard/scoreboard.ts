@@ -10,192 +10,22 @@ import { Status, statusFromJSON, statusToJSON } from "../checker/checker";
 
 export const protobufPackage = "scoreboard";
 
-export interface TeamServiceState {
+export interface Scoreboard {
+  teamServiceStates: Scoreboard_TeamServiceState[];
+}
+
+export interface Scoreboard_TeamServiceState {
   teamId: bigint;
   serviceId: bigint;
+  /** From slac. */
   checksTotal: bigint;
   checksPassed: bigint;
   status: Status;
+  /** From receiver. */
+  points: number;
+  flagsStolen: bigint;
+  flagsLost: bigint;
 }
-
-export interface Scoreboard {
-  teamServiceStates: TeamServiceState[];
-}
-
-export interface GetStateRequest {
-}
-
-export interface GetStateResponse {
-  scoreboard: Scoreboard | undefined;
-}
-
-function createBaseTeamServiceState(): TeamServiceState {
-  return { teamId: 0n, serviceId: 0n, checksTotal: 0n, checksPassed: 0n, status: 0 };
-}
-
-export const TeamServiceState: MessageFns<TeamServiceState> = {
-  encode(message: TeamServiceState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.teamId !== 0n) {
-      if (BigInt.asIntN(64, message.teamId) !== message.teamId) {
-        throw new globalThis.Error("value provided for field message.teamId of type int64 too large");
-      }
-      writer.uint32(8).int64(message.teamId);
-    }
-    if (message.serviceId !== 0n) {
-      if (BigInt.asIntN(64, message.serviceId) !== message.serviceId) {
-        throw new globalThis.Error("value provided for field message.serviceId of type int64 too large");
-      }
-      writer.uint32(16).int64(message.serviceId);
-    }
-    if (message.checksTotal !== 0n) {
-      if (BigInt.asIntN(64, message.checksTotal) !== message.checksTotal) {
-        throw new globalThis.Error("value provided for field message.checksTotal of type int64 too large");
-      }
-      writer.uint32(24).int64(message.checksTotal);
-    }
-    if (message.checksPassed !== 0n) {
-      if (BigInt.asIntN(64, message.checksPassed) !== message.checksPassed) {
-        throw new globalThis.Error("value provided for field message.checksPassed of type int64 too large");
-      }
-      writer.uint32(32).int64(message.checksPassed);
-    }
-    if (message.status !== 0) {
-      writer.uint32(40).int32(message.status);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): TeamServiceState {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseTeamServiceState();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.teamId = reader.int64() as bigint;
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.serviceId = reader.int64() as bigint;
-          continue;
-        }
-        case 3: {
-          if (tag !== 24) {
-            break;
-          }
-
-          message.checksTotal = reader.int64() as bigint;
-          continue;
-        }
-        case 4: {
-          if (tag !== 32) {
-            break;
-          }
-
-          message.checksPassed = reader.int64() as bigint;
-          continue;
-        }
-        case 5: {
-          if (tag !== 40) {
-            break;
-          }
-
-          message.status = reader.int32() as any;
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  // encodeTransform encodes a source of message objects.
-  // Transform<TeamServiceState, Uint8Array>
-  async *encodeTransform(
-    source: AsyncIterable<TeamServiceState | TeamServiceState[]> | Iterable<TeamServiceState | TeamServiceState[]>,
-  ): AsyncIterable<Uint8Array> {
-    for await (const pkt of source) {
-      if (globalThis.Array.isArray(pkt)) {
-        for (const p of (pkt as any)) {
-          yield* [TeamServiceState.encode(p).finish()];
-        }
-      } else {
-        yield* [TeamServiceState.encode(pkt as any).finish()];
-      }
-    }
-  },
-
-  // decodeTransform decodes a source of encoded messages.
-  // Transform<Uint8Array, TeamServiceState>
-  async *decodeTransform(
-    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-  ): AsyncIterable<TeamServiceState> {
-    for await (const pkt of source) {
-      if (globalThis.Array.isArray(pkt)) {
-        for (const p of (pkt as any)) {
-          yield* [TeamServiceState.decode(p)];
-        }
-      } else {
-        yield* [TeamServiceState.decode(pkt as any)];
-      }
-    }
-  },
-
-  fromJSON(object: any): TeamServiceState {
-    return {
-      teamId: isSet(object.teamId) ? BigInt(object.teamId) : 0n,
-      serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
-      checksTotal: isSet(object.checksTotal) ? BigInt(object.checksTotal) : 0n,
-      checksPassed: isSet(object.checksPassed) ? BigInt(object.checksPassed) : 0n,
-      status: isSet(object.status) ? statusFromJSON(object.status) : 0,
-    };
-  },
-
-  toJSON(message: TeamServiceState): unknown {
-    const obj: any = {};
-    if (message.teamId !== 0n) {
-      obj.teamId = message.teamId.toString();
-    }
-    if (message.serviceId !== 0n) {
-      obj.serviceId = message.serviceId.toString();
-    }
-    if (message.checksTotal !== 0n) {
-      obj.checksTotal = message.checksTotal.toString();
-    }
-    if (message.checksPassed !== 0n) {
-      obj.checksPassed = message.checksPassed.toString();
-    }
-    if (message.status !== 0) {
-      obj.status = statusToJSON(message.status);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<TeamServiceState>, I>>(base?: I): TeamServiceState {
-    return TeamServiceState.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<TeamServiceState>, I>>(object: I): TeamServiceState {
-    const message = createBaseTeamServiceState();
-    message.teamId = object.teamId ?? 0n;
-    message.serviceId = object.serviceId ?? 0n;
-    message.checksTotal = object.checksTotal ?? 0n;
-    message.checksPassed = object.checksPassed ?? 0n;
-    message.status = object.status ?? 0;
-    return message;
-  },
-};
 
 function createBaseScoreboard(): Scoreboard {
   return { teamServiceStates: [] };
@@ -204,7 +34,7 @@ function createBaseScoreboard(): Scoreboard {
 export const Scoreboard: MessageFns<Scoreboard> = {
   encode(message: Scoreboard, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.teamServiceStates) {
-      TeamServiceState.encode(v!, writer.uint32(10).fork()).join();
+      Scoreboard_TeamServiceState.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
@@ -221,7 +51,7 @@ export const Scoreboard: MessageFns<Scoreboard> = {
             break;
           }
 
-          message.teamServiceStates.push(TeamServiceState.decode(reader, reader.uint32()));
+          message.teamServiceStates.push(Scoreboard_TeamServiceState.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -268,7 +98,7 @@ export const Scoreboard: MessageFns<Scoreboard> = {
   fromJSON(object: any): Scoreboard {
     return {
       teamServiceStates: globalThis.Array.isArray(object?.teamServiceStates)
-        ? object.teamServiceStates.map((e: any) => TeamServiceState.fromJSON(e))
+        ? object.teamServiceStates.map((e: any) => Scoreboard_TeamServiceState.fromJSON(e))
         : [],
     };
   },
@@ -276,7 +106,7 @@ export const Scoreboard: MessageFns<Scoreboard> = {
   toJSON(message: Scoreboard): unknown {
     const obj: any = {};
     if (message.teamServiceStates?.length) {
-      obj.teamServiceStates = message.teamServiceStates.map((e) => TeamServiceState.toJSON(e));
+      obj.teamServiceStates = message.teamServiceStates.map((e) => Scoreboard_TeamServiceState.toJSON(e));
     }
     return obj;
   },
@@ -286,111 +116,140 @@ export const Scoreboard: MessageFns<Scoreboard> = {
   },
   fromPartial<I extends Exact<DeepPartial<Scoreboard>, I>>(object: I): Scoreboard {
     const message = createBaseScoreboard();
-    message.teamServiceStates = object.teamServiceStates?.map((e) => TeamServiceState.fromPartial(e)) || [];
+    message.teamServiceStates = object.teamServiceStates?.map((e) => Scoreboard_TeamServiceState.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseGetStateRequest(): GetStateRequest {
-  return {};
+function createBaseScoreboard_TeamServiceState(): Scoreboard_TeamServiceState {
+  return {
+    teamId: 0n,
+    serviceId: 0n,
+    checksTotal: 0n,
+    checksPassed: 0n,
+    status: 0,
+    points: 0,
+    flagsStolen: 0n,
+    flagsLost: 0n,
+  };
 }
 
-export const GetStateRequest: MessageFns<GetStateRequest> = {
-  encode(_: GetStateRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): GetStateRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetStateRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
+export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState> = {
+  encode(message: Scoreboard_TeamServiceState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.teamId !== 0n) {
+      if (BigInt.asIntN(64, message.teamId) !== message.teamId) {
+        throw new globalThis.Error("value provided for field message.teamId of type int64 too large");
       }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
+      writer.uint32(8).int64(message.teamId);
     }
-    return message;
-  },
-
-  // encodeTransform encodes a source of message objects.
-  // Transform<GetStateRequest, Uint8Array>
-  async *encodeTransform(
-    source: AsyncIterable<GetStateRequest | GetStateRequest[]> | Iterable<GetStateRequest | GetStateRequest[]>,
-  ): AsyncIterable<Uint8Array> {
-    for await (const pkt of source) {
-      if (globalThis.Array.isArray(pkt)) {
-        for (const p of (pkt as any)) {
-          yield* [GetStateRequest.encode(p).finish()];
-        }
-      } else {
-        yield* [GetStateRequest.encode(pkt as any).finish()];
+    if (message.serviceId !== 0n) {
+      if (BigInt.asIntN(64, message.serviceId) !== message.serviceId) {
+        throw new globalThis.Error("value provided for field message.serviceId of type int64 too large");
       }
+      writer.uint32(16).int64(message.serviceId);
     }
-  },
-
-  // decodeTransform decodes a source of encoded messages.
-  // Transform<Uint8Array, GetStateRequest>
-  async *decodeTransform(
-    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-  ): AsyncIterable<GetStateRequest> {
-    for await (const pkt of source) {
-      if (globalThis.Array.isArray(pkt)) {
-        for (const p of (pkt as any)) {
-          yield* [GetStateRequest.decode(p)];
-        }
-      } else {
-        yield* [GetStateRequest.decode(pkt as any)];
+    if (message.checksTotal !== 0n) {
+      if (BigInt.asIntN(64, message.checksTotal) !== message.checksTotal) {
+        throw new globalThis.Error("value provided for field message.checksTotal of type int64 too large");
       }
+      writer.uint32(24).int64(message.checksTotal);
     }
-  },
-
-  fromJSON(_: any): GetStateRequest {
-    return {};
-  },
-
-  toJSON(_: GetStateRequest): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetStateRequest>, I>>(base?: I): GetStateRequest {
-    return GetStateRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetStateRequest>, I>>(_: I): GetStateRequest {
-    const message = createBaseGetStateRequest();
-    return message;
-  },
-};
-
-function createBaseGetStateResponse(): GetStateResponse {
-  return { scoreboard: undefined };
-}
-
-export const GetStateResponse: MessageFns<GetStateResponse> = {
-  encode(message: GetStateResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.scoreboard !== undefined) {
-      Scoreboard.encode(message.scoreboard, writer.uint32(10).fork()).join();
+    if (message.checksPassed !== 0n) {
+      if (BigInt.asIntN(64, message.checksPassed) !== message.checksPassed) {
+        throw new globalThis.Error("value provided for field message.checksPassed of type int64 too large");
+      }
+      writer.uint32(32).int64(message.checksPassed);
+    }
+    if (message.status !== 0) {
+      writer.uint32(40).int32(message.status);
+    }
+    if (message.points !== 0) {
+      writer.uint32(49).double(message.points);
+    }
+    if (message.flagsStolen !== 0n) {
+      if (BigInt.asIntN(64, message.flagsStolen) !== message.flagsStolen) {
+        throw new globalThis.Error("value provided for field message.flagsStolen of type int64 too large");
+      }
+      writer.uint32(56).int64(message.flagsStolen);
+    }
+    if (message.flagsLost !== 0n) {
+      if (BigInt.asIntN(64, message.flagsLost) !== message.flagsLost) {
+        throw new globalThis.Error("value provided for field message.flagsLost of type int64 too large");
+      }
+      writer.uint32(64).int64(message.flagsLost);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GetStateResponse {
+  decode(input: BinaryReader | Uint8Array, length?: number): Scoreboard_TeamServiceState {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetStateResponse();
+    const message = createBaseScoreboard_TeamServiceState();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.scoreboard = Scoreboard.decode(reader, reader.uint32());
+          message.teamId = reader.int64() as bigint;
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.serviceId = reader.int64() as bigint;
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.checksTotal = reader.int64() as bigint;
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.checksPassed = reader.int64() as bigint;
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.status = reader.int32() as any;
+          continue;
+        }
+        case 6: {
+          if (tag !== 49) {
+            break;
+          }
+
+          message.points = reader.double();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.flagsStolen = reader.int64() as bigint;
+          continue;
+        }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.flagsLost = reader.int64() as bigint;
           continue;
         }
       }
@@ -403,57 +262,94 @@ export const GetStateResponse: MessageFns<GetStateResponse> = {
   },
 
   // encodeTransform encodes a source of message objects.
-  // Transform<GetStateResponse, Uint8Array>
+  // Transform<Scoreboard_TeamServiceState, Uint8Array>
   async *encodeTransform(
-    source: AsyncIterable<GetStateResponse | GetStateResponse[]> | Iterable<GetStateResponse | GetStateResponse[]>,
+    source:
+      | AsyncIterable<Scoreboard_TeamServiceState | Scoreboard_TeamServiceState[]>
+      | Iterable<Scoreboard_TeamServiceState | Scoreboard_TeamServiceState[]>,
   ): AsyncIterable<Uint8Array> {
     for await (const pkt of source) {
       if (globalThis.Array.isArray(pkt)) {
         for (const p of (pkt as any)) {
-          yield* [GetStateResponse.encode(p).finish()];
+          yield* [Scoreboard_TeamServiceState.encode(p).finish()];
         }
       } else {
-        yield* [GetStateResponse.encode(pkt as any).finish()];
+        yield* [Scoreboard_TeamServiceState.encode(pkt as any).finish()];
       }
     }
   },
 
   // decodeTransform decodes a source of encoded messages.
-  // Transform<Uint8Array, GetStateResponse>
+  // Transform<Uint8Array, Scoreboard_TeamServiceState>
   async *decodeTransform(
     source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
-  ): AsyncIterable<GetStateResponse> {
+  ): AsyncIterable<Scoreboard_TeamServiceState> {
     for await (const pkt of source) {
       if (globalThis.Array.isArray(pkt)) {
         for (const p of (pkt as any)) {
-          yield* [GetStateResponse.decode(p)];
+          yield* [Scoreboard_TeamServiceState.decode(p)];
         }
       } else {
-        yield* [GetStateResponse.decode(pkt as any)];
+        yield* [Scoreboard_TeamServiceState.decode(pkt as any)];
       }
     }
   },
 
-  fromJSON(object: any): GetStateResponse {
-    return { scoreboard: isSet(object.scoreboard) ? Scoreboard.fromJSON(object.scoreboard) : undefined };
+  fromJSON(object: any): Scoreboard_TeamServiceState {
+    return {
+      teamId: isSet(object.teamId) ? BigInt(object.teamId) : 0n,
+      serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
+      checksTotal: isSet(object.checksTotal) ? BigInt(object.checksTotal) : 0n,
+      checksPassed: isSet(object.checksPassed) ? BigInt(object.checksPassed) : 0n,
+      status: isSet(object.status) ? statusFromJSON(object.status) : 0,
+      points: isSet(object.points) ? globalThis.Number(object.points) : 0,
+      flagsStolen: isSet(object.flagsStolen) ? BigInt(object.flagsStolen) : 0n,
+      flagsLost: isSet(object.flagsLost) ? BigInt(object.flagsLost) : 0n,
+    };
   },
 
-  toJSON(message: GetStateResponse): unknown {
+  toJSON(message: Scoreboard_TeamServiceState): unknown {
     const obj: any = {};
-    if (message.scoreboard !== undefined) {
-      obj.scoreboard = Scoreboard.toJSON(message.scoreboard);
+    if (message.teamId !== 0n) {
+      obj.teamId = message.teamId.toString();
+    }
+    if (message.serviceId !== 0n) {
+      obj.serviceId = message.serviceId.toString();
+    }
+    if (message.checksTotal !== 0n) {
+      obj.checksTotal = message.checksTotal.toString();
+    }
+    if (message.checksPassed !== 0n) {
+      obj.checksPassed = message.checksPassed.toString();
+    }
+    if (message.status !== 0) {
+      obj.status = statusToJSON(message.status);
+    }
+    if (message.points !== 0) {
+      obj.points = message.points;
+    }
+    if (message.flagsStolen !== 0n) {
+      obj.flagsStolen = message.flagsStolen.toString();
+    }
+    if (message.flagsLost !== 0n) {
+      obj.flagsLost = message.flagsLost.toString();
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetStateResponse>, I>>(base?: I): GetStateResponse {
-    return GetStateResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Scoreboard_TeamServiceState>, I>>(base?: I): Scoreboard_TeamServiceState {
+    return Scoreboard_TeamServiceState.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetStateResponse>, I>>(object: I): GetStateResponse {
-    const message = createBaseGetStateResponse();
-    message.scoreboard = (object.scoreboard !== undefined && object.scoreboard !== null)
-      ? Scoreboard.fromPartial(object.scoreboard)
-      : undefined;
+  fromPartial<I extends Exact<DeepPartial<Scoreboard_TeamServiceState>, I>>(object: I): Scoreboard_TeamServiceState {
+    const message = createBaseScoreboard_TeamServiceState();
+    message.teamId = object.teamId ?? 0n;
+    message.serviceId = object.serviceId ?? 0n;
+    message.checksTotal = object.checksTotal ?? 0n;
+    message.checksPassed = object.checksPassed ?? 0n;
+    message.status = object.status ?? 0;
+    message.points = object.points ?? 0;
+    message.flagsStolen = object.flagsStolen ?? 0n;
+    message.flagsLost = object.flagsLost ?? 0n;
     return message;
   },
 };

@@ -8,6 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
 )
@@ -21,7 +22,12 @@ func (s *Service) HandleGetScoreboard() echo.HandlerFunc {
 			return fmt.Errorf("getting scoreboard: %w", err)
 		}
 
-		return c.JSON(http.StatusOK, sb)
+		raw, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(sb)
+		if err != nil {
+			return fmt.Errorf("marshalling scoreboard: %w", err)
+		}
+
+		return c.JSONBlob(http.StatusOK, raw)
 	}
 }
 
@@ -61,7 +67,7 @@ func (s *Service) HandleGetCTFTimeScoreboard() echo.HandlerFunc {
 			if tss.ChecksTotal > 0 {
 				sla = float64(tss.ChecksPassed) / float64(tss.ChecksTotal)
 			}
-			teamStates[tss.TeamID].Score += tss.Points * sla
+			teamStates[int(tss.TeamId)].Score += tss.Points * sla
 		}
 
 		teamStatesList := lo.Filter(lo.Values(teamStates), func(item *ctftimeTeamState, _ int) bool {

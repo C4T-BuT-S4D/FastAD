@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package scoreboard;
+
+import "checker/checker.proto";
+
+message Scoreboard {
+  message TeamServiceState {
+    int64 team_id = 1;
+    int64 service_id = 2;
+
+    // From slac.
+    int64 checks_total = 3;
+    int64 checks_passed = 4;
+    checker.Status status = 5;
+
+    // From receiver.
+    double points = 6;
+    int64 flags_stolen = 7;
+    int64 flags_lost = 8;
+  }
+
+  repeated TeamServiceState team_service_states = 1;
+}

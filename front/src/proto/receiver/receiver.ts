@@ -114,8 +114,8 @@ export interface State_TeamService {
   teamId: bigint;
   serviceId: bigint;
   points: number;
-  stolenFlags: bigint;
-  lostFlags: bigint;
+  flagsStolen: bigint;
+  flagsLost: bigint;
 }
 
 export interface SubmitFlagsResponse {
@@ -773,7 +773,7 @@ export const State: MessageFns<State> = {
 };
 
 function createBaseState_TeamService(): State_TeamService {
-  return { teamId: 0n, serviceId: 0n, points: 0, stolenFlags: 0n, lostFlags: 0n };
+  return { teamId: 0n, serviceId: 0n, points: 0, flagsStolen: 0n, flagsLost: 0n };
 }
 
 export const State_TeamService: MessageFns<State_TeamService> = {
@@ -793,17 +793,17 @@ export const State_TeamService: MessageFns<State_TeamService> = {
     if (message.points !== 0) {
       writer.uint32(25).double(message.points);
     }
-    if (message.stolenFlags !== 0n) {
-      if (BigInt.asIntN(64, message.stolenFlags) !== message.stolenFlags) {
-        throw new globalThis.Error("value provided for field message.stolenFlags of type int64 too large");
+    if (message.flagsStolen !== 0n) {
+      if (BigInt.asIntN(64, message.flagsStolen) !== message.flagsStolen) {
+        throw new globalThis.Error("value provided for field message.flagsStolen of type int64 too large");
       }
-      writer.uint32(32).int64(message.stolenFlags);
+      writer.uint32(32).int64(message.flagsStolen);
     }
-    if (message.lostFlags !== 0n) {
-      if (BigInt.asIntN(64, message.lostFlags) !== message.lostFlags) {
-        throw new globalThis.Error("value provided for field message.lostFlags of type int64 too large");
+    if (message.flagsLost !== 0n) {
+      if (BigInt.asIntN(64, message.flagsLost) !== message.flagsLost) {
+        throw new globalThis.Error("value provided for field message.flagsLost of type int64 too large");
       }
-      writer.uint32(40).int64(message.lostFlags);
+      writer.uint32(40).int64(message.flagsLost);
     }
     return writer;
   },
@@ -844,7 +844,7 @@ export const State_TeamService: MessageFns<State_TeamService> = {
             break;
           }
 
-          message.stolenFlags = reader.int64() as bigint;
+          message.flagsStolen = reader.int64() as bigint;
           continue;
         }
         case 5: {
@@ -852,7 +852,7 @@ export const State_TeamService: MessageFns<State_TeamService> = {
             break;
           }
 
-          message.lostFlags = reader.int64() as bigint;
+          message.flagsLost = reader.int64() as bigint;
           continue;
         }
       }
@@ -901,8 +901,8 @@ export const State_TeamService: MessageFns<State_TeamService> = {
       teamId: isSet(object.teamId) ? BigInt(object.teamId) : 0n,
       serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
       points: isSet(object.points) ? globalThis.Number(object.points) : 0,
-      stolenFlags: isSet(object.stolenFlags) ? BigInt(object.stolenFlags) : 0n,
-      lostFlags: isSet(object.lostFlags) ? BigInt(object.lostFlags) : 0n,
+      flagsStolen: isSet(object.flagsStolen) ? BigInt(object.flagsStolen) : 0n,
+      flagsLost: isSet(object.flagsLost) ? BigInt(object.flagsLost) : 0n,
     };
   },
 
@@ -917,11 +917,11 @@ export const State_TeamService: MessageFns<State_TeamService> = {
     if (message.points !== 0) {
       obj.points = message.points;
     }
-    if (message.stolenFlags !== 0n) {
-      obj.stolenFlags = message.stolenFlags.toString();
+    if (message.flagsStolen !== 0n) {
+      obj.flagsStolen = message.flagsStolen.toString();
     }
-    if (message.lostFlags !== 0n) {
-      obj.lostFlags = message.lostFlags.toString();
+    if (message.flagsLost !== 0n) {
+      obj.flagsLost = message.flagsLost.toString();
     }
     return obj;
   },
@@ -934,8 +934,8 @@ export const State_TeamService: MessageFns<State_TeamService> = {
     message.teamId = object.teamId ?? 0n;
     message.serviceId = object.serviceId ?? 0n;
     message.points = object.points ?? 0;
-    message.stolenFlags = object.stolenFlags ?? 0n;
-    message.lostFlags = object.lostFlags ?? 0n;
+    message.flagsStolen = object.flagsStolen ?? 0n;
+    message.flagsLost = object.flagsLost ?? 0n;
     return message;
   },
 };
