@@ -1,0 +1,6 @@
+services:
+  service:
+    build: .
+    restart: no
+    ports:
+      - "1323:1323"
