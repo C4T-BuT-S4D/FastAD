@@ -10,6 +10,7 @@ import (
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 
+	"github.com/c4t-but-s4d/fastad/internal/centclient"
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	scoreboardpb "github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
 )
@@ -17,19 +18,21 @@ import (
 type Service struct {
 	scoreboardpb.UnimplementedScoreboardServiceServer
 
-	db     *bun.DB
-	config *Config
-	logger *zap.Logger
+	db         *bun.DB
+	config     *Config
+	centClient *centclient.Producer
+	logger     *zap.Logger
 
 	state *atomic.Pointer[State]
 
 	lastProcessorIteration time.Time
 }
 
-func NewService(db *bun.DB, cfg *Config) *Service {
+func NewService(db *bun.DB, cfg *Config, centClient *centclient.Producer) *Service {
 	return &Service{
-		db:     db,
-		config: cfg,
+		db:         db,
+		config:     cfg,
+		centClient: centClient,
 
 		state:  atomic.NewPointer(NewState()),
 		logger: zap.L().With(zap.String("component", "scoreboard")),
@@ -49,8 +52,15 @@ func (s *Service) Run(ctx context.Context) {
 		case <-t.C:
 			s.logger.Debug("checking")
 			start := time.Now()
-			if err := s.Check(ctx); err != nil {
+			changed, err := s.Check(ctx)
+			if err != nil {
 				s.logger.Error("check failed", zap.Error(err))
+			}
+			if changed {
+				s.logger.Debug("publishing state")
+				if err := s.centClient.PublishProto(ctx, s.state.Load().ToProto()); err != nil {
+					s.logger.Error("publishing state failed", zap.Error(err))
+				}
 			}
 			s.logger.Debug("checked", zap.Duration("duration", time.Since(start)))
 		case <-ctx.Done():
@@ -59,9 +69,10 @@ func (s *Service) Run(ctx context.Context) {
 	}
 }
 
-func (s *Service) Check(ctx context.Context) error {
+func (s *Service) Check(ctx context.Context) (bool, error) {
 	stateClone := s.state.Load().Clone()
 
+	changed := false
 	if err := s.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		for {
 			var batch []*models.CheckerExecution
@@ -110,6 +121,7 @@ func (s *Service) Check(ctx context.Context) error {
 			if _, err := tx.NewInsert().Model(&itemsToInsert).Exec(ctx); err != nil {
 				return fmt.Errorf("inserting states: %w", err)
 			}
+			changed = true
 
 			if len(batch) < s.config.BatchSize {
 				break
@@ -118,7 +130,7 @@ func (s *Service) Check(ctx context.Context) error {
 
 		return nil
 	}); err != nil {
-		return fmt.Errorf("in tx: %w", err)
+		return false, fmt.Errorf("in tx: %w", err)
 	}
 
 	s.logger.Sugar().Debugf("current state: %+v", stateClone)
@@ -126,12 +138,13 @@ func (s *Service) Check(ctx context.Context) error {
 	s.state.Store(stateClone)
 	s.lastProcessorIteration = time.Now()
 
-	return nil
+	return changed, nil
 }
 
 func (s *Service) RestoreState(ctx context.Context) error {
 	start := time.Now()
 
+	state := s.state.Load()
 	if err := s.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		processedExecutionsCount, err := tx.
 			NewSelect().
@@ -172,7 +185,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 
 			s.logger.Info("applying batch of executions", zap.Int("batch_size", len(batch)))
 			for _, item := range batch {
-				s.state.Load().Apply(item.CheckerExecution)
+				state.Apply(item.CheckerExecution)
 			}
 
 			if len(batch) < batchSize {
@@ -186,6 +199,13 @@ func (s *Service) RestoreState(ctx context.Context) error {
 	}
 
 	s.logger.Info("state restored", zap.Duration("duration", time.Since(start)))
+
+	s.state.Store(state)
+
+	s.logger.Debug("publishing state")
+	if err := s.centClient.PublishProto(ctx, state.ToProto()); err != nil {
+		s.logger.Error("publishing state failed", zap.Error(err))
+	}
 
 	return nil
 }

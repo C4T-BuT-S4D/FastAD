@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/centrifugal/centrifuge"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
@@ -46,7 +47,17 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 	}
 	scoreboardClient := scoreboardpb.NewScoreboardServiceClient(scoreboardConn)
 
+	centConfig := centrifuge.Config{
+		Name:     cfg.Installation,
+		LogLevel: centrifuge.LogLevelInfo,
+	}
+	node, err := centrifuge.New(centConfig)
+	if err != nil {
+		return fmt.Errorf("creating centrifuge node: %w", err)
+	}
+
 	apiService := api.NewService(
+		node,
 		teamsClient,
 		servicesClient,
 		gameStateClient,
@@ -56,6 +67,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 
 	e := echo.New()
 	e.Use(
+		httpext.RequestIDMiddleware(),
 		middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 			LogMethod:    true,
 			LogURI:       true,
@@ -84,11 +96,16 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 			AllowCredentials:                         true,
 			UnsafeWildcardOriginWithAllowCredentials: true,
 		}),
-		middleware.RequestID(),
 	)
+	e.GET("/health", httpext.HealthHandler())
 
 	e.HTTPErrorHandler = httpext.ErrorHandler()
 	apiService.RegisterRoutes(e)
+	apiService.RegisterNode()
+
+	if err := node.Run(); err != nil {
+		return fmt.Errorf("running centrifuge node: %w", err)
+	}
 
 	go func() {
 		<-runCtx.Done()
@@ -96,6 +113,9 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 		zap.L().Info("shutting down api server")
 		if err := e.Shutdown(shutdownCtx); err != nil {
 			zap.L().Error("error shutting down api server", zap.Error(err))
+		}
+		if err := node.Shutdown(shutdownCtx); err != nil {
+			zap.L().Error("error shutting down centrifuge node", zap.Error(err))
 		}
 	}()
 

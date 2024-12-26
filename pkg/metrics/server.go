@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
@@ -12,7 +13,7 @@ import (
 func RunServer(runCtx, shutdownCtx context.Context, addr string) {
 	logger := zap.L().With(
 		zap.String("service", "metrics"),
-		zap.String("listen_address", addr),
+		zap.String("address", addr),
 	)
 
 	logger.Info("starting server")
@@ -20,8 +21,9 @@ func RunServer(runCtx, shutdownCtx context.Context, addr string) {
 	m := http.NewServeMux()
 	m.Handle("/metrics", promhttp.Handler())
 	s := &http.Server{
-		Addr:    addr,
-		Handler: m,
+		Addr:              addr,
+		Handler:           m,
+		ReadHeaderTimeout: time.Second * 10,
 	}
 
 	go func() {

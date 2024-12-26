@@ -18,6 +18,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/internal/receiver"
 	"github.com/c4t-but-s4d/fastad/internal/scheduler"
 	"github.com/c4t-but-s4d/fastad/internal/scoreboard"
+	"github.com/c4t-but-s4d/fastad/pkg/apiwait"
 	"github.com/c4t-but-s4d/fastad/pkg/baseconfig"
 	"github.com/c4t-but-s4d/fastad/pkg/config"
 	"github.com/c4t-but-s4d/fastad/pkg/logging"
@@ -59,6 +60,7 @@ func main() {
 	cfg.Receiver.MetricsAddress = ""
 
 	// Checkers are listening on a different port.
+	cfg.Checkers.MetricsAddress = ""
 
 	runCtx, shutdownCtx, cancel := stop.SetupCtx()
 	defer cancel()
@@ -96,19 +98,23 @@ func main() {
 		return nil
 	})
 
-	g.Go(func() error {
-		if err := scoreboardImpl.Run(gctx, shutdownCtx, &cfg.Scoreboard); err != nil {
-			return fmt.Errorf("running scoreboard: %w", err)
-		}
-		return nil
-	})
-
 	cfg.API.DataService.Address = cfg.DataService.ListenAddress
 	cfg.API.ScoreboardAddress = cfg.Scoreboard.ListenAddress
 	cfg.API.ReceiverAddress = cfg.Receiver.ListenAddress
 	g.Go(func() error {
 		if err := apiImpl.Run(gctx, shutdownCtx, &cfg.API); err != nil {
 			return fmt.Errorf("running api: %w", err)
+		}
+		return nil
+	})
+
+	if err := apiwait.HTTP(gctx, cfg.API.ListenAddress); err != nil {
+		zap.L().Fatal("waiting for API", zap.Error(err))
+	}
+
+	g.Go(func() error {
+		if err := scoreboardImpl.Run(gctx, shutdownCtx, &cfg.Scoreboard); err != nil {
+			return fmt.Errorf("running scoreboard: %w", err)
 		}
 		return nil
 	})

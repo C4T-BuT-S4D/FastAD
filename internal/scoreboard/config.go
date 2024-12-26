@@ -12,7 +12,10 @@ type Config struct {
 	ListenAddress  string `mapstructure:"listen_address" default:":8003"`
 	MetricsAddress string `mapstructure:"metrics_address" default:":3003"`
 
-	Postgres config.Postgres `mapstructure:"postgres"`
+	Channel string `mapstructure:"channel" default:"scoreboard"`
+
+	Postgres         config.Postgres         `mapstructure:"postgres"`
+	CentrifugeClient config.CentrifugeClient `mapstructure:"centrifuge_client"`
 
 	CheckInterval            time.Duration `mapstructure:"check_interval" default:"1s"`
 	BatchSize                int           `mapstructure:"batch_size" default:"1000"`
