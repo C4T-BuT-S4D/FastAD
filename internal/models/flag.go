@@ -9,10 +9,12 @@ import (
 type Flag struct {
 	bun.BaseModel `bun:"flags,alias:f"`
 
-	ID      int    `bun:"id,pk,autoincrement"`
-	Flag    string `bun:"flag,notnull,unique"`
-	Public  string `bun:"public"`
-	Private string `bun:"private"`
+	ID   int    `bun:"id,pk,autoincrement"`
+	Flag string `bun:"flag,notnull,unique"`
+
+	PutFinished bool   `bun:"put_finished,notnull,default:false"`
+	Public      string `bun:"public"`
+	Private     string `bun:"private"`
 
 	Round uint64 `bun:"round,notnull"`
 

@@ -30,6 +30,7 @@ export const FlagResponse_Verdict = {
   VERDICT_OLD: 3,
   VERDICT_INVALID: 4,
   VERDICT_DUPLICATE: 5,
+  VERDICT_FLAG_NOT_READY: 6,
 } as const;
 
 export type FlagResponse_Verdict = typeof FlagResponse_Verdict[keyof typeof FlagResponse_Verdict];
@@ -41,6 +42,7 @@ export namespace FlagResponse_Verdict {
   export type VERDICT_OLD = typeof FlagResponse_Verdict.VERDICT_OLD;
   export type VERDICT_INVALID = typeof FlagResponse_Verdict.VERDICT_INVALID;
   export type VERDICT_DUPLICATE = typeof FlagResponse_Verdict.VERDICT_DUPLICATE;
+  export type VERDICT_FLAG_NOT_READY = typeof FlagResponse_Verdict.VERDICT_FLAG_NOT_READY;
 }
 
 export function flagResponse_VerdictFromJSON(object: any): FlagResponse_Verdict {
@@ -63,6 +65,9 @@ export function flagResponse_VerdictFromJSON(object: any): FlagResponse_Verdict 
     case 5:
     case "VERDICT_DUPLICATE":
       return FlagResponse_Verdict.VERDICT_DUPLICATE;
+    case 6:
+    case "VERDICT_FLAG_NOT_READY":
+      return FlagResponse_Verdict.VERDICT_FLAG_NOT_READY;
     default:
       throw new globalThis.Error("Unrecognized enum value " + object + " for enum FlagResponse_Verdict");
   }
@@ -82,6 +87,8 @@ export function flagResponse_VerdictToJSON(object: FlagResponse_Verdict): string
       return "VERDICT_INVALID";
     case FlagResponse_Verdict.VERDICT_DUPLICATE:
       return "VERDICT_DUPLICATE";
+    case FlagResponse_Verdict.VERDICT_FLAG_NOT_READY:
+      return "VERDICT_FLAG_NOT_READY";
     default:
       throw new globalThis.Error("Unrecognized enum value " + object + " for enum FlagResponse_Verdict");
   }

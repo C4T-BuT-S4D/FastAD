@@ -31,6 +31,7 @@ const (
 	ownFlagMessage        = "flag is your own"
 	serviceInvalidMessage = "service is invalid or disabled"
 	duplicateFlagMessage  = "flag already submitted"
+	notReadyFlagMessage   = "flag is not ready"
 )
 
 func New(
@@ -167,6 +168,11 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 
 			// TODO: reject flags with no "put_finished" flag set with a special verdict.
 			// Allow players to resubmit the flag later when the put is finished.
+			if !flag.PutFinished {
+				baseResponse.Verdict = receiverpb.FlagResponse_VERDICT_FLAG_NOT_READY
+				baseResponse.Message = notReadyFlagMessage
+				resp.Responses = append(resp.Responses, baseResponse)
+			}
 
 			attacksToAdd = append(attacksToAdd, &models.Attack{
 				ServiceID:  flag.ServiceID,

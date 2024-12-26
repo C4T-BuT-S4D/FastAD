@@ -14,6 +14,7 @@ message FlagResponse {
     VERDICT_OLD = 3;
     VERDICT_INVALID = 4;
     VERDICT_DUPLICATE = 5;
+    VERDICT_FLAG_NOT_READY = 6;
   }
 
   string flag = 1;

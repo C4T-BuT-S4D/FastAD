@@ -6,9 +6,6 @@ import (
 
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
-
-	"github.com/c4t-but-s4d/fastad/internal/models"
-	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
 
 const SaveRoundDataActivityName = "SaveRoundData"
@@ -52,33 +49,9 @@ func (s *SaveRoundDataActivity) saveRoundData(
 ) error {
 	logger.Info("saving data for put results", "put_results", len(params.PutResults))
 
-	executions := make([]*models.CheckerExecution, 0, len(params.PutResults))
-	for _, putResult := range params.PutResults {
-		execution := &models.CheckerExecution{
-			ExecutionID: fmt.Sprintf("put-flag-%d", putResult.FlagInfo.Flag.ID),
-			TeamID:      putResult.FlagInfo.Team.ID,
-			ServiceID:   putResult.FlagInfo.Service.ID,
-			Action:      checkerpb.Action_ACTION_PUT,
-			Status:      putResult.Verdict.Status,
-			Public:      putResult.Verdict.Public,
-			Private:     putResult.Verdict.Private,
-			Command:     putResult.Verdict.Command,
-		}
-		executions = append(executions, execution)
-	}
-
-	if len(executions) == 0 {
-		logger.Warn("no executions to save")
-		return nil
-	}
-
-	logger.Info("saving executions", "executions", len(executions))
-	if err := s.checkersController.AddCheckerExecutions(ctx, executions); err != nil {
+	if err := s.checkersController.SavePutExecutions(ctx, params.PutResults); err != nil {
 		return fmt.Errorf("adding checker executions: %w", err)
 	}
-
-	// TODO: remove flags for failed PUTs.
-	// TODO: parse? and update flag public/private fields.
 
 	return nil
 }
