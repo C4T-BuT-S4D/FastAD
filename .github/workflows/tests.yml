@@ -46,3 +46,24 @@ jobs:
 
       - name: Lint proto
         run: make lint-proto
+
+  lint-front:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: 'front/package.json'
+          cache: 'pnpm'
+          cache-dependency-path: 'front/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        with:
+          working-directory: front
+
+      - name: Lint front
+        run: make lint-front

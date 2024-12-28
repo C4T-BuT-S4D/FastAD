@@ -82,8 +82,8 @@ export default function ScoreboardTable() {
         {
           transformResponse: (resp) => {
             return Scoreboard.fromJSON(JSON.parse(resp));
-          }
-        }
+          },
+        },
       );
 
       const teamServiceStatus: Record<
@@ -298,7 +298,7 @@ export default function ScoreboardTable() {
                                 opacity: 0.7,
                                 '&:hover': {
                                   opacity: 1
-                                }
+                                },
                               }}
                             >
                               <InfoIcon fontSize="small" />

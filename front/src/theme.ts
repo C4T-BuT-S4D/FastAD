@@ -52,8 +52,8 @@ theme = createTheme(theme, {
         main: '#ffff00'
       },
       name: 'status_check_failed'
-    })
-  }
+    }),
+  },
 });
 
 export default theme;

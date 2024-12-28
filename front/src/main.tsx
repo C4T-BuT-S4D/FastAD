@@ -16,7 +16,7 @@ axios.interceptors.request.use(
   (error) => {
     console.error('request error', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 axios.interceptors.response.use(
@@ -26,7 +26,7 @@ axios.interceptors.response.use(
   (error) => {
     console.error('response error', error);
     return Promise.reject(error);
-  }
+  },
 );
 
 createRoot(document.getElementById('root')!).render(
