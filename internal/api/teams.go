@@ -4,8 +4,12 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/samber/lo"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
 func (s *Service) HandleTeamsList() echo.HandlerFunc {
@@ -17,10 +21,24 @@ func (s *Service) HandleTeamsList() echo.HandlerFunc {
 			return httpext.NewErrorFromStatus(err, "listing teams")
 		}
 
-		for _, team := range teams {
-			team.Token = ""
+		// TODO: return proto from clients.
+		resp := &teamspb.Team_Batch{
+			Teams: lo.Map(teams, func(team *teamspb.Team, _ int) *teamspb.Team {
+				teamCloned := proto.Clone(team).(*teamspb.Team)
+				teamCloned.Token = ""
+				return teamCloned
+			}),
 		}
 
-		return c.JSON(http.StatusOK, teams)
+		raw, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(resp)
+		if err != nil {
+			return httpext.NewErrorf(
+				http.StatusInternalServerError,
+				"marshaling teams: %v",
+				err,
+			)
+		}
+
+		return c.JSONBlob(http.StatusOK, raw)
 	}
 }

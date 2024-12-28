@@ -7,6 +7,7 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 )
 
@@ -41,9 +42,9 @@ type ServiceState struct {
 	TeamStates   map[int]*TeamServiceState `json:"team_states"`
 }
 
-func newServiceState(service *models.Service) *ServiceState {
+func newServiceState(service *servicespb.Service) *ServiceState {
 	return &ServiceState{
-		ServiceID:    service.ID,
+		ServiceID:    int(service.Id),
 		DefaultScore: service.DefaultScore,
 		TeamStates:   make(map[int]*TeamServiceState),
 	}
@@ -116,20 +117,20 @@ func (s *ServiceState) getOrCreate(teamID int) *TeamServiceState {
 }
 
 type State struct {
-	ServiceStates map[int]*ServiceState
+	ServiceStates map[int64]*ServiceState
 }
 
 func NewState() *State {
 	return &State{
-		ServiceStates: make(map[int]*ServiceState),
+		ServiceStates: make(map[int64]*ServiceState),
 	}
 }
 
-func (s *State) ProcessAttack(gs *models.GameState, service *models.Service, attack *models.Attack) error {
+func (s *State) ProcessAttack(gs *models.GameState, service *servicespb.Service, attack *models.Attack) error {
 	return s.getOrCreate(service).Apply(gs, attack)
 }
 
-func (s *State) ApplyRaw(services map[int]*models.Service, attacks ...*models.Attack) error {
+func (s *State) ApplyRaw(services map[int]*servicespb.Service, attacks ...*models.Attack) error {
 	attacksByService := lo.GroupBy(attacks, func(attack *models.Attack) int {
 		return attack.ServiceID
 	})
@@ -147,7 +148,7 @@ func (s *State) ApplyRaw(services map[int]*models.Service, attacks ...*models.At
 
 func (s *State) Clone() *State {
 	res := &State{
-		ServiceStates: lo.MapEntries(s.ServiceStates, func(key int, value *ServiceState) (int, *ServiceState) {
+		ServiceStates: lo.MapEntries(s.ServiceStates, func(key int64, value *ServiceState) (int64, *ServiceState) {
 			return key, value.Clone()
 		}),
 	}
@@ -156,17 +157,17 @@ func (s *State) Clone() *State {
 
 func (s *State) ToProto() *receiverpb.State {
 	return &receiverpb.State{
-		TeamServices: lo.Flatten(lo.MapToSlice(s.ServiceStates, func(_ int, value *ServiceState) []*receiverpb.State_TeamService {
+		TeamServices: lo.Flatten(lo.MapToSlice(s.ServiceStates, func(_ int64, value *ServiceState) []*receiverpb.State_TeamService {
 			return value.ToProto()
 		})),
 	}
 }
 
-func (s *State) getOrCreate(service *models.Service) *ServiceState {
-	ss, ok := s.ServiceStates[service.ID]
+func (s *State) getOrCreate(service *servicespb.Service) *ServiceState {
+	ss, ok := s.ServiceStates[service.Id]
 	if !ok {
 		ss = newServiceState(service)
-		s.ServiceStates[service.ID] = ss
+		s.ServiceStates[service.Id] = ss
 	}
 	return ss
 }

@@ -50,7 +50,7 @@ export interface ReceiverServiceClient<CallOptionsExt = {}> {
   getState(request: DeepPartial<GetStateRequest>, options?: CallOptions & CallOptionsExt): Promise<GetStateResponse>;
 }
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>

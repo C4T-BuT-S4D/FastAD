@@ -11,11 +11,15 @@ import { Version } from "../version/version";
 export const protobufPackage = "data.teams";
 
 export interface Team {
-  id: bigint;
+  id: string;
   name: string;
   address: string;
   token: string;
   labels: { [key: string]: string };
+}
+
+export interface Team_Batch {
+  teams: Team[];
 }
 
 export interface Team_LabelsEntry {
@@ -41,15 +45,12 @@ export interface CreateBatchResponse {
 }
 
 function createBaseTeam(): Team {
-  return { id: 0n, name: "", address: "", token: "", labels: {} };
+  return { id: "0", name: "", address: "", token: "", labels: {} };
 }
 
 export const Team: MessageFns<Team> = {
   encode(message: Team, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== 0n) {
-      if (BigInt.asIntN(64, message.id) !== message.id) {
-        throw new globalThis.Error("value provided for field message.id of type int64 too large");
-      }
+    if (message.id !== "0") {
       writer.uint32(8).int64(message.id);
     }
     if (message.name !== "") {
@@ -79,7 +80,7 @@ export const Team: MessageFns<Team> = {
             break;
           }
 
-          message.id = reader.int64() as bigint;
+          message.id = reader.int64().toString();
           continue;
         }
         case 2: {
@@ -158,7 +159,7 @@ export const Team: MessageFns<Team> = {
 
   fromJSON(object: any): Team {
     return {
-      id: isSet(object.id) ? BigInt(object.id) : 0n,
+      id: isSet(object.id) ? globalThis.String(object.id) : "0",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       address: isSet(object.address) ? globalThis.String(object.address) : "",
       token: isSet(object.token) ? globalThis.String(object.token) : "",
@@ -173,8 +174,8 @@ export const Team: MessageFns<Team> = {
 
   toJSON(message: Team): unknown {
     const obj: any = {};
-    if (message.id !== 0n) {
-      obj.id = message.id.toString();
+    if (message.id !== "0") {
+      obj.id = message.id;
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -202,7 +203,7 @@ export const Team: MessageFns<Team> = {
   },
   fromPartial<I extends Exact<DeepPartial<Team>, I>>(object: I): Team {
     const message = createBaseTeam();
-    message.id = object.id ?? 0n;
+    message.id = object.id ?? "0";
     message.name = object.name ?? "";
     message.address = object.address ?? "";
     message.token = object.token ?? "";
@@ -212,6 +213,96 @@ export const Team: MessageFns<Team> = {
       }
       return acc;
     }, {});
+    return message;
+  },
+};
+
+function createBaseTeam_Batch(): Team_Batch {
+  return { teams: [] };
+}
+
+export const Team_Batch: MessageFns<Team_Batch> = {
+  encode(message: Team_Batch, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.teams) {
+      Team.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Team_Batch {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTeam_Batch();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.teams.push(Team.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<Team_Batch, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<Team_Batch | Team_Batch[]> | Iterable<Team_Batch | Team_Batch[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Team_Batch.encode(p).finish()];
+        }
+      } else {
+        yield* [Team_Batch.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, Team_Batch>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<Team_Batch> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Team_Batch.decode(p)];
+        }
+      } else {
+        yield* [Team_Batch.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): Team_Batch {
+    return { teams: globalThis.Array.isArray(object?.teams) ? object.teams.map((e: any) => Team.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: Team_Batch): unknown {
+    const obj: any = {};
+    if (message.teams?.length) {
+      obj.teams = message.teams.map((e) => Team.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Team_Batch>, I>>(base?: I): Team_Batch {
+    return Team_Batch.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Team_Batch>, I>>(object: I): Team_Batch {
+    const message = createBaseTeam_Batch();
+    message.teams = object.teams?.map((e) => Team.fromPartial(e)) || [];
     return message;
   },
 };
@@ -710,7 +801,7 @@ export const CreateBatchResponse: MessageFns<CreateBatchResponse> = {
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>

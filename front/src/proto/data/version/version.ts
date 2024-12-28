@@ -10,19 +10,16 @@ import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 export const protobufPackage = "data.version";
 
 export interface Version {
-  version: bigint;
+  version: string;
 }
 
 function createBaseVersion(): Version {
-  return { version: 0n };
+  return { version: "0" };
 }
 
 export const Version: MessageFns<Version> = {
   encode(message: Version, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.version !== 0n) {
-      if (BigInt.asIntN(64, message.version) !== message.version) {
-        throw new globalThis.Error("value provided for field message.version of type int64 too large");
-      }
+    if (message.version !== "0") {
       writer.uint32(8).int64(message.version);
     }
     return writer;
@@ -40,7 +37,7 @@ export const Version: MessageFns<Version> = {
             break;
           }
 
-          message.version = reader.int64() as bigint;
+          message.version = reader.int64().toString();
           continue;
         }
       }
@@ -85,13 +82,13 @@ export const Version: MessageFns<Version> = {
   },
 
   fromJSON(object: any): Version {
-    return { version: isSet(object.version) ? BigInt(object.version) : 0n };
+    return { version: isSet(object.version) ? globalThis.String(object.version) : "0" };
   },
 
   toJSON(message: Version): unknown {
     const obj: any = {};
-    if (message.version !== 0n) {
-      obj.version = message.version.toString();
+    if (message.version !== "0") {
+      obj.version = message.version;
     }
     return obj;
   },
@@ -101,12 +98,12 @@ export const Version: MessageFns<Version> = {
   },
   fromPartial<I extends Exact<DeepPartial<Version>, I>>(object: I): Version {
     const message = createBaseVersion();
-    message.version = object.version ?? 0n;
+    message.version = object.version ?? "0";
     return message;
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>

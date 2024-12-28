@@ -5,10 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/samber/lo"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
 )
@@ -26,32 +24,26 @@ func NewClient(c servicespb.ServicesServiceClient) *Client {
 	return &Client{c: c, cache: NewCache()}
 }
 
-func (c *Client) List(ctx context.Context) ([]*models.Service, error) {
+func (c *Client) List(ctx context.Context) ([]*servicespb.Service, error) {
 	if err := c.refresh(ctx); err != nil {
 		return nil, fmt.Errorf("refreshing services: %w", err)
 	}
 	return c.cache.GetServices(), nil
 }
 
-func (c *Client) GetByID(ctx context.Context, id int) (*models.Service, error) {
-	if err := c.refresh(ctx); err != nil {
-		return nil, fmt.Errorf("refreshing services: %w", err)
-	}
-	return c.cache.GetServiceByID(id), nil
-}
-
-func (c *Client) CreateBatch(ctx context.Context, services []*servicespb.Service) ([]*models.Service, error) {
+func (c *Client) CreateBatch(ctx context.Context, services []*servicespb.Service) ([]*servicespb.Service, error) {
 	resp, err := c.c.CreateBatch(ctx, &servicespb.CreateBatchRequest{Services: services})
 	if err != nil {
 		return nil, fmt.Errorf("making api request: %w", err)
 	}
 
-	serviceModels := lo.Map(resp.Services, func(service *servicespb.Service, _ int) *models.Service {
-		return models.NewServiceFromProto(service)
-	})
-	c.cache.SetServices(serviceModels)
+	c.refreshMu.Lock()
+	defer c.refreshMu.Unlock()
+	if err := c.refresh(ctx); err != nil {
+		return nil, fmt.Errorf("refreshing: %w", err)
+	}
 
-	return serviceModels, nil
+	return resp.Services, nil
 }
 
 func (c *Client) refresh(ctx context.Context) error {
@@ -69,10 +61,7 @@ func (c *Client) refresh(ctx context.Context) error {
 
 	c.version = resp.Version
 
-	serviceModels := lo.Map(resp.Services, func(service *servicespb.Service, _ int) *models.Service {
-		return models.NewServiceFromProto(service)
-	})
-	c.cache.SetServices(serviceModels)
+	c.cache.SetServices(resp.Services)
 
 	return nil
 }

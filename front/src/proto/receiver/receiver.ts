@@ -17,8 +17,8 @@ export interface FlagResponse {
   flag: string;
   verdict: FlagResponse_Verdict;
   message: string;
-  victimId: bigint;
-  serviceId: bigint;
+  victimId: string;
+  serviceId: string;
   attackerDelta: number;
   victimDelta: number;
 }
@@ -95,9 +95,9 @@ export function flagResponse_VerdictToJSON(object: FlagResponse_Verdict): string
 }
 
 export interface AttackNotification {
-  attackerId: bigint;
-  victimId: bigint;
-  serviceId: bigint;
+  attackerId: string;
+  victimId: string;
+  serviceId: string;
   attackerDelta: number;
   victimDelta: number;
 }
@@ -111,11 +111,11 @@ export interface State {
 }
 
 export interface State_TeamService {
-  teamId: bigint;
-  serviceId: bigint;
+  teamId: string;
+  serviceId: string;
   points: number;
-  flagsStolen: bigint;
-  flagsLost: bigint;
+  flagsStolen: string;
+  flagsLost: string;
 }
 
 export interface SubmitFlagsResponse {
@@ -222,7 +222,7 @@ export const SubmitFlagsRequest: MessageFns<SubmitFlagsRequest> = {
 };
 
 function createBaseFlagResponse(): FlagResponse {
-  return { flag: "", verdict: 0, message: "", victimId: 0n, serviceId: 0n, attackerDelta: 0, victimDelta: 0 };
+  return { flag: "", verdict: 0, message: "", victimId: "0", serviceId: "0", attackerDelta: 0, victimDelta: 0 };
 }
 
 export const FlagResponse: MessageFns<FlagResponse> = {
@@ -236,16 +236,10 @@ export const FlagResponse: MessageFns<FlagResponse> = {
     if (message.message !== "") {
       writer.uint32(26).string(message.message);
     }
-    if (message.victimId !== 0n) {
-      if (BigInt.asIntN(64, message.victimId) !== message.victimId) {
-        throw new globalThis.Error("value provided for field message.victimId of type int64 too large");
-      }
+    if (message.victimId !== "0") {
       writer.uint32(32).int64(message.victimId);
     }
-    if (message.serviceId !== 0n) {
-      if (BigInt.asIntN(64, message.serviceId) !== message.serviceId) {
-        throw new globalThis.Error("value provided for field message.serviceId of type int64 too large");
-      }
+    if (message.serviceId !== "0") {
       writer.uint32(40).int64(message.serviceId);
     }
     if (message.attackerDelta !== 0) {
@@ -293,7 +287,7 @@ export const FlagResponse: MessageFns<FlagResponse> = {
             break;
           }
 
-          message.victimId = reader.int64() as bigint;
+          message.victimId = reader.int64().toString();
           continue;
         }
         case 5: {
@@ -301,7 +295,7 @@ export const FlagResponse: MessageFns<FlagResponse> = {
             break;
           }
 
-          message.serviceId = reader.int64() as bigint;
+          message.serviceId = reader.int64().toString();
           continue;
         }
         case 6: {
@@ -366,8 +360,8 @@ export const FlagResponse: MessageFns<FlagResponse> = {
       flag: isSet(object.flag) ? globalThis.String(object.flag) : "",
       verdict: isSet(object.verdict) ? flagResponse_VerdictFromJSON(object.verdict) : 0,
       message: isSet(object.message) ? globalThis.String(object.message) : "",
-      victimId: isSet(object.victimId) ? BigInt(object.victimId) : 0n,
-      serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
+      victimId: isSet(object.victimId) ? globalThis.String(object.victimId) : "0",
+      serviceId: isSet(object.serviceId) ? globalThis.String(object.serviceId) : "0",
       attackerDelta: isSet(object.attackerDelta) ? globalThis.Number(object.attackerDelta) : 0,
       victimDelta: isSet(object.victimDelta) ? globalThis.Number(object.victimDelta) : 0,
     };
@@ -384,11 +378,11 @@ export const FlagResponse: MessageFns<FlagResponse> = {
     if (message.message !== "") {
       obj.message = message.message;
     }
-    if (message.victimId !== 0n) {
-      obj.victimId = message.victimId.toString();
+    if (message.victimId !== "0") {
+      obj.victimId = message.victimId;
     }
-    if (message.serviceId !== 0n) {
-      obj.serviceId = message.serviceId.toString();
+    if (message.serviceId !== "0") {
+      obj.serviceId = message.serviceId;
     }
     if (message.attackerDelta !== 0) {
       obj.attackerDelta = message.attackerDelta;
@@ -407,8 +401,8 @@ export const FlagResponse: MessageFns<FlagResponse> = {
     message.flag = object.flag ?? "";
     message.verdict = object.verdict ?? 0;
     message.message = object.message ?? "";
-    message.victimId = object.victimId ?? 0n;
-    message.serviceId = object.serviceId ?? 0n;
+    message.victimId = object.victimId ?? "0";
+    message.serviceId = object.serviceId ?? "0";
     message.attackerDelta = object.attackerDelta ?? 0;
     message.victimDelta = object.victimDelta ?? 0;
     return message;
@@ -416,27 +410,18 @@ export const FlagResponse: MessageFns<FlagResponse> = {
 };
 
 function createBaseAttackNotification(): AttackNotification {
-  return { attackerId: 0n, victimId: 0n, serviceId: 0n, attackerDelta: 0, victimDelta: 0 };
+  return { attackerId: "0", victimId: "0", serviceId: "0", attackerDelta: 0, victimDelta: 0 };
 }
 
 export const AttackNotification: MessageFns<AttackNotification> = {
   encode(message: AttackNotification, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.attackerId !== 0n) {
-      if (BigInt.asIntN(64, message.attackerId) !== message.attackerId) {
-        throw new globalThis.Error("value provided for field message.attackerId of type int64 too large");
-      }
+    if (message.attackerId !== "0") {
       writer.uint32(8).int64(message.attackerId);
     }
-    if (message.victimId !== 0n) {
-      if (BigInt.asIntN(64, message.victimId) !== message.victimId) {
-        throw new globalThis.Error("value provided for field message.victimId of type int64 too large");
-      }
+    if (message.victimId !== "0") {
       writer.uint32(16).int64(message.victimId);
     }
-    if (message.serviceId !== 0n) {
-      if (BigInt.asIntN(64, message.serviceId) !== message.serviceId) {
-        throw new globalThis.Error("value provided for field message.serviceId of type int64 too large");
-      }
+    if (message.serviceId !== "0") {
       writer.uint32(24).int64(message.serviceId);
     }
     if (message.attackerDelta !== 0) {
@@ -460,7 +445,7 @@ export const AttackNotification: MessageFns<AttackNotification> = {
             break;
           }
 
-          message.attackerId = reader.int64() as bigint;
+          message.attackerId = reader.int64().toString();
           continue;
         }
         case 2: {
@@ -468,7 +453,7 @@ export const AttackNotification: MessageFns<AttackNotification> = {
             break;
           }
 
-          message.victimId = reader.int64() as bigint;
+          message.victimId = reader.int64().toString();
           continue;
         }
         case 3: {
@@ -476,7 +461,7 @@ export const AttackNotification: MessageFns<AttackNotification> = {
             break;
           }
 
-          message.serviceId = reader.int64() as bigint;
+          message.serviceId = reader.int64().toString();
           continue;
         }
         case 4: {
@@ -540,9 +525,9 @@ export const AttackNotification: MessageFns<AttackNotification> = {
 
   fromJSON(object: any): AttackNotification {
     return {
-      attackerId: isSet(object.attackerId) ? BigInt(object.attackerId) : 0n,
-      victimId: isSet(object.victimId) ? BigInt(object.victimId) : 0n,
-      serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
+      attackerId: isSet(object.attackerId) ? globalThis.String(object.attackerId) : "0",
+      victimId: isSet(object.victimId) ? globalThis.String(object.victimId) : "0",
+      serviceId: isSet(object.serviceId) ? globalThis.String(object.serviceId) : "0",
       attackerDelta: isSet(object.attackerDelta) ? globalThis.Number(object.attackerDelta) : 0,
       victimDelta: isSet(object.victimDelta) ? globalThis.Number(object.victimDelta) : 0,
     };
@@ -550,14 +535,14 @@ export const AttackNotification: MessageFns<AttackNotification> = {
 
   toJSON(message: AttackNotification): unknown {
     const obj: any = {};
-    if (message.attackerId !== 0n) {
-      obj.attackerId = message.attackerId.toString();
+    if (message.attackerId !== "0") {
+      obj.attackerId = message.attackerId;
     }
-    if (message.victimId !== 0n) {
-      obj.victimId = message.victimId.toString();
+    if (message.victimId !== "0") {
+      obj.victimId = message.victimId;
     }
-    if (message.serviceId !== 0n) {
-      obj.serviceId = message.serviceId.toString();
+    if (message.serviceId !== "0") {
+      obj.serviceId = message.serviceId;
     }
     if (message.attackerDelta !== 0) {
       obj.attackerDelta = message.attackerDelta;
@@ -573,9 +558,9 @@ export const AttackNotification: MessageFns<AttackNotification> = {
   },
   fromPartial<I extends Exact<DeepPartial<AttackNotification>, I>>(object: I): AttackNotification {
     const message = createBaseAttackNotification();
-    message.attackerId = object.attackerId ?? 0n;
-    message.victimId = object.victimId ?? 0n;
-    message.serviceId = object.serviceId ?? 0n;
+    message.attackerId = object.attackerId ?? "0";
+    message.victimId = object.victimId ?? "0";
+    message.serviceId = object.serviceId ?? "0";
     message.attackerDelta = object.attackerDelta ?? 0;
     message.victimDelta = object.victimDelta ?? 0;
     return message;
@@ -773,36 +758,24 @@ export const State: MessageFns<State> = {
 };
 
 function createBaseState_TeamService(): State_TeamService {
-  return { teamId: 0n, serviceId: 0n, points: 0, flagsStolen: 0n, flagsLost: 0n };
+  return { teamId: "0", serviceId: "0", points: 0, flagsStolen: "0", flagsLost: "0" };
 }
 
 export const State_TeamService: MessageFns<State_TeamService> = {
   encode(message: State_TeamService, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.teamId !== 0n) {
-      if (BigInt.asIntN(64, message.teamId) !== message.teamId) {
-        throw new globalThis.Error("value provided for field message.teamId of type int64 too large");
-      }
+    if (message.teamId !== "0") {
       writer.uint32(8).int64(message.teamId);
     }
-    if (message.serviceId !== 0n) {
-      if (BigInt.asIntN(64, message.serviceId) !== message.serviceId) {
-        throw new globalThis.Error("value provided for field message.serviceId of type int64 too large");
-      }
+    if (message.serviceId !== "0") {
       writer.uint32(16).int64(message.serviceId);
     }
     if (message.points !== 0) {
       writer.uint32(25).double(message.points);
     }
-    if (message.flagsStolen !== 0n) {
-      if (BigInt.asIntN(64, message.flagsStolen) !== message.flagsStolen) {
-        throw new globalThis.Error("value provided for field message.flagsStolen of type int64 too large");
-      }
+    if (message.flagsStolen !== "0") {
       writer.uint32(32).int64(message.flagsStolen);
     }
-    if (message.flagsLost !== 0n) {
-      if (BigInt.asIntN(64, message.flagsLost) !== message.flagsLost) {
-        throw new globalThis.Error("value provided for field message.flagsLost of type int64 too large");
-      }
+    if (message.flagsLost !== "0") {
       writer.uint32(40).int64(message.flagsLost);
     }
     return writer;
@@ -820,7 +793,7 @@ export const State_TeamService: MessageFns<State_TeamService> = {
             break;
           }
 
-          message.teamId = reader.int64() as bigint;
+          message.teamId = reader.int64().toString();
           continue;
         }
         case 2: {
@@ -828,7 +801,7 @@ export const State_TeamService: MessageFns<State_TeamService> = {
             break;
           }
 
-          message.serviceId = reader.int64() as bigint;
+          message.serviceId = reader.int64().toString();
           continue;
         }
         case 3: {
@@ -844,7 +817,7 @@ export const State_TeamService: MessageFns<State_TeamService> = {
             break;
           }
 
-          message.flagsStolen = reader.int64() as bigint;
+          message.flagsStolen = reader.int64().toString();
           continue;
         }
         case 5: {
@@ -852,7 +825,7 @@ export const State_TeamService: MessageFns<State_TeamService> = {
             break;
           }
 
-          message.flagsLost = reader.int64() as bigint;
+          message.flagsLost = reader.int64().toString();
           continue;
         }
       }
@@ -898,30 +871,30 @@ export const State_TeamService: MessageFns<State_TeamService> = {
 
   fromJSON(object: any): State_TeamService {
     return {
-      teamId: isSet(object.teamId) ? BigInt(object.teamId) : 0n,
-      serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
+      teamId: isSet(object.teamId) ? globalThis.String(object.teamId) : "0",
+      serviceId: isSet(object.serviceId) ? globalThis.String(object.serviceId) : "0",
       points: isSet(object.points) ? globalThis.Number(object.points) : 0,
-      flagsStolen: isSet(object.flagsStolen) ? BigInt(object.flagsStolen) : 0n,
-      flagsLost: isSet(object.flagsLost) ? BigInt(object.flagsLost) : 0n,
+      flagsStolen: isSet(object.flagsStolen) ? globalThis.String(object.flagsStolen) : "0",
+      flagsLost: isSet(object.flagsLost) ? globalThis.String(object.flagsLost) : "0",
     };
   },
 
   toJSON(message: State_TeamService): unknown {
     const obj: any = {};
-    if (message.teamId !== 0n) {
-      obj.teamId = message.teamId.toString();
+    if (message.teamId !== "0") {
+      obj.teamId = message.teamId;
     }
-    if (message.serviceId !== 0n) {
-      obj.serviceId = message.serviceId.toString();
+    if (message.serviceId !== "0") {
+      obj.serviceId = message.serviceId;
     }
     if (message.points !== 0) {
       obj.points = message.points;
     }
-    if (message.flagsStolen !== 0n) {
-      obj.flagsStolen = message.flagsStolen.toString();
+    if (message.flagsStolen !== "0") {
+      obj.flagsStolen = message.flagsStolen;
     }
-    if (message.flagsLost !== 0n) {
-      obj.flagsLost = message.flagsLost.toString();
+    if (message.flagsLost !== "0") {
+      obj.flagsLost = message.flagsLost;
     }
     return obj;
   },
@@ -931,11 +904,11 @@ export const State_TeamService: MessageFns<State_TeamService> = {
   },
   fromPartial<I extends Exact<DeepPartial<State_TeamService>, I>>(object: I): State_TeamService {
     const message = createBaseState_TeamService();
-    message.teamId = object.teamId ?? 0n;
-    message.serviceId = object.serviceId ?? 0n;
+    message.teamId = object.teamId ?? "0";
+    message.serviceId = object.serviceId ?? "0";
     message.points = object.points ?? 0;
-    message.flagsStolen = object.flagsStolen ?? 0n;
-    message.flagsLost = object.flagsLost ?? 0n;
+    message.flagsStolen = object.flagsStolen ?? "0";
+    message.flagsLost = object.flagsLost ?? "0";
     return message;
   },
 };
@@ -1201,7 +1174,7 @@ export const GetStateResponse: MessageFns<GetStateResponse> = {
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>

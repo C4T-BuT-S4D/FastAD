@@ -8,6 +8,10 @@ import "checker/checker.proto";
 import "data/version/version.proto";
 
 message Service {
+  message Batch {
+    repeated Service services = 1;
+  }
+
   message Checker {
     message Action {
       checker.Action action = 1;

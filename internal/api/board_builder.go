@@ -8,10 +8,11 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 	scoreboardpb "github.com/c4t-but-s4d/fastad/pkg/proto/scoreboard"
 	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
@@ -29,8 +30,8 @@ type BoardBuilder struct {
 	lastRefresh time.Time
 	// Never modify these fields, only replace them with new values.
 	// References to these fields are returned to the caller.
-	teamsCache      []*models.Team
-	servicesCache   []*models.Service
+	teamsCache      []*teamspb.Team
+	servicesCache   []*servicespb.Service
 	scoreboardCache *scoreboardpb.Scoreboard
 }
 
@@ -72,7 +73,7 @@ func (b *BoardBuilder) GetScoreboard(ctx context.Context) (*scoreboardpb.Scorebo
 	return b.scoreboardCache, nil
 }
 
-func (b *BoardBuilder) GetTeams(ctx context.Context) ([]*models.Team, error) {
+func (b *BoardBuilder) GetTeams(ctx context.Context) ([]*teamspb.Team, error) {
 	b.mu.RLock()
 	cache := b.teamsCache
 	lastRefresh := b.lastRefresh
@@ -140,9 +141,9 @@ func (b *BoardBuilder) buildScoreboardStateUnlocked(ctx context.Context) (*score
 	sbMap := make(map[teamServiceKey]*scoreboardpb.Scoreboard_TeamServiceState)
 	for _, team := range b.teamsCache {
 		for _, service := range b.servicesCache {
-			sbMap[teamServiceKey{TeamID: team.ID, ServiceID: service.ID}] = &scoreboardpb.Scoreboard_TeamServiceState{
-				TeamId:    int64(team.ID),
-				ServiceId: int64(service.ID),
+			sbMap[teamServiceKey{TeamID: team.Id, ServiceID: service.Id}] = &scoreboardpb.Scoreboard_TeamServiceState{
+				TeamId:    team.Id,
+				ServiceId: service.Id,
 				Points:    service.DefaultScore,
 			}
 		}
@@ -159,7 +160,7 @@ func (b *BoardBuilder) buildScoreboardStateUnlocked(ctx context.Context) (*score
 	}
 
 	for _, tss := range slaState.GetState().GetTeamServiceStates() {
-		key := teamServiceKey{TeamID: int(tss.GetTeamId()), ServiceID: int(tss.GetServiceId())}
+		key := teamServiceKey{TeamID: tss.GetTeamId(), ServiceID: tss.GetServiceId()}
 		if sbs, ok := sbMap[key]; ok {
 			sbs.ChecksTotal = tss.GetChecksTotal()
 			sbs.ChecksPassed = tss.GetChecksPassed()
@@ -168,7 +169,7 @@ func (b *BoardBuilder) buildScoreboardStateUnlocked(ctx context.Context) (*score
 	}
 
 	for _, tss := range receiverState.GetState().GetTeamServices() {
-		key := teamServiceKey{TeamID: int(tss.GetTeamId()), ServiceID: int(tss.GetServiceId())}
+		key := teamServiceKey{TeamID: tss.GetTeamId(), ServiceID: tss.GetServiceId()}
 		if sbs, ok := sbMap[key]; ok {
 			sbs.FlagsStolen = tss.GetFlagsStolen()
 			sbs.FlagsLost = tss.GetFlagsLost()
@@ -180,6 +181,6 @@ func (b *BoardBuilder) buildScoreboardStateUnlocked(ctx context.Context) (*score
 }
 
 type teamServiceKey struct {
-	TeamID    int
-	ServiceID int
+	TeamID    int64
+	ServiceID int64
 }

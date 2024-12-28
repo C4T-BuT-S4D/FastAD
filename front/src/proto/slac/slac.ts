@@ -11,10 +11,10 @@ import { Status, statusFromJSON, statusToJSON } from "../checker/checker";
 export const protobufPackage = "slac";
 
 export interface TeamServiceState {
-  teamId: bigint;
-  serviceId: bigint;
-  checksTotal: bigint;
-  checksPassed: bigint;
+  teamId: string;
+  serviceId: string;
+  checksTotal: string;
+  checksPassed: string;
   status: Status;
 }
 
@@ -30,33 +30,21 @@ export interface GetStateResponse {
 }
 
 function createBaseTeamServiceState(): TeamServiceState {
-  return { teamId: 0n, serviceId: 0n, checksTotal: 0n, checksPassed: 0n, status: 0 };
+  return { teamId: "0", serviceId: "0", checksTotal: "0", checksPassed: "0", status: 0 };
 }
 
 export const TeamServiceState: MessageFns<TeamServiceState> = {
   encode(message: TeamServiceState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.teamId !== 0n) {
-      if (BigInt.asIntN(64, message.teamId) !== message.teamId) {
-        throw new globalThis.Error("value provided for field message.teamId of type int64 too large");
-      }
+    if (message.teamId !== "0") {
       writer.uint32(8).int64(message.teamId);
     }
-    if (message.serviceId !== 0n) {
-      if (BigInt.asIntN(64, message.serviceId) !== message.serviceId) {
-        throw new globalThis.Error("value provided for field message.serviceId of type int64 too large");
-      }
+    if (message.serviceId !== "0") {
       writer.uint32(16).int64(message.serviceId);
     }
-    if (message.checksTotal !== 0n) {
-      if (BigInt.asIntN(64, message.checksTotal) !== message.checksTotal) {
-        throw new globalThis.Error("value provided for field message.checksTotal of type int64 too large");
-      }
+    if (message.checksTotal !== "0") {
       writer.uint32(24).int64(message.checksTotal);
     }
-    if (message.checksPassed !== 0n) {
-      if (BigInt.asIntN(64, message.checksPassed) !== message.checksPassed) {
-        throw new globalThis.Error("value provided for field message.checksPassed of type int64 too large");
-      }
+    if (message.checksPassed !== "0") {
       writer.uint32(32).int64(message.checksPassed);
     }
     if (message.status !== 0) {
@@ -77,7 +65,7 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
             break;
           }
 
-          message.teamId = reader.int64() as bigint;
+          message.teamId = reader.int64().toString();
           continue;
         }
         case 2: {
@@ -85,7 +73,7 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
             break;
           }
 
-          message.serviceId = reader.int64() as bigint;
+          message.serviceId = reader.int64().toString();
           continue;
         }
         case 3: {
@@ -93,7 +81,7 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
             break;
           }
 
-          message.checksTotal = reader.int64() as bigint;
+          message.checksTotal = reader.int64().toString();
           continue;
         }
         case 4: {
@@ -101,7 +89,7 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
             break;
           }
 
-          message.checksPassed = reader.int64() as bigint;
+          message.checksPassed = reader.int64().toString();
           continue;
         }
         case 5: {
@@ -155,27 +143,27 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
 
   fromJSON(object: any): TeamServiceState {
     return {
-      teamId: isSet(object.teamId) ? BigInt(object.teamId) : 0n,
-      serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
-      checksTotal: isSet(object.checksTotal) ? BigInt(object.checksTotal) : 0n,
-      checksPassed: isSet(object.checksPassed) ? BigInt(object.checksPassed) : 0n,
+      teamId: isSet(object.teamId) ? globalThis.String(object.teamId) : "0",
+      serviceId: isSet(object.serviceId) ? globalThis.String(object.serviceId) : "0",
+      checksTotal: isSet(object.checksTotal) ? globalThis.String(object.checksTotal) : "0",
+      checksPassed: isSet(object.checksPassed) ? globalThis.String(object.checksPassed) : "0",
       status: isSet(object.status) ? statusFromJSON(object.status) : 0,
     };
   },
 
   toJSON(message: TeamServiceState): unknown {
     const obj: any = {};
-    if (message.teamId !== 0n) {
-      obj.teamId = message.teamId.toString();
+    if (message.teamId !== "0") {
+      obj.teamId = message.teamId;
     }
-    if (message.serviceId !== 0n) {
-      obj.serviceId = message.serviceId.toString();
+    if (message.serviceId !== "0") {
+      obj.serviceId = message.serviceId;
     }
-    if (message.checksTotal !== 0n) {
-      obj.checksTotal = message.checksTotal.toString();
+    if (message.checksTotal !== "0") {
+      obj.checksTotal = message.checksTotal;
     }
-    if (message.checksPassed !== 0n) {
-      obj.checksPassed = message.checksPassed.toString();
+    if (message.checksPassed !== "0") {
+      obj.checksPassed = message.checksPassed;
     }
     if (message.status !== 0) {
       obj.status = statusToJSON(message.status);
@@ -188,10 +176,10 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
   },
   fromPartial<I extends Exact<DeepPartial<TeamServiceState>, I>>(object: I): TeamServiceState {
     const message = createBaseTeamServiceState();
-    message.teamId = object.teamId ?? 0n;
-    message.serviceId = object.serviceId ?? 0n;
-    message.checksTotal = object.checksTotal ?? 0n;
-    message.checksPassed = object.checksPassed ?? 0n;
+    message.teamId = object.teamId ?? "0";
+    message.serviceId = object.serviceId ?? "0";
+    message.checksTotal = object.checksTotal ?? "0";
+    message.checksPassed = object.checksPassed ?? "0";
     message.status = object.status ?? 0;
     return message;
   },
@@ -456,7 +444,7 @@ export const GetStateResponse: MessageFns<GetStateResponse> = {
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>

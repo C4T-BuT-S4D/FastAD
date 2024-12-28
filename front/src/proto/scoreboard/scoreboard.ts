@@ -15,16 +15,16 @@ export interface Scoreboard {
 }
 
 export interface Scoreboard_TeamServiceState {
-  teamId: bigint;
-  serviceId: bigint;
+  teamId: string;
+  serviceId: string;
   /** From slac. */
-  checksTotal: bigint;
-  checksPassed: bigint;
+  checksTotal: string;
+  checksPassed: string;
   status: Status;
   /** From receiver. */
   points: number;
-  flagsStolen: bigint;
-  flagsLost: bigint;
+  flagsStolen: string;
+  flagsLost: string;
 }
 
 function createBaseScoreboard(): Scoreboard {
@@ -123,41 +123,29 @@ export const Scoreboard: MessageFns<Scoreboard> = {
 
 function createBaseScoreboard_TeamServiceState(): Scoreboard_TeamServiceState {
   return {
-    teamId: 0n,
-    serviceId: 0n,
-    checksTotal: 0n,
-    checksPassed: 0n,
+    teamId: "0",
+    serviceId: "0",
+    checksTotal: "0",
+    checksPassed: "0",
     status: 0,
     points: 0,
-    flagsStolen: 0n,
-    flagsLost: 0n,
+    flagsStolen: "0",
+    flagsLost: "0",
   };
 }
 
 export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState> = {
   encode(message: Scoreboard_TeamServiceState, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.teamId !== 0n) {
-      if (BigInt.asIntN(64, message.teamId) !== message.teamId) {
-        throw new globalThis.Error("value provided for field message.teamId of type int64 too large");
-      }
+    if (message.teamId !== "0") {
       writer.uint32(8).int64(message.teamId);
     }
-    if (message.serviceId !== 0n) {
-      if (BigInt.asIntN(64, message.serviceId) !== message.serviceId) {
-        throw new globalThis.Error("value provided for field message.serviceId of type int64 too large");
-      }
+    if (message.serviceId !== "0") {
       writer.uint32(16).int64(message.serviceId);
     }
-    if (message.checksTotal !== 0n) {
-      if (BigInt.asIntN(64, message.checksTotal) !== message.checksTotal) {
-        throw new globalThis.Error("value provided for field message.checksTotal of type int64 too large");
-      }
+    if (message.checksTotal !== "0") {
       writer.uint32(24).int64(message.checksTotal);
     }
-    if (message.checksPassed !== 0n) {
-      if (BigInt.asIntN(64, message.checksPassed) !== message.checksPassed) {
-        throw new globalThis.Error("value provided for field message.checksPassed of type int64 too large");
-      }
+    if (message.checksPassed !== "0") {
       writer.uint32(32).int64(message.checksPassed);
     }
     if (message.status !== 0) {
@@ -166,16 +154,10 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
     if (message.points !== 0) {
       writer.uint32(49).double(message.points);
     }
-    if (message.flagsStolen !== 0n) {
-      if (BigInt.asIntN(64, message.flagsStolen) !== message.flagsStolen) {
-        throw new globalThis.Error("value provided for field message.flagsStolen of type int64 too large");
-      }
+    if (message.flagsStolen !== "0") {
       writer.uint32(56).int64(message.flagsStolen);
     }
-    if (message.flagsLost !== 0n) {
-      if (BigInt.asIntN(64, message.flagsLost) !== message.flagsLost) {
-        throw new globalThis.Error("value provided for field message.flagsLost of type int64 too large");
-      }
+    if (message.flagsLost !== "0") {
       writer.uint32(64).int64(message.flagsLost);
     }
     return writer;
@@ -193,7 +175,7 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
             break;
           }
 
-          message.teamId = reader.int64() as bigint;
+          message.teamId = reader.int64().toString();
           continue;
         }
         case 2: {
@@ -201,7 +183,7 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
             break;
           }
 
-          message.serviceId = reader.int64() as bigint;
+          message.serviceId = reader.int64().toString();
           continue;
         }
         case 3: {
@@ -209,7 +191,7 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
             break;
           }
 
-          message.checksTotal = reader.int64() as bigint;
+          message.checksTotal = reader.int64().toString();
           continue;
         }
         case 4: {
@@ -217,7 +199,7 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
             break;
           }
 
-          message.checksPassed = reader.int64() as bigint;
+          message.checksPassed = reader.int64().toString();
           continue;
         }
         case 5: {
@@ -241,7 +223,7 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
             break;
           }
 
-          message.flagsStolen = reader.int64() as bigint;
+          message.flagsStolen = reader.int64().toString();
           continue;
         }
         case 8: {
@@ -249,7 +231,7 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
             break;
           }
 
-          message.flagsLost = reader.int64() as bigint;
+          message.flagsLost = reader.int64().toString();
           continue;
         }
       }
@@ -297,30 +279,30 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
 
   fromJSON(object: any): Scoreboard_TeamServiceState {
     return {
-      teamId: isSet(object.teamId) ? BigInt(object.teamId) : 0n,
-      serviceId: isSet(object.serviceId) ? BigInt(object.serviceId) : 0n,
-      checksTotal: isSet(object.checksTotal) ? BigInt(object.checksTotal) : 0n,
-      checksPassed: isSet(object.checksPassed) ? BigInt(object.checksPassed) : 0n,
+      teamId: isSet(object.teamId) ? globalThis.String(object.teamId) : "0",
+      serviceId: isSet(object.serviceId) ? globalThis.String(object.serviceId) : "0",
+      checksTotal: isSet(object.checksTotal) ? globalThis.String(object.checksTotal) : "0",
+      checksPassed: isSet(object.checksPassed) ? globalThis.String(object.checksPassed) : "0",
       status: isSet(object.status) ? statusFromJSON(object.status) : 0,
       points: isSet(object.points) ? globalThis.Number(object.points) : 0,
-      flagsStolen: isSet(object.flagsStolen) ? BigInt(object.flagsStolen) : 0n,
-      flagsLost: isSet(object.flagsLost) ? BigInt(object.flagsLost) : 0n,
+      flagsStolen: isSet(object.flagsStolen) ? globalThis.String(object.flagsStolen) : "0",
+      flagsLost: isSet(object.flagsLost) ? globalThis.String(object.flagsLost) : "0",
     };
   },
 
   toJSON(message: Scoreboard_TeamServiceState): unknown {
     const obj: any = {};
-    if (message.teamId !== 0n) {
-      obj.teamId = message.teamId.toString();
+    if (message.teamId !== "0") {
+      obj.teamId = message.teamId;
     }
-    if (message.serviceId !== 0n) {
-      obj.serviceId = message.serviceId.toString();
+    if (message.serviceId !== "0") {
+      obj.serviceId = message.serviceId;
     }
-    if (message.checksTotal !== 0n) {
-      obj.checksTotal = message.checksTotal.toString();
+    if (message.checksTotal !== "0") {
+      obj.checksTotal = message.checksTotal;
     }
-    if (message.checksPassed !== 0n) {
-      obj.checksPassed = message.checksPassed.toString();
+    if (message.checksPassed !== "0") {
+      obj.checksPassed = message.checksPassed;
     }
     if (message.status !== 0) {
       obj.status = statusToJSON(message.status);
@@ -328,11 +310,11 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
     if (message.points !== 0) {
       obj.points = message.points;
     }
-    if (message.flagsStolen !== 0n) {
-      obj.flagsStolen = message.flagsStolen.toString();
+    if (message.flagsStolen !== "0") {
+      obj.flagsStolen = message.flagsStolen;
     }
-    if (message.flagsLost !== 0n) {
-      obj.flagsLost = message.flagsLost.toString();
+    if (message.flagsLost !== "0") {
+      obj.flagsLost = message.flagsLost;
     }
     return obj;
   },
@@ -342,19 +324,19 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
   },
   fromPartial<I extends Exact<DeepPartial<Scoreboard_TeamServiceState>, I>>(object: I): Scoreboard_TeamServiceState {
     const message = createBaseScoreboard_TeamServiceState();
-    message.teamId = object.teamId ?? 0n;
-    message.serviceId = object.serviceId ?? 0n;
-    message.checksTotal = object.checksTotal ?? 0n;
-    message.checksPassed = object.checksPassed ?? 0n;
+    message.teamId = object.teamId ?? "0";
+    message.serviceId = object.serviceId ?? "0";
+    message.checksTotal = object.checksTotal ?? "0";
+    message.checksPassed = object.checksPassed ?? "0";
     message.status = object.status ?? 0;
     message.points = object.points ?? 0;
-    message.flagsStolen = object.flagsStolen ?? 0n;
-    message.flagsLost = object.flagsLost ?? 0n;
+    message.flagsStolen = object.flagsStolen ?? "0";
+    message.flagsLost = object.flagsLost ?? "0";
     return message;
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>

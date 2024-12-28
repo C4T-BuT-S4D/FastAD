@@ -77,13 +77,13 @@ func NewSetupCommand(_ *common.CommandContext) *cli.Command {
 			if err != nil {
 				return fmt.Errorf("creating teams: %w", err)
 			}
-			zap.S().Infof("created teams: %+v", createdTeams)
+			zap.S().Infof("created teams: %v", createdTeams)
 
 			createdServices, err := servicesClient.CreateBatch(c.Context, servicesToCreate)
 			if err != nil {
 				return fmt.Errorf("creating services: %w", err)
 			}
-			zap.S().Infof("created services: %+v", createdServices)
+			zap.S().Infof("created services: %v", createdServices)
 
 			createdGameService, err := gameStateClient.Update(c.Context, cfg.Game.ToUpdateRequestProto())
 			if err != nil {

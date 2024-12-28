@@ -4,9 +4,12 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/samber/lo"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
-	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 )
 
 func (s *Service) HandleServicesList() echo.HandlerFunc {
@@ -18,14 +21,25 @@ func (s *Service) HandleServicesList() echo.HandlerFunc {
 			return httpext.NewErrorFromStatus(err, "listing services")
 		}
 
-		for _, service := range services {
-			service.Actions = nil
-			service.CheckerPath = ""
-			service.DefaultScore = 0
-			service.CheckerType = checkerpb.Type_TYPE_UNSPECIFIED
-			service.DefaultTimeout = 0
+		resp := &servicespb.Service_Batch{
+			Services: lo.Map(services, func(service *servicespb.Service, _ int) *servicespb.Service {
+				serviceCloned := proto.Clone(service).(*servicespb.Service)
+				serviceCloned.Checker = nil
+				serviceCloned.DefaultScore = 0
+				return serviceCloned
+			}),
 		}
 
-		return c.JSON(http.StatusOK, services)
+		// TODO: helper for returning protojson.
+		raw, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(resp)
+		if err != nil {
+			return httpext.NewErrorf(
+				http.StatusInternalServerError,
+				"marshaling services: %v",
+				err,
+			)
+		}
+
+		return c.JSONBlob(http.StatusOK, raw)
 	}
 }

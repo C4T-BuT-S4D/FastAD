@@ -13,11 +13,15 @@ import { Version } from "../version/version";
 export const protobufPackage = "data.services";
 
 export interface Service {
-  id: bigint;
+  id: string;
   name: string;
   checker: Service_Checker | undefined;
   defaultScore: number;
   disabled: boolean;
+}
+
+export interface Service_Batch {
+  services: Service[];
 }
 
 export interface Service_Checker {
@@ -30,7 +34,7 @@ export interface Service_Checker {
 export interface Service_Checker_Action {
   action: Action;
   timeout: Duration | undefined;
-  runCount: bigint;
+  runCount: string;
 }
 
 export interface ListRequest {
@@ -51,15 +55,12 @@ export interface CreateBatchResponse {
 }
 
 function createBaseService(): Service {
-  return { id: 0n, name: "", checker: undefined, defaultScore: 0, disabled: false };
+  return { id: "0", name: "", checker: undefined, defaultScore: 0, disabled: false };
 }
 
 export const Service: MessageFns<Service> = {
   encode(message: Service, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== 0n) {
-      if (BigInt.asIntN(64, message.id) !== message.id) {
-        throw new globalThis.Error("value provided for field message.id of type int64 too large");
-      }
+    if (message.id !== "0") {
       writer.uint32(8).int64(message.id);
     }
     if (message.name !== "") {
@@ -89,7 +90,7 @@ export const Service: MessageFns<Service> = {
             break;
           }
 
-          message.id = reader.int64() as bigint;
+          message.id = reader.int64().toString();
           continue;
         }
         case 2: {
@@ -167,7 +168,7 @@ export const Service: MessageFns<Service> = {
 
   fromJSON(object: any): Service {
     return {
-      id: isSet(object.id) ? BigInt(object.id) : 0n,
+      id: isSet(object.id) ? globalThis.String(object.id) : "0",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       checker: isSet(object.checker) ? Service_Checker.fromJSON(object.checker) : undefined,
       defaultScore: isSet(object.defaultScore) ? globalThis.Number(object.defaultScore) : 0,
@@ -177,8 +178,8 @@ export const Service: MessageFns<Service> = {
 
   toJSON(message: Service): unknown {
     const obj: any = {};
-    if (message.id !== 0n) {
-      obj.id = message.id.toString();
+    if (message.id !== "0") {
+      obj.id = message.id;
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -200,13 +201,105 @@ export const Service: MessageFns<Service> = {
   },
   fromPartial<I extends Exact<DeepPartial<Service>, I>>(object: I): Service {
     const message = createBaseService();
-    message.id = object.id ?? 0n;
+    message.id = object.id ?? "0";
     message.name = object.name ?? "";
     message.checker = (object.checker !== undefined && object.checker !== null)
       ? Service_Checker.fromPartial(object.checker)
       : undefined;
     message.defaultScore = object.defaultScore ?? 0;
     message.disabled = object.disabled ?? false;
+    return message;
+  },
+};
+
+function createBaseService_Batch(): Service_Batch {
+  return { services: [] };
+}
+
+export const Service_Batch: MessageFns<Service_Batch> = {
+  encode(message: Service_Batch, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.services) {
+      Service.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Service_Batch {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseService_Batch();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.services.push(Service.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<Service_Batch, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<Service_Batch | Service_Batch[]> | Iterable<Service_Batch | Service_Batch[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Service_Batch.encode(p).finish()];
+        }
+      } else {
+        yield* [Service_Batch.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, Service_Batch>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<Service_Batch> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Service_Batch.decode(p)];
+        }
+      } else {
+        yield* [Service_Batch.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): Service_Batch {
+    return {
+      services: globalThis.Array.isArray(object?.services) ? object.services.map((e: any) => Service.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: Service_Batch): unknown {
+    const obj: any = {};
+    if (message.services?.length) {
+      obj.services = message.services.map((e) => Service.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Service_Batch>, I>>(base?: I): Service_Batch {
+    return Service_Batch.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Service_Batch>, I>>(object: I): Service_Batch {
+    const message = createBaseService_Batch();
+    message.services = object.services?.map((e) => Service.fromPartial(e)) || [];
     return message;
   },
 };
@@ -356,7 +449,7 @@ export const Service_Checker: MessageFns<Service_Checker> = {
 };
 
 function createBaseService_Checker_Action(): Service_Checker_Action {
-  return { action: 0, timeout: undefined, runCount: 0n };
+  return { action: 0, timeout: undefined, runCount: "0" };
 }
 
 export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
@@ -367,10 +460,7 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
     if (message.timeout !== undefined) {
       Duration.encode(message.timeout, writer.uint32(18).fork()).join();
     }
-    if (message.runCount !== 0n) {
-      if (BigInt.asIntN(64, message.runCount) !== message.runCount) {
-        throw new globalThis.Error("value provided for field message.runCount of type int64 too large");
-      }
+    if (message.runCount !== "0") {
       writer.uint32(24).int64(message.runCount);
     }
     return writer;
@@ -404,7 +494,7 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
             break;
           }
 
-          message.runCount = reader.int64() as bigint;
+          message.runCount = reader.int64().toString();
           continue;
         }
       }
@@ -454,7 +544,7 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
     return {
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
       timeout: isSet(object.timeout) ? Duration.fromJSON(object.timeout) : undefined,
-      runCount: isSet(object.runCount) ? BigInt(object.runCount) : 0n,
+      runCount: isSet(object.runCount) ? globalThis.String(object.runCount) : "0",
     };
   },
 
@@ -466,8 +556,8 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
     if (message.timeout !== undefined) {
       obj.timeout = Duration.toJSON(message.timeout);
     }
-    if (message.runCount !== 0n) {
-      obj.runCount = message.runCount.toString();
+    if (message.runCount !== "0") {
+      obj.runCount = message.runCount;
     }
     return obj;
   },
@@ -481,7 +571,7 @@ export const Service_Checker_Action: MessageFns<Service_Checker_Action> = {
     message.timeout = (object.timeout !== undefined && object.timeout !== null)
       ? Duration.fromPartial(object.timeout)
       : undefined;
-    message.runCount = object.runCount ?? 0n;
+    message.runCount = object.runCount ?? "0";
     return message;
   },
 };
@@ -876,7 +966,7 @@ export const CreateBatchResponse: MessageFns<CreateBatchResponse> = {
   },
 };
 
-type Builtin = Date | Function | Uint8Array | string | number | boolean | bigint | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
   : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>

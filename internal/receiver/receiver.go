@@ -20,6 +20,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 )
 
@@ -89,8 +90,8 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 	if err != nil {
 		return nil, fmt.Errorf("fetching services: %w", err)
 	}
-	serviceByID := lo.KeyBy(serviceList, func(srv *models.Service) int {
-		return srv.ID
+	serviceByID := lo.KeyBy(serviceList, func(srv *servicespb.Service) int {
+		return int(srv.Id)
 	})
 
 	attacker, err := s.teamsClient.GetByToken(ctx, tokens[0])
@@ -151,7 +152,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 				continue
 			}
 
-			if flag.TeamID == attacker.ID {
+			if flag.TeamID == int(attacker.Id) {
 				baseResponse.Verdict = receiverpb.FlagResponse_VERDICT_OWN
 				baseResponse.Message = ownFlagMessage
 				resp.Responses = append(resp.Responses, baseResponse)
@@ -175,7 +176,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 
 			attacksToAdd = append(attacksToAdd, &models.Attack{
 				ServiceID:  flag.ServiceID,
-				AttackerID: attacker.ID,
+				AttackerID: int(attacker.Id),
 				VictimID:   flag.TeamID,
 				FlagID:     flag.ID,
 				RequestID:  attacksRequestID,
@@ -296,8 +297,8 @@ func (s *Service) RestoreState(ctx context.Context) error {
 		return fmt.Errorf("fetching services: %w", err)
 	}
 
-	servicesByID := lo.KeyBy(serviceList, func(service *models.Service) int {
-		return service.ID
+	servicesByID := lo.KeyBy(serviceList, func(service *servicespb.Service) int {
+		return int(service.Id)
 	})
 
 	start := time.Now()

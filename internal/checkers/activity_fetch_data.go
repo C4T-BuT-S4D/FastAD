@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/samber/lo"
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 
@@ -11,6 +12,8 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
 const FetchDataActivityName = "FetchData"
@@ -65,9 +68,17 @@ func (a *FetchDataActivity) ActivityDefinition(
 	}
 	logger.Info("fetched services", "services", servicesList)
 
+	teamModels := lo.Map(teamsList, func(team *teamspb.Team, _ int) *models.Team {
+		return models.NewTeamFromProto(team)
+	})
+
+	serviceModels := lo.Map(servicesList, func(service *servicespb.Service, _ int) *models.Service {
+		return models.NewServiceFromProto(service)
+	})
+
 	return &FetchDataActivityResult{
 		GameState: gs,
-		Teams:     teamsList,
-		Services:  servicesList,
+		Teams:     teamModels,
+		Services:  serviceModels,
 	}, nil
 }
