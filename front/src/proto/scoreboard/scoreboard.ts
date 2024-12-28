@@ -6,7 +6,7 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
-import { Status, statusFromJSON, statusToJSON } from "../checker/checker";
+import { TeamServiceState_CheckStatus } from "../slac/slac";
 
 export const protobufPackage = "scoreboard";
 
@@ -20,7 +20,7 @@ export interface Scoreboard_TeamServiceState {
   /** From slac. */
   checksTotal: string;
   checksPassed: string;
-  status: Status;
+  checkStatuses: TeamServiceState_CheckStatus[];
   /** From receiver. */
   points: number;
   flagsStolen: string;
@@ -127,7 +127,7 @@ function createBaseScoreboard_TeamServiceState(): Scoreboard_TeamServiceState {
     serviceId: "0",
     checksTotal: "0",
     checksPassed: "0",
-    status: 0,
+    checkStatuses: [],
     points: 0,
     flagsStolen: "0",
     flagsLost: "0",
@@ -148,8 +148,8 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
     if (message.checksPassed !== "0") {
       writer.uint32(32).int64(message.checksPassed);
     }
-    if (message.status !== 0) {
-      writer.uint32(40).int32(message.status);
+    for (const v of message.checkStatuses) {
+      TeamServiceState_CheckStatus.encode(v!, writer.uint32(42).fork()).join();
     }
     if (message.points !== 0) {
       writer.uint32(49).double(message.points);
@@ -203,11 +203,11 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
           continue;
         }
         case 5: {
-          if (tag !== 40) {
+          if (tag !== 42) {
             break;
           }
 
-          message.status = reader.int32() as any;
+          message.checkStatuses.push(TeamServiceState_CheckStatus.decode(reader, reader.uint32()));
           continue;
         }
         case 6: {
@@ -283,7 +283,9 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
       serviceId: isSet(object.serviceId) ? globalThis.String(object.serviceId) : "0",
       checksTotal: isSet(object.checksTotal) ? globalThis.String(object.checksTotal) : "0",
       checksPassed: isSet(object.checksPassed) ? globalThis.String(object.checksPassed) : "0",
-      status: isSet(object.status) ? statusFromJSON(object.status) : 0,
+      checkStatuses: globalThis.Array.isArray(object?.checkStatuses)
+        ? object.checkStatuses.map((e: any) => TeamServiceState_CheckStatus.fromJSON(e))
+        : [],
       points: isSet(object.points) ? globalThis.Number(object.points) : 0,
       flagsStolen: isSet(object.flagsStolen) ? globalThis.String(object.flagsStolen) : "0",
       flagsLost: isSet(object.flagsLost) ? globalThis.String(object.flagsLost) : "0",
@@ -304,8 +306,8 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
     if (message.checksPassed !== "0") {
       obj.checksPassed = message.checksPassed;
     }
-    if (message.status !== 0) {
-      obj.status = statusToJSON(message.status);
+    if (message.checkStatuses?.length) {
+      obj.checkStatuses = message.checkStatuses.map((e) => TeamServiceState_CheckStatus.toJSON(e));
     }
     if (message.points !== 0) {
       obj.points = message.points;
@@ -328,7 +330,7 @@ export const Scoreboard_TeamServiceState: MessageFns<Scoreboard_TeamServiceState
     message.serviceId = object.serviceId ?? "0";
     message.checksTotal = object.checksTotal ?? "0";
     message.checksPassed = object.checksPassed ?? "0";
-    message.status = object.status ?? 0;
+    message.checkStatuses = object.checkStatuses?.map((e) => TeamServiceState_CheckStatus.fromPartial(e)) || [];
     message.points = object.points ?? 0;
     message.flagsStolen = object.flagsStolen ?? "0";
     message.flagsLost = object.flagsLost ?? "0";

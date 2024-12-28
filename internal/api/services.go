@@ -6,7 +6,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
@@ -23,7 +22,7 @@ func (s *Service) HandleServicesList() echo.HandlerFunc {
 
 		resp := &servicespb.Service_Batch{
 			Services: lo.Map(services, func(service *servicespb.Service, _ int) *servicespb.Service {
-				serviceCloned := proto.Clone(service).(*servicespb.Service)
+				serviceCloned := service.CloneVT()
 				serviceCloned.Checker = nil
 				serviceCloned.DefaultScore = 0
 				return serviceCloned

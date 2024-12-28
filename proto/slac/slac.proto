@@ -5,11 +5,16 @@ package slac;
 import "checker/checker.proto";
 
 message TeamServiceState {
+  message CheckStatus {
+    checker.Status status = 1;
+    string message = 2;
+  }
+
   int64 team_id = 1;
   int64 service_id = 2;
   int64 checks_total = 3;
   int64 checks_passed = 4;
-  checker.Status status = 5;
+  repeated CheckStatus check_statuses = 5;
 }
 
 message State {

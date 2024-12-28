@@ -8,7 +8,7 @@ lint-go:
 
 .PHONY: lint-front
 lint-front:
-	cd front && yarn lint
+	cd front && pnpm lint
 
 .PHONY: goimports
 goimports:

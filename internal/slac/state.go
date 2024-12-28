@@ -2,12 +2,13 @@ package slac
 
 import (
 	"github.com/samber/lo"
-	"google.golang.org/protobuf/proto"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
 )
+
+const keepLastChecks = 3
 
 type TeamServiceKey struct {
 	TeamID    int
@@ -40,10 +41,16 @@ func (s *State) Apply(execution *models.CheckerExecution) {
 		s.TeamServiceStates[key] = tss
 	}
 
-	tss.Status = execution.Status
 	tss.ChecksTotal++
 	if execution.Status == checkerpb.Status_STATUS_UP {
 		tss.ChecksPassed++
+	}
+	tss.CheckStatuses = append(tss.CheckStatuses, &slacpb.TeamServiceState_CheckStatus{
+		Status:  execution.Status,
+		Message: execution.Public,
+	})
+	if len(tss.CheckStatuses) > keepLastChecks {
+		tss.CheckStatuses = tss.CheckStatuses[len(tss.CheckStatuses)-keepLastChecks:]
 	}
 }
 
@@ -52,7 +59,7 @@ func (s *State) Clone() *State {
 		TeamServiceStates: lo.MapValues(
 			s.TeamServiceStates,
 			func(value *slacpb.TeamServiceState, _ TeamServiceKey) *slacpb.TeamServiceState {
-				return proto.Clone(value).(*slacpb.TeamServiceState)
+				return value.CloneVT()
 			},
 		),
 	}

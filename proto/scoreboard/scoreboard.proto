@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package scoreboard;
 
-import "checker/checker.proto";
+import "slac/slac.proto";
 
 message Scoreboard {
   message TeamServiceState {
@@ -12,7 +12,7 @@ message Scoreboard {
     // From slac.
     int64 checks_total = 3;
     int64 checks_passed = 4;
-    checker.Status status = 5;
+    repeated slac.TeamServiceState.CheckStatus check_statuses = 5;
 
     // From receiver.
     double points = 6;

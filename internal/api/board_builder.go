@@ -164,7 +164,7 @@ func (b *BoardBuilder) buildScoreboardStateUnlocked(ctx context.Context) (*score
 		if sbs, ok := sbMap[key]; ok {
 			sbs.ChecksTotal = tss.GetChecksTotal()
 			sbs.ChecksPassed = tss.GetChecksPassed()
-			sbs.Status = tss.GetStatus()
+			sbs.CheckStatuses = tss.GetCheckStatuses()
 		}
 	}
 

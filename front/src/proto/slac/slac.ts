@@ -15,7 +15,12 @@ export interface TeamServiceState {
   serviceId: string;
   checksTotal: string;
   checksPassed: string;
+  checkStatuses: TeamServiceState_CheckStatus[];
+}
+
+export interface TeamServiceState_CheckStatus {
   status: Status;
+  message: string;
 }
 
 export interface State {
@@ -30,7 +35,7 @@ export interface GetStateResponse {
 }
 
 function createBaseTeamServiceState(): TeamServiceState {
-  return { teamId: "0", serviceId: "0", checksTotal: "0", checksPassed: "0", status: 0 };
+  return { teamId: "0", serviceId: "0", checksTotal: "0", checksPassed: "0", checkStatuses: [] };
 }
 
 export const TeamServiceState: MessageFns<TeamServiceState> = {
@@ -47,8 +52,8 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
     if (message.checksPassed !== "0") {
       writer.uint32(32).int64(message.checksPassed);
     }
-    if (message.status !== 0) {
-      writer.uint32(40).int32(message.status);
+    for (const v of message.checkStatuses) {
+      TeamServiceState_CheckStatus.encode(v!, writer.uint32(42).fork()).join();
     }
     return writer;
   },
@@ -93,11 +98,11 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
           continue;
         }
         case 5: {
-          if (tag !== 40) {
+          if (tag !== 42) {
             break;
           }
 
-          message.status = reader.int32() as any;
+          message.checkStatuses.push(TeamServiceState_CheckStatus.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -147,7 +152,9 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
       serviceId: isSet(object.serviceId) ? globalThis.String(object.serviceId) : "0",
       checksTotal: isSet(object.checksTotal) ? globalThis.String(object.checksTotal) : "0",
       checksPassed: isSet(object.checksPassed) ? globalThis.String(object.checksPassed) : "0",
-      status: isSet(object.status) ? statusFromJSON(object.status) : 0,
+      checkStatuses: globalThis.Array.isArray(object?.checkStatuses)
+        ? object.checkStatuses.map((e: any) => TeamServiceState_CheckStatus.fromJSON(e))
+        : [],
     };
   },
 
@@ -165,8 +172,8 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
     if (message.checksPassed !== "0") {
       obj.checksPassed = message.checksPassed;
     }
-    if (message.status !== 0) {
-      obj.status = statusToJSON(message.status);
+    if (message.checkStatuses?.length) {
+      obj.checkStatuses = message.checkStatuses.map((e) => TeamServiceState_CheckStatus.toJSON(e));
     }
     return obj;
   },
@@ -180,7 +187,117 @@ export const TeamServiceState: MessageFns<TeamServiceState> = {
     message.serviceId = object.serviceId ?? "0";
     message.checksTotal = object.checksTotal ?? "0";
     message.checksPassed = object.checksPassed ?? "0";
+    message.checkStatuses = object.checkStatuses?.map((e) => TeamServiceState_CheckStatus.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseTeamServiceState_CheckStatus(): TeamServiceState_CheckStatus {
+  return { status: 0, message: "" };
+}
+
+export const TeamServiceState_CheckStatus: MessageFns<TeamServiceState_CheckStatus> = {
+  encode(message: TeamServiceState_CheckStatus, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.status !== 0) {
+      writer.uint32(8).int32(message.status);
+    }
+    if (message.message !== "") {
+      writer.uint32(18).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): TeamServiceState_CheckStatus {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseTeamServiceState_CheckStatus();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.status = reader.int32() as any;
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<TeamServiceState_CheckStatus, Uint8Array>
+  async *encodeTransform(
+    source:
+      | AsyncIterable<TeamServiceState_CheckStatus | TeamServiceState_CheckStatus[]>
+      | Iterable<TeamServiceState_CheckStatus | TeamServiceState_CheckStatus[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [TeamServiceState_CheckStatus.encode(p).finish()];
+        }
+      } else {
+        yield* [TeamServiceState_CheckStatus.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, TeamServiceState_CheckStatus>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<TeamServiceState_CheckStatus> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [TeamServiceState_CheckStatus.decode(p)];
+        }
+      } else {
+        yield* [TeamServiceState_CheckStatus.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): TeamServiceState_CheckStatus {
+    return {
+      status: isSet(object.status) ? statusFromJSON(object.status) : 0,
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+    };
+  },
+
+  toJSON(message: TeamServiceState_CheckStatus): unknown {
+    const obj: any = {};
+    if (message.status !== 0) {
+      obj.status = statusToJSON(message.status);
+    }
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TeamServiceState_CheckStatus>, I>>(base?: I): TeamServiceState_CheckStatus {
+    return TeamServiceState_CheckStatus.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<TeamServiceState_CheckStatus>, I>>(object: I): TeamServiceState_CheckStatus {
+    const message = createBaseTeamServiceState_CheckStatus();
     message.status = object.status ?? 0;
+    message.message = object.message ?? "";
     return message;
   },
 };
