@@ -99,7 +99,7 @@ func (c *Controller) SavePutExecutions(ctx context.Context, putResults []*PutAct
 	return nil
 }
 
-func (c *Controller) AddCheckerExecutions(ctx context.Context, executions []*models.CheckerExecution) error {
+func (c *Controller) AddCheckerExecutions(ctx context.Context, executions ...*models.CheckerExecution) error {
 	if _, err := c.db.
 		NewInsert().
 		Model(&executions).

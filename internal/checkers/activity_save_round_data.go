@@ -32,26 +32,11 @@ func (s *SaveRoundDataActivity) ActivityDefinition(ctx context.Context, params *
 		"activity", SaveRoundDataActivityName,
 	)
 
-	logger.Info("starting")
-	err := s.saveRoundData(ctx, params, logger)
-	if err != nil {
-		return nil, fmt.Errorf("saving round data: %w", err)
-	}
-	logger.Info("finished")
-
-	return &SaveRoundDataActivityResult{}, nil
-}
-
-func (s *SaveRoundDataActivity) saveRoundData(
-	ctx context.Context,
-	params *SaveRoundDataActivityParameters,
-	logger log.Logger,
-) error {
 	logger.Info("saving data for put results", "put_results", len(params.PutResults))
 
 	if err := s.checkersController.SavePutExecutions(ctx, params.PutResults); err != nil {
-		return fmt.Errorf("adding checker executions: %w", err)
+		return nil, fmt.Errorf("adding checker executions: %w", err)
 	}
 
-	return nil
+	return &SaveRoundDataActivityResult{}, nil
 }

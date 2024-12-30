@@ -104,6 +104,11 @@ func Run(runCtx, shutdownCtx context.Context, cfg *checkers.Config) error {
 		checkers.NewSaveRoundDataActivity(checkersController).ActivityDefinition,
 		activity.RegisterOptions{Name: checkers.SaveRoundDataActivityName},
 	)
+
+	checkersWorker.RegisterActivityWithOptions(
+		checkers.NewSaveVerdictActivity(checkersController).ActivityDefinition,
+		activity.RegisterOptions{Name: checkers.SaveVerdictActivityName},
+	)
 	// End of activities.
 
 	// Workflows.

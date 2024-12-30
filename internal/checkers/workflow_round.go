@@ -108,14 +108,13 @@ func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) er
 
 	logger.Info("finished puts, saving results", "put_results", len(putResults))
 
-	var saveRoundDataResult *SaveRoundDataActivityResult
 	if err := workflow.ExecuteLocalActivity(
 		laoCtx,
 		SaveRoundDataActivityName,
 		&SaveRoundDataActivityParameters{
 			PutResults: putResults,
 		},
-	).Get(ctx, &saveRoundDataResult); err != nil {
+	).Get(ctx, nil); err != nil {
 		logger.Error("running save round data activity", "error", err)
 		return fmt.Errorf("save round data: %w", err)
 	}

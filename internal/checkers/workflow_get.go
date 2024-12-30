@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/workflow"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
@@ -22,8 +23,14 @@ type GetWorkflowParameters struct {
 }
 
 func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) error {
-	logger := workflow.GetLogger(ctx)
-	logger.Info("starting workflow")
+	logger := log.With(
+		workflow.GetLogger(ctx),
+		"team", params.Team.Name,
+		"service", params.Service.Name,
+		"action", checkerpb.Action_ACTION_GET,
+	)
+
+	logger.Debug("starting workflow")
 
 	lao := workflow.LocalActivityOptions{
 		ScheduleToCloseTimeout: time.Second * 3,
@@ -44,6 +51,8 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 	).Get(ctx, &pickFlagResult); err != nil {
 		logger.Error("running pick flag activity", "error", err)
 	}
+
+	logger.Debug("picked flag", "flag", pickFlagResult.Flag)
 
 	// TODO: fail if pick hasn't succeeded.
 	if pickFlagResult.Flag == nil {
@@ -77,7 +86,22 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 		}
 	}
 
-	// TODO: save.
+	logger.Debug("checker finished, saving verdict", "verdict", verdict)
+
+	if err := workflow.ExecuteLocalActivity(
+		laoCtx,
+		SaveVerdictActivityName,
+		&SaveVerdictActivityParameters{
+			Team:    params.Team,
+			Service: params.Service,
+			Verdict: verdict,
+		},
+	).Get(ctx, nil); err != nil {
+		logger.Error("running save verdict activity", "error", err)
+		return fmt.Errorf("save verdict: %w", err)
+	}
+
+	logger.Debug("get finished")
 
 	return nil
 }

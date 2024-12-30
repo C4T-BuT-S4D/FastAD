@@ -2,7 +2,9 @@ package checkers
 
 import (
 	"fmt"
+	"time"
 
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/workflow"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
@@ -21,8 +23,14 @@ type CheckWorkflowParameters struct {
 }
 
 func CheckWorkflowDefinition(ctx workflow.Context, params CheckWorkflowParameters) error {
-	logger := workflow.GetLogger(ctx)
-	logger.Info("starting workflow")
+	logger := log.With(
+		workflow.GetLogger(ctx),
+		"team", params.Team.Name,
+		"service", params.Service.Name,
+		"action", checkerpb.Action_ACTION_CHECK,
+	)
+
+	logger.Debug("starting")
 
 	// TODO: fail if the last PUT failed.
 	service := models.NewServiceFromProto(params.Service)
@@ -50,7 +58,25 @@ func CheckWorkflowDefinition(ctx workflow.Context, params CheckWorkflowParameter
 		}
 	}
 
-	// TODO: save.
+	logger.Debug("checker finished, saving verdict", "verdict", verdict)
+
+	laoCtx := workflow.WithLocalActivityOptions(ctx, workflow.LocalActivityOptions{
+		ScheduleToCloseTimeout: time.Second * 3,
+	})
+	if err := workflow.ExecuteLocalActivity(
+		laoCtx,
+		SaveVerdictActivityName,
+		&SaveVerdictActivityParameters{
+			Team:    params.Team,
+			Service: params.Service,
+			Verdict: verdict,
+		},
+	).Get(ctx, nil); err != nil {
+		logger.Error("running save verdict activity", "error", err)
+		return fmt.Errorf("save verdict: %w", err)
+	}
+
+	logger.Debug("check finished")
 
 	return nil
 }
