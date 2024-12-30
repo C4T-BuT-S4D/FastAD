@@ -8,7 +8,6 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
 )
@@ -28,7 +27,7 @@ func NewClient(c gspb.GameStateServiceClient) *Client {
 	return &Client{c: c, cache: NewCache()}
 }
 
-func (c *Client) Get(ctx context.Context) (*models.GameState, error) {
+func (c *Client) Get(ctx context.Context) (*gspb.GameState, error) {
 	if err := c.refresh(ctx); err != nil {
 		return nil, fmt.Errorf("refreshing services: %w", err)
 	}
@@ -39,20 +38,20 @@ func (c *Client) Get(ctx context.Context) (*models.GameState, error) {
 	return c.cache.GetState(), nil
 }
 
-func (c *Client) Update(ctx context.Context, req *gspb.UpdateRequest) (*models.GameState, error) {
+func (c *Client) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.GameState, error) {
 	resp, err := c.c.Update(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("updating state: %w", err)
 	}
-	return models.NewGameStateFromProto(resp.GameState), nil
+	return resp.GameState, nil
 }
 
-func (c *Client) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*models.GameState, error) {
+func (c *Client) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*gspb.GameState, error) {
 	resp, err := c.c.UpdateRound(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("updating round: %w", err)
 	}
-	return models.NewGameStateFromProto(resp.GameState), nil
+	return resp.GameState, nil
 }
 
 func (c *Client) RawClient() gspb.GameStateServiceClient {
@@ -73,7 +72,7 @@ func (c *Client) refresh(ctx context.Context) error {
 	}
 
 	c.version = resp.Version
-	c.cache.SetState(models.NewGameStateFromProto(resp.GameState))
+	c.cache.SetState(resp.GameState)
 
 	return nil
 }

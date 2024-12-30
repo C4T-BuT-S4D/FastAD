@@ -8,6 +8,9 @@ import (
 	"go.temporal.io/sdk/log"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
 const PickGetFlagActivityName = "PickGetFlag"
@@ -21,9 +24,9 @@ func NewPickGetFlagActivity(checkersController *Controller) *PickGetFlagActivity
 }
 
 type PickGetFlagActivityParameters struct {
-	GameState *models.GameState
-	Team      *models.Team
-	Service   *models.Service
+	GameState *gspb.GameState
+	Team      *teamspb.Team
+	Service   *servicespb.Service
 }
 
 type PickGetFlagActivityResult struct {
@@ -45,8 +48,8 @@ func (a *PickGetFlagActivity) ActivityDefinition(
 
 	flag, err := a.checkersController.PickFlag(
 		ctx,
-		params.Team.ID,
-		params.Service.ID,
+		int(params.Team.Id),
+		int(params.Service.Id),
 		params.GameState.RunningRound,
 		params.GameState.FlagLifetimeRounds,
 	)

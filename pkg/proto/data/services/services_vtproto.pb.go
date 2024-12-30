@@ -193,3 +193,256 @@ func (m *CreateBatchResponse) CloneVT() *CreateBatchResponse {
 func (m *CreateBatchResponse) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
+
+func (this *Service_Batch) EqualVT(that *Service_Batch) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.Services) != len(that.Services) {
+		return false
+	}
+	for i, vx := range this.Services {
+		vy := that.Services[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &Service{}
+			}
+			if q == nil {
+				q = &Service{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Service_Batch) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*Service_Batch)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *Service_Checker_Action) EqualVT(that *Service_Checker_Action) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Action != that.Action {
+		return false
+	}
+	if !(*durationpb1.Duration)(this.Timeout).EqualVT((*durationpb1.Duration)(that.Timeout)) {
+		return false
+	}
+	if this.RunCount != that.RunCount {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Service_Checker_Action) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*Service_Checker_Action)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *Service_Checker) EqualVT(that *Service_Checker) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Type != that.Type {
+		return false
+	}
+	if this.Path != that.Path {
+		return false
+	}
+	if !(*durationpb1.Duration)(this.DefaultTimeout).EqualVT((*durationpb1.Duration)(that.DefaultTimeout)) {
+		return false
+	}
+	if len(this.Actions) != len(that.Actions) {
+		return false
+	}
+	for i, vx := range this.Actions {
+		vy := that.Actions[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &Service_Checker_Action{}
+			}
+			if q == nil {
+				q = &Service_Checker_Action{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Service_Checker) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*Service_Checker)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *Service) EqualVT(that *Service) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Id != that.Id {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if !this.Checker.EqualVT(that.Checker) {
+		return false
+	}
+	if this.DefaultScore != that.DefaultScore {
+		return false
+	}
+	if this.Disabled != that.Disabled {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Service) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*Service)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *ListRequest) EqualVT(that *ListRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ListRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*ListRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *ListResponse) EqualVT(that *ListResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.Services) != len(that.Services) {
+		return false
+	}
+	for i, vx := range this.Services {
+		vy := that.Services[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &Service{}
+			}
+			if q == nil {
+				q = &Service{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ListResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*ListResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *CreateBatchRequest) EqualVT(that *CreateBatchRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.Services) != len(that.Services) {
+		return false
+	}
+	for i, vx := range this.Services {
+		vy := that.Services[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &Service{}
+			}
+			if q == nil {
+				q = &Service{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *CreateBatchRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*CreateBatchRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *CreateBatchResponse) EqualVT(that *CreateBatchResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.Services) != len(that.Services) {
+		return false
+	}
+	for i, vx := range this.Services {
+		vy := that.Services[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &Service{}
+			}
+			if q == nil {
+				q = &Service{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *CreateBatchResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*CreateBatchResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}

@@ -32,3 +32,23 @@ func (m *Version) CloneVT() *Version {
 func (m *Version) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
+
+func (this *Version) EqualVT(that *Version) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Version != that.Version {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Version) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*Version)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}

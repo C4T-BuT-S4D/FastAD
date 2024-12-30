@@ -152,3 +152,198 @@ func (m *CreateBatchResponse) CloneVT() *CreateBatchResponse {
 func (m *CreateBatchResponse) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
+
+func (this *Team_Batch) EqualVT(that *Team_Batch) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.Teams) != len(that.Teams) {
+		return false
+	}
+	for i, vx := range this.Teams {
+		vy := that.Teams[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &Team{}
+			}
+			if q == nil {
+				q = &Team{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Team_Batch) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*Team_Batch)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *Team) EqualVT(that *Team) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Id != that.Id {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if this.Address != that.Address {
+		return false
+	}
+	if this.Token != that.Token {
+		return false
+	}
+	if len(this.Labels) != len(that.Labels) {
+		return false
+	}
+	for i, vx := range this.Labels {
+		vy, ok := that.Labels[i]
+		if !ok {
+			return false
+		}
+		if vx != vy {
+			return false
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Team) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*Team)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *ListRequest) EqualVT(that *ListRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ListRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*ListRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *ListResponse) EqualVT(that *ListResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.Teams) != len(that.Teams) {
+		return false
+	}
+	for i, vx := range this.Teams {
+		vy := that.Teams[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &Team{}
+			}
+			if q == nil {
+				q = &Team{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *ListResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*ListResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *CreateBatchRequest) EqualVT(that *CreateBatchRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.Teams) != len(that.Teams) {
+		return false
+	}
+	for i, vx := range this.Teams {
+		vy := that.Teams[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &Team{}
+			}
+			if q == nil {
+				q = &Team{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *CreateBatchRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*CreateBatchRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *CreateBatchResponse) EqualVT(that *CreateBatchResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.Teams) != len(that.Teams) {
+		return false
+	}
+	for i, vx := range this.Teams {
+		vy := that.Teams[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &Team{}
+			}
+			if q == nil {
+				q = &Team{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *CreateBatchResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*CreateBatchResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}

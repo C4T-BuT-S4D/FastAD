@@ -17,7 +17,7 @@ plugins:
   out: ../pkg/proto
   opt:
     - paths=source_relative
-    - features=clone
+    - features=clone+equal
 - remote: buf.build/community/stephenh-ts-proto
   out: ../front/src/proto
   opt:

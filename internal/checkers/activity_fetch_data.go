@@ -12,6 +12,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
@@ -39,7 +40,7 @@ func NewFetchDataActivity(
 type FetchDataActivityParameters struct{}
 
 type FetchDataActivityResult struct {
-	GameState *models.GameState
+	GameState *gspb.GameState
 	Teams     []*models.Team
 	Services  []*models.Service
 }

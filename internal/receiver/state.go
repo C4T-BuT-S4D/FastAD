@@ -7,6 +7,7 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 )
@@ -60,7 +61,7 @@ func (s *ServiceState) Clone() *ServiceState {
 	}
 }
 
-func (s *ServiceState) Apply(gs *models.GameState, attack *models.Attack) error {
+func (s *ServiceState) Apply(gs *gspb.GameState, attack *models.Attack) error {
 	attackerState := s.getOrCreate(attack.AttackerID)
 	victimState := s.getOrCreate(attack.VictimID)
 
@@ -126,7 +127,7 @@ func NewState() *State {
 	}
 }
 
-func (s *State) ProcessAttack(gs *models.GameState, service *servicespb.Service, attack *models.Attack) error {
+func (s *State) ProcessAttack(gs *gspb.GameState, service *servicespb.Service, attack *models.Attack) error {
 	return s.getOrCreate(service).Apply(gs, attack)
 }
 

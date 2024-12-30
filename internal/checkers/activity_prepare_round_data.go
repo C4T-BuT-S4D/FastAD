@@ -9,7 +9,6 @@ import (
 
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
@@ -35,7 +34,7 @@ func NewPrepareRoundActivity(
 }
 
 type PrepareRoundActivityParameters struct {
-	GameState *models.GameState
+	GameState *gspb.GameState
 	Teams     []*models.Team
 	Services  []*models.Service
 }
@@ -83,7 +82,7 @@ func (a *PrepareRoundActivity) prepareRoundPutState(
 					Flag:      generateFlag(service),
 					TeamID:    team.ID,
 					ServiceID: service.ID,
-					CreatedAt: params.GameState.RunningRoundStart,
+					CreatedAt: params.GameState.RunningRoundStart.AsTime(),
 					Round:     params.GameState.RunningRound,
 				}
 				flags = append(flags, &FQFlagInfo{
@@ -115,7 +114,7 @@ func (a *PrepareRoundActivity) prepareRoundPutState(
 
 	if _, err := a.gameStateClient.UpdateRound(ctx, &gspb.UpdateRoundRequest{
 		RunningRound:      params.GameState.RunningRound,
-		RunningRoundStart: timestamppb.New(params.GameState.RunningRoundStart),
+		RunningRoundStart: params.GameState.RunningRoundStart,
 	}); err != nil {
 		return nil, fmt.Errorf("updating round: %w", err)
 	}

@@ -160,3 +160,203 @@ func (m *UpdateRoundResponse) CloneVT() *UpdateRoundResponse {
 func (m *UpdateRoundResponse) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
+
+func (this *GameState) EqualVT(that *GameState) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !(*timestamppb1.Timestamp)(this.StartTime).EqualVT((*timestamppb1.Timestamp)(that.StartTime)) {
+		return false
+	}
+	if !(*timestamppb1.Timestamp)(this.EndTime).EqualVT((*timestamppb1.Timestamp)(that.EndTime)) {
+		return false
+	}
+	if this.TotalRounds != that.TotalRounds {
+		return false
+	}
+	if this.Paused != that.Paused {
+		return false
+	}
+	if this.FlagLifetimeRounds != that.FlagLifetimeRounds {
+		return false
+	}
+	if !(*durationpb1.Duration)(this.RoundDuration).EqualVT((*durationpb1.Duration)(that.RoundDuration)) {
+		return false
+	}
+	if this.Mode != that.Mode {
+		return false
+	}
+	if this.RunningRound != that.RunningRound {
+		return false
+	}
+	if !(*timestamppb1.Timestamp)(this.RunningRoundStart).EqualVT((*timestamppb1.Timestamp)(that.RunningRoundStart)) {
+		return false
+	}
+	if this.Hardness != that.Hardness {
+		return false
+	}
+	if this.Inflation != that.Inflation {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *GameState) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*GameState)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *GetRequest) EqualVT(that *GetRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *GetRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*GetRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *GetResponse) EqualVT(that *GetResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.GameState.EqualVT(that.GameState) {
+		return false
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *GetResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*GetResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *UpdateRequest) EqualVT(that *UpdateRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !(*timestamppb1.Timestamp)(this.StartTime).EqualVT((*timestamppb1.Timestamp)(that.StartTime)) {
+		return false
+	}
+	if !(*timestamppb1.Timestamp)(this.EndTime).EqualVT((*timestamppb1.Timestamp)(that.EndTime)) {
+		return false
+	}
+	if this.TotalRounds != that.TotalRounds {
+		return false
+	}
+	if this.Paused != that.Paused {
+		return false
+	}
+	if this.FlagLifetimeRounds != that.FlagLifetimeRounds {
+		return false
+	}
+	if !(*durationpb1.Duration)(this.RoundDuration).EqualVT((*durationpb1.Duration)(that.RoundDuration)) {
+		return false
+	}
+	if this.Mode != that.Mode {
+		return false
+	}
+	if this.Hardness != that.Hardness {
+		return false
+	}
+	if this.Inflation != that.Inflation {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UpdateRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*UpdateRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *UpdateResponse) EqualVT(that *UpdateResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.GameState.EqualVT(that.GameState) {
+		return false
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UpdateResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*UpdateResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *UpdateRoundRequest) EqualVT(that *UpdateRoundRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.RunningRound != that.RunningRound {
+		return false
+	}
+	if !(*timestamppb1.Timestamp)(this.RunningRoundStart).EqualVT((*timestamppb1.Timestamp)(that.RunningRoundStart)) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UpdateRoundRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*UpdateRoundRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *UpdateRoundResponse) EqualVT(that *UpdateRoundResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.GameState.EqualVT(that.GameState) {
+		return false
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UpdateRoundResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*UpdateRoundResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}

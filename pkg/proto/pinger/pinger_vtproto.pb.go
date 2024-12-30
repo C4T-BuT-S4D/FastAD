@@ -47,3 +47,36 @@ func (m *PingResponse) CloneVT() *PingResponse {
 func (m *PingResponse) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
+
+func (this *PingRequest) EqualVT(that *PingRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *PingRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*PingRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *PingResponse) EqualVT(that *PingResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *PingResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*PingResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}

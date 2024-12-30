@@ -130,7 +130,7 @@ func (c *Controller) PickFlag(
 			serviceID,
 			minRound,
 		).
-		Order("RANDOM()").
+		OrderExpr("RANDOM()").
 		Scan(ctx); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			//nolint:nilnil // Easier to handle in the caller.

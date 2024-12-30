@@ -8,6 +8,8 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
 const CheckActivityName = "Check"
@@ -19,8 +21,8 @@ func NewCheckActivity() *CheckActivity {
 }
 
 type CheckActivityParameters struct {
-	GameState *models.GameState
-	Team      *models.Team
+	GameState *gspb.GameState
+	Team      *teamspb.Team
 	Service   *models.Service
 }
 

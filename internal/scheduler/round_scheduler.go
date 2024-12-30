@@ -27,7 +27,7 @@ const (
 
 const RoundWorkflowID = "round_workflow"
 
-type Scheduler struct {
+type RoundScheduler struct {
 	refreshInterval time.Duration
 
 	gameStateClient *gamestate.Client
@@ -36,18 +36,17 @@ type Scheduler struct {
 	db *bun.DB
 
 	gameState *gspb.GameState
-	gsVersion int64
 
 	logger *zap.Logger
 }
 
-func New(
+func NewRoundScheduler(
 	refreshInterval time.Duration,
 	temporalClient client.Client,
 	gameStateClient *gamestate.Client,
 	db *bun.DB,
-) *Scheduler {
-	return &Scheduler{
+) *RoundScheduler {
+	return &RoundScheduler{
 		refreshInterval: refreshInterval,
 		temporalClient:  temporalClient,
 		gameStateClient: gameStateClient,
@@ -58,7 +57,7 @@ func New(
 	}
 }
 
-func (s *Scheduler) Run(ctx context.Context) error {
+func (s *RoundScheduler) Run(ctx context.Context) error {
 	if err := s.refreshGameState(ctx); err != nil {
 		return fmt.Errorf("fetching initial game state: %w", err)
 	}
@@ -98,7 +97,7 @@ func (s *Scheduler) Run(ctx context.Context) error {
 	}
 }
 
-func (s *Scheduler) TryRunRound(ctx context.Context) error {
+func (s *RoundScheduler) TryRunRound(ctx context.Context) error {
 	now := time.Now()
 
 	var state models.SchedulerState
@@ -147,7 +146,7 @@ func (s *Scheduler) TryRunRound(ctx context.Context) error {
 
 	s.logger.Info("running round workflow")
 	workflowRun, err := s.temporalClient.ExecuteWorkflow(
-		context.Background(),
+		ctx,
 		client.StartWorkflowOptions{
 			TaskQueue:                                "checkers",
 			ID:                                       RoundWorkflowID,
@@ -182,7 +181,7 @@ func (s *Scheduler) TryRunRound(ctx context.Context) error {
 	return nil
 }
 
-func (s *Scheduler) updateStateOnPause(ctx context.Context) error {
+func (s *RoundScheduler) updateStateOnPause(ctx context.Context) error {
 	if _, err := s.db.
 		NewInsert().
 		Model(&models.SchedulerState{
@@ -197,21 +196,11 @@ func (s *Scheduler) updateStateOnPause(ctx context.Context) error {
 	return nil
 }
 
-func (s *Scheduler) refreshGameState(ctx context.Context) error {
-	response, err := s.gameStateClient.RawClient().Get(ctx, &gspb.GetRequest{})
+func (s *RoundScheduler) refreshGameState(ctx context.Context) error {
+	gs, err := s.gameStateClient.Get(ctx)
 	if err != nil {
 		return fmt.Errorf("getting game state: %w", err)
 	}
-
-	if s.gameState == nil || s.gsVersion != response.GetVersion().GetVersion() {
-		s.gameState = response.GetGameState()
-		s.logger.Info(
-			"updated game state",
-			zap.Int64("old_version", s.gsVersion),
-			zap.Int64("new_version", response.GetVersion().GetVersion()),
-		)
-		s.gsVersion = response.GetVersion().GetVersion()
-	}
-
+	s.gameState = gs
 	return nil
 }

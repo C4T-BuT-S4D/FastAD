@@ -2,6 +2,8 @@ package logging
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/uptrace/bun"
@@ -39,6 +41,12 @@ func (qh QueryHook) AfterQuery(_ context.Context, event *bun.QueryEvent) {
 	// Errors will always be logged
 	if event.Err != nil {
 		fields = append(fields, zap.Error(event.Err))
+
+		if isBenignSQLError(event.Err) {
+			qh.logger.Debug(event.Query, fields...)
+			return
+		}
+
 		qh.logger.Error(event.Query, fields...)
 		return
 	}
@@ -54,4 +62,8 @@ func (qh QueryHook) AfterQuery(_ context.Context, event *bun.QueryEvent) {
 
 func AddBunQueryHook(db *bun.DB) {
 	db.AddQueryHook(NewQueryHook(zap.L()))
+}
+
+func isBenignSQLError(err error) bool {
+	return errors.Is(err, sql.ErrNoRows)
 }

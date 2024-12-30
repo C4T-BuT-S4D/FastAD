@@ -203,3 +203,262 @@ func (m *GetStateResponse) CloneVT() *GetStateResponse {
 func (m *GetStateResponse) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
+
+func (this *SubmitFlagsRequest) EqualVT(that *SubmitFlagsRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.Flags) != len(that.Flags) {
+		return false
+	}
+	for i, vx := range this.Flags {
+		vy := that.Flags[i]
+		if vx != vy {
+			return false
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SubmitFlagsRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*SubmitFlagsRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *FlagResponse) EqualVT(that *FlagResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Flag != that.Flag {
+		return false
+	}
+	if this.Verdict != that.Verdict {
+		return false
+	}
+	if this.Message != that.Message {
+		return false
+	}
+	if this.VictimId != that.VictimId {
+		return false
+	}
+	if this.ServiceId != that.ServiceId {
+		return false
+	}
+	if this.AttackerDelta != that.AttackerDelta {
+		return false
+	}
+	if this.VictimDelta != that.VictimDelta {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *FlagResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*FlagResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *AttackNotification_Batch) EqualVT(that *AttackNotification_Batch) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.Attacks) != len(that.Attacks) {
+		return false
+	}
+	for i, vx := range this.Attacks {
+		vy := that.Attacks[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &AttackNotification{}
+			}
+			if q == nil {
+				q = &AttackNotification{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *AttackNotification_Batch) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*AttackNotification_Batch)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *AttackNotification) EqualVT(that *AttackNotification) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.AttackerId != that.AttackerId {
+		return false
+	}
+	if this.VictimId != that.VictimId {
+		return false
+	}
+	if this.ServiceId != that.ServiceId {
+		return false
+	}
+	if this.AttackerDelta != that.AttackerDelta {
+		return false
+	}
+	if this.VictimDelta != that.VictimDelta {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *AttackNotification) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*AttackNotification)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *State_TeamService) EqualVT(that *State_TeamService) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.TeamId != that.TeamId {
+		return false
+	}
+	if this.ServiceId != that.ServiceId {
+		return false
+	}
+	if this.Points != that.Points {
+		return false
+	}
+	if this.FlagsStolen != that.FlagsStolen {
+		return false
+	}
+	if this.FlagsLost != that.FlagsLost {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *State_TeamService) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*State_TeamService)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *State) EqualVT(that *State) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.TeamServices) != len(that.TeamServices) {
+		return false
+	}
+	for i, vx := range this.TeamServices {
+		vy := that.TeamServices[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &State_TeamService{}
+			}
+			if q == nil {
+				q = &State_TeamService{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *State) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*State)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *SubmitFlagsResponse) EqualVT(that *SubmitFlagsResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.Responses) != len(that.Responses) {
+		return false
+	}
+	for i, vx := range this.Responses {
+		vy := that.Responses[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &FlagResponse{}
+			}
+			if q == nil {
+				q = &FlagResponse{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *SubmitFlagsResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*SubmitFlagsResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *GetStateRequest) EqualVT(that *GetStateRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *GetStateRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*GetStateRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *GetStateResponse) EqualVT(that *GetStateResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.State.EqualVT(that.State) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *GetStateResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*GetStateResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}

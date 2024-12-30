@@ -69,3 +69,91 @@ func (m *Scoreboard) CloneVT() *Scoreboard {
 func (m *Scoreboard) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
+
+func (this *Scoreboard_TeamServiceState) EqualVT(that *Scoreboard_TeamServiceState) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.TeamId != that.TeamId {
+		return false
+	}
+	if this.ServiceId != that.ServiceId {
+		return false
+	}
+	if this.ChecksTotal != that.ChecksTotal {
+		return false
+	}
+	if this.ChecksPassed != that.ChecksPassed {
+		return false
+	}
+	if len(this.CheckStatuses) != len(that.CheckStatuses) {
+		return false
+	}
+	for i, vx := range this.CheckStatuses {
+		vy := that.CheckStatuses[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &slac.TeamServiceState_CheckStatus{}
+			}
+			if q == nil {
+				q = &slac.TeamServiceState_CheckStatus{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	if this.Points != that.Points {
+		return false
+	}
+	if this.FlagsStolen != that.FlagsStolen {
+		return false
+	}
+	if this.FlagsLost != that.FlagsLost {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Scoreboard_TeamServiceState) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*Scoreboard_TeamServiceState)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *Scoreboard) EqualVT(that *Scoreboard) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if len(this.TeamServiceStates) != len(that.TeamServiceStates) {
+		return false
+	}
+	for i, vx := range this.TeamServiceStates {
+		vy := that.TeamServiceStates[i]
+		if p, q := vx, vy; p != q {
+			if p == nil {
+				p = &Scoreboard_TeamServiceState{}
+			}
+			if q == nil {
+				q = &Scoreboard_TeamServiceState{}
+			}
+			if !p.EqualVT(q) {
+				return false
+			}
+		}
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *Scoreboard) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*Scoreboard)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}

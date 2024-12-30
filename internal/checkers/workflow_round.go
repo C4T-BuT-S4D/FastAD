@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"go.temporal.io/sdk/workflow"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
@@ -43,7 +44,7 @@ func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) er
 	)
 
 	fetchDataResult.GameState.RunningRound++
-	fetchDataResult.GameState.RunningRoundStart = workflow.Now(ctx)
+	fetchDataResult.GameState.RunningRoundStart = timestamppb.New(workflow.Now(ctx))
 
 	var prepareStateResult *PrepareRoundActivityResult
 	if err := workflow.ExecuteLocalActivity(
