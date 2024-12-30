@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/centrifugal/centrifuge"
 	"github.com/labstack/echo/v4"
@@ -64,8 +65,12 @@ func (s *Service) RegisterRoutes(e *echo.Echo) {
 	apiGroup.GET("/ctftime", s.HandleGetCTFTimeScoreboard())
 	apiGroup.GET("/game_state", s.HandleGetGameState())
 
-	wsHandler := centrifuge.NewWebsocketHandler(s.centNode, centrifuge.WebsocketConfig{})
-	e.Any("/centrifuge", echo.WrapHandler(wsHandler))
+	wsHandler := centrifuge.NewWebsocketHandler(s.centNode, centrifuge.WebsocketConfig{
+		CheckOrigin: func(*http.Request) bool {
+			return true
+		},
+	})
+	e.Any("/centrifuge/websocket", echo.WrapHandler(wsHandler))
 }
 
 func (s *Service) RegisterNode() {

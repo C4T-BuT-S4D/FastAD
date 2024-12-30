@@ -25,7 +25,7 @@ plugins:
     - oneof=unions
     - unrecognizedEnum=false
     - enumsAsLiterals=true
-    - outputServices=nice-grpc,outputServices=generic-definitions
+    - outputServices=false
     - useAsyncIterable=true
     - esModuleInterop=true
     - forceLong=string

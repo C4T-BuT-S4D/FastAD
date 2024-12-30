@@ -98,7 +98,7 @@ class SubscriptionEventLoggerHandler(SubscriptionEventHandler):
 
 def run_example():
     client = Client(
-        "ws://localhost:8001/centrifuge",
+        "ws://localhost:8001/centrifuge/websocket",
         events=ClientEventLoggerHandler(),
         use_protobuf=False,
     )
