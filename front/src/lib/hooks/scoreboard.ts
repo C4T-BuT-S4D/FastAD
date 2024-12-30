@@ -6,6 +6,7 @@ import { State } from '@/proto/slac/slac';
 import axios from 'axios';
 import { Centrifuge, PublicationContext } from 'centrifuge';
 import { useEffect, useMemo, useState } from 'react';
+import { createProtoTransform } from '../clients/common';
 import { ScoreboardState } from '../models/scoreboardState';
 
 export function useScoreboard() {
@@ -15,13 +16,17 @@ export function useScoreboard() {
 
   useEffect(() => {
     async function fetchTeams() {
-      const { data } = await axios.get<Team_Batch>('/teams');
+      const { data } = await axios.get<Team_Batch>('/teams', {
+        transformResponse: createProtoTransform(Team_Batch),
+      });
       data.teams[0].name = 'very very very long team name (yes it is)';
       setTeams(data.teams);
     }
 
     async function fetchServices() {
-      const res = await axios.get<Service_Batch>('/services');
+      const res = await axios.get<Service_Batch>('/services', {
+        transformResponse: createProtoTransform(Service_Batch),
+      });
       setServices(res.data.services);
     }
 
@@ -29,9 +34,7 @@ export function useScoreboard() {
       const { data: scoreboardData } = await axios.get<Scoreboard>(
         '/scoreboard',
         {
-          transformResponse: (resp) => {
-            return Scoreboard.fromJSON(JSON.parse(resp));
-          },
+          transformResponse: createProtoTransform(Scoreboard),
         },
       );
 

@@ -5,29 +5,12 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { apiURL } from './config.ts';
 import './index.css';
+import { setupInterceptorsTo } from './lib/clients/common.ts';
 import theme from './theme.ts';
 
 axios.defaults.baseURL = apiURL;
 
-axios.interceptors.request.use(
-  (request) => {
-    return request;
-  },
-  (error) => {
-    console.error('request error', error);
-    return Promise.reject(error);
-  },
-);
-
-axios.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    console.error('response error', error);
-    return Promise.reject(error);
-  },
-);
+setupInterceptorsTo(axios);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
