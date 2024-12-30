@@ -2,17 +2,18 @@ package gamestate
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
 )
 
-var ErrStateUnavailable = errors.New("game state is unavailable")
+var ErrStateUnavailable = status.Error(codes.Unavailable, "game state is unavailable")
 
 type Client struct {
 	c gspb.GameStateServiceClient

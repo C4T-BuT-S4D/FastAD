@@ -66,7 +66,7 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 		ScheduleToCloseTimeout: service.CheckerTimeout(checkerpb.Action_ACTION_GET) + checkerKillDelay*2,
 	})
 
-	var verdict *Verdict
+	var getResult GetActivityResult
 	if err := workflow.ExecuteActivity(
 		getActivityCtx,
 		GetActivityName,
@@ -76,9 +76,9 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 			Service:   service,
 			Flag:      pickFlagResult.Flag,
 		},
-	).Get(ctx, &verdict); err != nil {
+	).Get(ctx, &getResult); err != nil {
 		logger.Error("running activity", "error", err)
-		verdict = &Verdict{
+		getResult.Verdict = &Verdict{
 			Action:  checkerpb.Action_ACTION_GET,
 			Status:  checkerpb.Status_STATUS_CHECK_FAILED,
 			Public:  "checker error",
@@ -86,7 +86,7 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 		}
 	}
 
-	logger.Debug("checker finished, saving verdict", "verdict", verdict)
+	logger.Debug("checker finished, saving verdict", "verdict", getResult.Verdict)
 
 	if err := workflow.ExecuteLocalActivity(
 		laoCtx,
@@ -94,7 +94,7 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 		&SaveVerdictActivityParameters{
 			Team:    params.Team,
 			Service: params.Service,
-			Verdict: verdict,
+			Verdict: getResult.Verdict,
 		},
 	).Get(ctx, nil); err != nil {
 		logger.Error("running save verdict activity", "error", err)

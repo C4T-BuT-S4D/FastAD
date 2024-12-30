@@ -11,6 +11,8 @@ import (
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
 	"github.com/c4t-but-s4d/fastad/internal/models"
@@ -199,6 +201,10 @@ func (s *RoundScheduler) updateStateOnPause(ctx context.Context) error {
 func (s *RoundScheduler) refreshGameState(ctx context.Context) error {
 	gs, err := s.gameStateClient.Get(ctx)
 	if err != nil {
+		if status.Code(err) == codes.Unavailable {
+			s.gameState = nil
+			return nil
+		}
 		return fmt.Errorf("getting game state: %w", err)
 	}
 	s.gameState = gs

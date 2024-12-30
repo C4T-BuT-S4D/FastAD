@@ -28,7 +28,7 @@ class CheckMachine:
 
         return new_id
 
-    def get_flag(self, flag_id, vuln):
+    def get_flag(self, flag_id, vuln, status=Status.MUMBLE):
         r = requests.get(
             f'http://{self.checker.host}:{PORT}/get/',
             params={
@@ -37,11 +37,11 @@ class CheckMachine:
             },
             timeout=2,
         )
-        self.checker.check_response(r, 'Could not get flag')
-        data = self.checker.get_json(r, 'Invalid response from /get/')
+        self.checker.check_response(r, 'Could not get flag', status=status)
+        data = self.checker.get_json(r, 'Invalid response from /get/', status=status)
         self.checker.assert_in(
             'flag', data,
             'Could not get flag',
-            status=Status.CORRUPT,
+            status=status,
         )
         return data['flag']

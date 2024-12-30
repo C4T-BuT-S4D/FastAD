@@ -34,7 +34,7 @@ class Checker(BaseChecker):
         self.cquit(Status.OK, new_id)
 
     def get(self, flag_id, flag, vuln):
-        got_flag = self.mch.get_flag(flag_id, vuln)
+        got_flag = self.mch.get_flag(flag_id, vuln, status=Status.CORRUPT)
         self.assert_eq(got_flag, flag, 'Could not get flag', status=Status.CORRUPT)
         self.cquit(Status.OK)
 

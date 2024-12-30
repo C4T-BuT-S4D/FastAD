@@ -9,6 +9,8 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
@@ -186,6 +188,10 @@ func (m *CheckManager) syncSchedulers(ctx context.Context) error {
 func (m *CheckManager) refreshData(ctx context.Context) error {
 	gs, err := m.gameStateClient.Get(ctx)
 	if err != nil {
+		if status.Code(err) == codes.Unavailable {
+			m.gameState.Store(nil)
+			return nil
+		}
 		return fmt.Errorf("getting game state: %w", err)
 	}
 	m.gameState.Store(gs)
