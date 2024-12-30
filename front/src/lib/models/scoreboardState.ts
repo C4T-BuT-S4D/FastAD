@@ -3,7 +3,6 @@ import { Team } from '@/proto/data/teams/teams';
 import { Scoreboard } from '@/proto/scoreboard/scoreboard';
 
 import { Scoreboard_TeamServiceState } from '@/proto/scoreboard/scoreboard';
-import { State as SlacState, TeamServiceState } from '@/proto/slac/slac';
 
 export class ScoreboardState {
   private teamServiceState: Map<
@@ -24,83 +23,14 @@ export class ScoreboardState {
       } else {
         this.teamServiceState.get(tss.teamId)?.set(tss.serviceId, tss);
       }
-    });
-    this.calculateScores();
-  }
 
-  public clone() {
-    const newState = new ScoreboardState({
-      teamServiceStates: [],
-    });
-
-    // Deep clone the team service state map
-    this.teamServiceState.forEach((serviceMap, teamId) => {
-      const newServiceMap = new Map<string, Scoreboard_TeamServiceState>();
-      serviceMap.forEach((tss, serviceId) => {
-        newServiceMap.set(serviceId, {
-          ...tss,
-          checkStatuses: [...tss.checkStatuses],
-        });
-      });
-      newState.teamServiceState.set(teamId, newServiceMap);
-    });
-
-    // Clone the team score map
-    this.teamScore.forEach((score, teamId) => {
-      newState.teamScore.set(teamId, score);
-    });
-
-    return newState;
-  }
-
-  public applySlacState(slacState: SlacState) {
-    function newServiceState(tss: TeamServiceState) {
-      return {
-        teamId: tss.teamId,
-        serviceId: tss.serviceId,
-        checksTotal: tss.checksTotal,
-        checksPassed: tss.checksPassed,
-        checkStatuses: tss.checkStatuses,
-        points: 0,
-        flagsStolen: '0',
-        flagsLost: '0',
-      };
-    }
-
-    slacState.teamServiceStates.forEach((tss) => {
-      const currentTeamState = this.teamServiceState.get(tss.teamId);
-      const currentServiceState = currentTeamState?.get(tss.serviceId);
-
-      if (currentTeamState && currentServiceState) {
-        currentTeamState.set(tss.serviceId, {
-          ...currentServiceState,
-          checksPassed: tss.checksPassed,
-          checksTotal: tss.checksTotal,
-          checkStatuses: tss.checkStatuses,
-        });
-      } else if (currentTeamState) {
-        currentTeamState.set(tss.serviceId, newServiceState(tss));
-      } else {
-        const serviceState = new Map<string, Scoreboard_TeamServiceState>();
-        serviceState.set(tss.serviceId, newServiceState(tss));
-        this.teamServiceState.set(tss.teamId, serviceState);
-      }
-    });
-    this.calculateScores();
-  }
-
-  private calculateScores() {
-    this.teamScore.clear();
-    this.teamServiceState.forEach((serviceState) => {
-      serviceState.forEach((tss) => {
-        const checksTotal = parseInt(tss.checksTotal);
-        const checksPassed = parseInt(tss.checksPassed);
-        this.teamScore.set(
-          tss.teamId,
-          (this.teamScore.get(tss.teamId) ?? 0) +
-            tss.points * (checksTotal > 0 ? checksPassed / checksTotal : 1),
-        );
-      });
+      const checksTotal = parseInt(tss.checksTotal);
+      const checksPassed = parseInt(tss.checksPassed);
+      this.teamScore.set(
+        tss.teamId,
+        (this.teamScore.get(tss.teamId) ?? 0) +
+          tss.points * (checksTotal > 0 ? checksPassed / checksTotal : 1),
+      );
     });
   }
 

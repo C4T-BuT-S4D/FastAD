@@ -51,9 +51,8 @@ export function useScoreboard() {
 
     const scoreboardSub = centrifuge.newSubscription('scoreboard');
     scoreboardSub.on('publication', (ctx: PublicationContext) => {
-      console.log('received scoreboard state');
       const scoreboardState = new ScoreboardState(
-        Scoreboard.fromJSON(ctx.data)
+        Scoreboard.fromJSON(ctx.data),
       );
       setScoreboard(scoreboardState);
     });
