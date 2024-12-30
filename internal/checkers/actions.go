@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"strings"
 	"syscall"
 	"time"
 
@@ -154,5 +155,9 @@ func RunAction(
 			stderr.String(),
 		)
 	}
+
+	verdict.Public = strings.TrimRight(verdict.Public, "\n\r")
+	verdict.Private = strings.TrimRight(verdict.Private, "\n\r")
+
 	return verdict
 }

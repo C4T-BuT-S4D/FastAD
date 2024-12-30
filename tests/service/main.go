@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 func main() {
@@ -29,6 +30,7 @@ func main() {
 
 		mu.Lock()
 		defer mu.Unlock()
+		e.Logger.Infof("flag: %s, vuln: %s, id: %s", req.Flag, req.Vuln, req.FlagID)
 		flags[fmt.Sprintf("%s:%s", req.FlagID, req.Vuln)] = req.Flag
 
 		return c.NoContent(http.StatusOK)
@@ -47,6 +49,7 @@ func main() {
 		defer mu.Unlock()
 
 		flag, ok := flags[fmt.Sprintf("%s:%s", req.FlagID, req.Vuln)]
+		e.Logger.Infof("flag: %s, ok: %v, vuln: %s, id: %s", flag, ok, req.Vuln, req.FlagID)
 		if !ok {
 			return c.String(http.StatusNotFound, "not found")
 		}
@@ -54,5 +57,6 @@ func main() {
 		return c.JSON(http.StatusOK, map[string]string{"flag": flag})
 	})
 
+	e.Logger.SetLevel(log.INFO)
 	e.Logger.Fatal(e.Start(":1323"))
 }
