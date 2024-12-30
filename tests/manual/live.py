@@ -108,15 +108,15 @@ def run_example():
         events=SubscriptionEventLoggerHandler("attacks"),
     )
 
-    slac_sub = client.new_subscription(
-        "slac",
-        events=SubscriptionEventLoggerHandler("slac"),
+    scoreboard_sub = client.new_subscription(
+        "scoreboard",
+        events=SubscriptionEventLoggerHandler("scoreboard"),
     )
 
     async def run():
         await client.connect()
         await attacks_sub.subscribe()
-        await slac_sub.subscribe()
+        await scoreboard_sub.subscribe()
 
         logging.info("all done, client connection is still alive, press Ctrl+C to exit")
 

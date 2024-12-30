@@ -9,20 +9,16 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
 	"google.golang.org/protobuf/encoding/protojson"
-
-	"github.com/c4t-but-s4d/fastad/pkg/httpext"
 )
 
 func (s *Service) HandleGetScoreboard() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		ctx := httpext.ContextFromEcho(c)
-
-		sb, err := s.boardBuilder.GetScoreboard(ctx)
+		bs, err := s.boardBuilder.GetState()
 		if err != nil {
-			return fmt.Errorf("getting scoreboard: %w", err)
+			return fmt.Errorf("getting scoreboard state: %w", err)
 		}
 
-		raw, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(sb)
+		raw, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(bs.Scoreboard)
 		if err != nil {
 			return fmt.Errorf("marshalling scoreboard: %w", err)
 		}
@@ -43,26 +39,19 @@ func (s *Service) HandleGetCTFTimeScoreboard() echo.HandlerFunc {
 	}
 
 	return func(c echo.Context) error {
-		ctx := httpext.ContextFromEcho(c)
-
-		sb, err := s.boardBuilder.GetScoreboard(ctx)
+		bs, err := s.boardBuilder.GetState()
 		if err != nil {
 			return fmt.Errorf("building scoreboard state: %w", err)
 		}
 
-		teams, err := s.boardBuilder.GetTeams(ctx)
-		if err != nil {
-			return fmt.Errorf("getting teams: %w", err)
-		}
-
 		teamStates := make(map[int64]*ctftimeTeamState)
-		for _, team := range teams {
+		for _, team := range bs.Teams {
 			teamStates[team.Id] = &ctftimeTeamState{
 				Team:  team.Name,
 				Score: 0,
 			}
 		}
-		for _, tss := range sb.TeamServiceStates {
+		for _, tss := range bs.Scoreboard.TeamServiceStates {
 			sla := 0.0
 			if tss.ChecksTotal > 0 {
 				sla = float64(tss.ChecksPassed) / float64(tss.ChecksTotal)

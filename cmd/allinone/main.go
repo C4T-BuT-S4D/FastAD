@@ -62,23 +62,14 @@ func main() {
 		return nil
 	})
 
-	cfg.Checkers.DataService.Address = cfg.DataService.ListenAddress
 	g.Go(func() error {
-		if err := checkersImpl.Run(gctx, shutdownCtx, &cfg.Checkers); err != nil {
-			return fmt.Errorf("running checkers: %w", err)
+		if err := slacImpl.Run(gctx, shutdownCtx, &cfg.Slac); err != nil {
+			return fmt.Errorf("running slac: %w", err)
 		}
 		return nil
 	})
 
-	cfg.Scheduler.DataService.Address = cfg.DataService.ListenAddress
-	g.Go(func() error {
-		if err := schedulerImpl.Run(gctx, shutdownCtx, &cfg.Scheduler); err != nil {
-			return fmt.Errorf("running scheduler: %w", err)
-		}
-		return nil
-	})
-
-	// Receiver and slac depend on API, start it first.
+	// Receiver depends on API, start it first.
 	cfg.API.DataService.Address = cfg.DataService.ListenAddress
 	cfg.API.SlacAddress = cfg.Slac.ListenAddress
 	cfg.API.ReceiverAddress = cfg.Receiver.ListenAddress
@@ -94,17 +85,27 @@ func main() {
 		cancel()
 	}
 
+	cfg.Receiver.DataService.Address = cfg.DataService.ListenAddress
+	cfg.Receiver.CentrifugeClient.Address = fmt.Sprintf("ws://%s/centrifuge/websocket", cfg.API.ListenAddress)
 	g.Go(func() error {
-		if err := slacImpl.Run(gctx, shutdownCtx, &cfg.Slac); err != nil {
-			return fmt.Errorf("running slac: %w", err)
+		if err := receiverImpl.Run(gctx, shutdownCtx, &cfg.Receiver); err != nil {
+			return fmt.Errorf("running receiver: %w", err)
 		}
 		return nil
 	})
 
-	cfg.Receiver.DataService.Address = cfg.DataService.ListenAddress
+	cfg.Checkers.DataService.Address = cfg.DataService.ListenAddress
 	g.Go(func() error {
-		if err := receiverImpl.Run(gctx, shutdownCtx, &cfg.Receiver); err != nil {
-			return fmt.Errorf("running receiver: %w", err)
+		if err := checkersImpl.Run(gctx, shutdownCtx, &cfg.Checkers); err != nil {
+			return fmt.Errorf("running checkers: %w", err)
+		}
+		return nil
+	})
+
+	cfg.Scheduler.DataService.Address = cfg.DataService.ListenAddress
+	g.Go(func() error {
+		if err := schedulerImpl.Run(gctx, shutdownCtx, &cfg.Scheduler); err != nil {
+			return fmt.Errorf("running scheduler: %w", err)
 		}
 		return nil
 	})

@@ -133,7 +133,7 @@ func RunAction(
 			verdict.Private = stderr.String()
 		default:
 			verdict.Status = checkerpb.Status_STATUS_CHECK_FAILED
-			verdict.Public = "internal error"
+			verdict.Public = "checker misbehaving"
 			verdict.Private = fmt.Sprintf(
 				"err: %v, code: %v\nstdout: %s\nstderr: %s",
 				err,
@@ -145,7 +145,7 @@ func RunAction(
 
 	default:
 		verdict.Status = checkerpb.Status_STATUS_CHECK_FAILED
-		verdict.Public = "internal error"
+		verdict.Public = "checker misbehaving"
 		// TODO: truncate.
 		verdict.Private = fmt.Sprintf(
 			"err: %v\nstdout: %s\nstderr: %s",

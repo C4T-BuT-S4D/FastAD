@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 
-	"github.com/c4t-but-s4d/fastad/internal/centclient"
+	"github.com/c4t-but-s4d/fastad/internal/centutil"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
@@ -37,6 +37,7 @@ func NewService(
 	gameStateClient *gamestate.Client,
 	receiverClient receiverpb.ReceiverServiceClient,
 	slacClient slacpb.SlacServiceClient,
+	boardBuilder *BoardBuilder,
 ) *Service {
 	return &Service{
 		config: cfg,
@@ -48,12 +49,7 @@ func NewService(
 		receiverClient:  receiverClient,
 		slacClient:      slacClient,
 
-		boardBuilder: NewBoardBuilder(
-			teamsClient,
-			servicesClient,
-			receiverClient,
-			slacClient,
-		),
+		boardBuilder: boardBuilder,
 	}
 }
 
@@ -89,7 +85,7 @@ func (s *Service) RegisterNode() {
 			return centrifuge.ConnectReply{}, centrifuge.DisconnectInvalidToken
 		}
 
-		userID, err := centclient.ClientNameFromData(e.Data)
+		userID, err := centutil.ClientNameFromData(e.Data)
 		if err != nil {
 			return centrifuge.ConnectReply{}, centrifuge.DisconnectBadRequest
 		}

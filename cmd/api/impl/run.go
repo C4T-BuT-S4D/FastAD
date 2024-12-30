@@ -10,8 +10,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/c4t-but-s4d/fastad/internal/api"
+	"github.com/c4t-but-s4d/fastad/internal/centutil"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
@@ -63,6 +65,16 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 		return fmt.Errorf("creating centrifuge node: %w", err)
 	}
 
+	producer := centutil.NewNodeProducer(node, cfg.ScoreboardChannel)
+
+	boardBuilder := api.NewBoardBuilder(
+		teamsClient,
+		servicesClient,
+		receiverClient,
+		slacClient,
+		producer,
+	)
+
 	apiService := api.NewService(
 		cfg,
 		node,
@@ -71,6 +83,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 		gameStateClient,
 		receiverClient,
 		slacClient,
+		boardBuilder,
 	)
 
 	e := echo.New()
@@ -115,24 +128,43 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 		return fmt.Errorf("running centrifuge node: %w", err)
 	}
 
-	go func() {
-		<-runCtx.Done()
+	g, gctx := errgroup.WithContext(runCtx)
+	g.Go(func() error {
+		boardBuilder.Run(gctx)
+		return nil
+	})
+
+	if cfg.MetricsAddress != "" {
+		g.Go(func() error {
+			metrics.RunServer(gctx, shutdownCtx, cfg.MetricsAddress)
+			return nil
+		})
+	}
+
+	g.Go(func() error {
+		zap.L().Info("starting api server", zap.String("address", cfg.ListenAddress))
+		if err := e.Start(cfg.ListenAddress); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			return fmt.Errorf("running server: %w", err)
+		}
+		zap.L().Info("api server stopped")
+		return nil
+	})
+
+	g.Go(func() error {
+		<-gctx.Done()
 
 		zap.L().Info("shutting down api server")
 		if err := e.Shutdown(shutdownCtx); err != nil {
-			zap.L().Error("error shutting down api server", zap.Error(err))
+			return fmt.Errorf("shutting down server: %w", err)
 		}
 		if err := node.Shutdown(shutdownCtx); err != nil {
-			zap.L().Error("error shutting down centrifuge node", zap.Error(err))
+			return fmt.Errorf("shutting down centrifuge node: %w", err)
 		}
-	}()
+		return nil
+	})
 
-	if cfg.MetricsAddress != "" {
-		go metrics.RunServer(runCtx, shutdownCtx, cfg.MetricsAddress)
-	}
-
-	if err := e.Start(cfg.ListenAddress); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		return fmt.Errorf("running server: %w", err)
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("waiting for goroutines: %w", err)
 	}
 
 	return nil

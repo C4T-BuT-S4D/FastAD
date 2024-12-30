@@ -2,7 +2,6 @@ import { centrifugeWSURL } from '@/config';
 import { Service, Service_Batch } from '@/proto/data/services/services';
 import { Team, Team_Batch } from '@/proto/data/teams/teams';
 import { Scoreboard } from '@/proto/scoreboard/scoreboard';
-import { State } from '@/proto/slac/slac';
 import axios from 'axios';
 import { Centrifuge, PublicationContext } from 'centrifuge';
 import { useEffect, useMemo, useState } from 'react';
@@ -49,29 +48,17 @@ export function useScoreboard() {
 
   useEffect(() => {
     const centrifuge = new Centrifuge(centrifugeWSURL);
-    const sub = centrifuge.newSubscription('slac');
-    sub.on('publication', (ctx: PublicationContext) => {
-      console.log('received slac state');
-      const slacState = State.fromJSON(ctx.data);
 
-      setScoreboard((currentScoreboardState) => {
-        console.log(
-          'received slac state, current scoreboard state:',
-          currentScoreboardState,
-        );
-        if (currentScoreboardState) {
-          const newState = currentScoreboardState.clone();
-          newState.applySlacState(slacState);
-          console.log('new scoreboard state:', newState);
-          return newState;
-        }
-        return null;
-      });
+    const scoreboardSub = centrifuge.newSubscription('scoreboard');
+    scoreboardSub.on('publication', (ctx: PublicationContext) => {
+      console.log('received scoreboard state');
+      const scoreboardState = new ScoreboardState(
+        Scoreboard.fromJSON(ctx.data)
+      );
+      setScoreboard(scoreboardState);
     });
 
-    // TODO: subscribe to flags.
-
-    sub.subscribe();
+    scoreboardSub.subscribe();
     centrifuge.connect();
   }, []);
 

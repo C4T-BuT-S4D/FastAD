@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	"github.com/c4t-but-s4d/fastad/internal/centclient"
+	"github.com/c4t-but-s4d/fastad/internal/centutil"
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
@@ -35,12 +35,25 @@ const (
 	notReadyFlagMessage   = "flag is not ready"
 )
 
+type Service struct {
+	receiverpb.UnimplementedReceiverServiceServer
+
+	db              *bun.DB
+	teamsClient     *teams.Client
+	servicesClient  *services.Client
+	gameStateClient *gamestate.Client
+	producer        centutil.Producer
+
+	stateMu sync.Mutex
+	state   *State
+}
+
 func New(
 	db *bun.DB,
 	teamsClient *teams.Client,
 	servicesClient *services.Client,
 	gameStateClient *gamestate.Client,
-	producer *centclient.Producer,
+	producer centutil.Producer,
 ) *Service {
 	return &Service{
 		db:              db,
@@ -50,19 +63,6 @@ func New(
 		state:           NewState(),
 		producer:        producer,
 	}
-}
-
-type Service struct {
-	receiverpb.UnimplementedReceiverServiceServer
-
-	db              *bun.DB
-	teamsClient     *teams.Client
-	servicesClient  *services.Client
-	gameStateClient *gamestate.Client
-	producer        *centclient.Producer
-
-	stateMu sync.Mutex
-	state   *State
 }
 
 func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRequest) (*receiverpb.SubmitFlagsResponse, error) {

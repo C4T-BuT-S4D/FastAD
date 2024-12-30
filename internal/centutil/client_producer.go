@@ -1,4 +1,4 @@
-package centclient
+package centutil
 
 import (
 	"context"
@@ -12,7 +12,9 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type Producer struct {
+var _ Producer = (*ClientProducer)(nil)
+
+type ClientProducer struct {
 	client       *centrifuge.Client
 	channel      string
 	disconnected chan struct{}
@@ -20,7 +22,7 @@ type Producer struct {
 	logger *zap.Logger
 }
 
-func NewProducer(address, channel, name, token string) (*Producer, error) {
+func NewClientProducer(address, channel, name, token string) (*ClientProducer, error) {
 	rawData, err := json.Marshal(clientData{Name: name})
 	if err != nil {
 		return nil, fmt.Errorf("marshaling client data: %w", err)
@@ -33,7 +35,7 @@ func NewProducer(address, channel, name, token string) (*Producer, error) {
 		EnableCompression: true,
 	})
 
-	p := &Producer{
+	p := &ClientProducer{
 		client:       client,
 		channel:      channel,
 		disconnected: make(chan struct{}),
@@ -43,62 +45,51 @@ func NewProducer(address, channel, name, token string) (*Producer, error) {
 		),
 	}
 	if err := p.init(); err != nil {
-		return nil, fmt.Errorf("initializing producer: %w", err)
+		return nil, fmt.Errorf("initializing ClientProducer: %w", err)
 	}
 
 	return p, nil
 }
 
-func (c *Producer) Run(ctx context.Context) error {
+func (p *ClientProducer) Run(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
-		c.client.Close()
-		c.logger.Debug("client closed, waiting for disconnect")
-		<-c.disconnected
+		p.client.Close()
+		p.logger.Debug("client closed, waiting for disconnect")
+		<-p.disconnected
 		return nil
-	case <-c.disconnected:
-		c.logger.Error("disconnected from centrifuge")
+	case <-p.disconnected:
+		p.logger.Error("disconnected from centrifuge")
 		return errors.New("premature disconnect")
 	}
 }
 
-func (c *Producer) Publish(ctx context.Context, msg any) error {
-	raw, err := json.Marshal(msg)
-	if err != nil {
-		return fmt.Errorf("marshaling message: %w", err)
-	}
-	if _, err := c.client.Publish(ctx, c.channel, raw); err != nil {
-		return fmt.Errorf("publishing message: %w", err)
-	}
-	return nil
-}
-
-func (c *Producer) PublishProto(ctx context.Context, msg proto.Message) error {
+func (p *ClientProducer) PublishProto(ctx context.Context, msg proto.Message) error {
 	raw, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("marshaling message: %w", err)
 	}
-	if _, err := c.client.Publish(ctx, c.channel, raw); err != nil {
+	if _, err := p.client.Publish(ctx, p.channel, raw); err != nil {
 		return fmt.Errorf("publishing message: %w", err)
 	}
 	return nil
 }
 
-func (c *Producer) init() error {
-	c.client.OnError(func(event centrifuge.ErrorEvent) {
-		c.logger.Error("error", zap.Error(event.Error))
+func (p *ClientProducer) init() error {
+	p.client.OnError(func(event centrifuge.ErrorEvent) {
+		p.logger.Error("error", zap.Error(event.Error))
 	})
 
-	c.client.OnDisconnected(func(event centrifuge.DisconnectedEvent) {
-		c.logger.Debug(
+	p.client.OnDisconnected(func(event centrifuge.DisconnectedEvent) {
+		p.logger.Debug(
 			"disconnected",
 			zap.Uint32("code", event.Code),
 			zap.String("reason", event.Reason),
 		)
-		close(c.disconnected)
+		close(p.disconnected)
 	})
 
-	if err := c.client.Connect(); err != nil {
+	if err := p.client.Connect(); err != nil {
 		return fmt.Errorf("connecting to centrifuge: %w", err)
 	}
 

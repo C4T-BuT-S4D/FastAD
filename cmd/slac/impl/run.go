@@ -6,7 +6,6 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/c4t-but-s4d/fastad/internal/centclient"
 	"github.com/c4t-but-s4d/fastad/internal/slac"
 	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
 	"github.com/c4t-but-s4d/fastad/pkg/metrics"
@@ -16,17 +15,7 @@ import (
 func Run(runCtx, shutdownCtx context.Context, cfg *slac.Config) error {
 	db := cfg.Postgres.BunDB()
 
-	producer, err := centclient.NewProducer(
-		cfg.CentrifugeClient.Address,
-		cfg.Channel,
-		cfg.Installation,
-		cfg.IntercomToken,
-	)
-	if err != nil {
-		return fmt.Errorf("creating centrifuge producer: %w", err)
-	}
-
-	service := slac.NewService(db, cfg, producer)
+	service := slac.NewService(db, cfg)
 
 	if err := service.RestoreState(runCtx); err != nil {
 		return fmt.Errorf("restoring state: %w", err)
@@ -46,13 +35,6 @@ func Run(runCtx, shutdownCtx context.Context, cfg *slac.Config) error {
 
 	g.Go(func() error {
 		service.Run(gctx)
-		return nil
-	})
-
-	g.Go(func() error {
-		if err := producer.Run(gctx); err != nil {
-			return fmt.Errorf("running client: %w", err)
-		}
 		return nil
 	})
 

@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/c4t-but-s4d/fastad/internal/centclient"
+	"github.com/c4t-but-s4d/fastad/internal/centutil"
 	"github.com/c4t-but-s4d/fastad/internal/receiver"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
@@ -23,7 +24,7 @@ import (
 func Run(runCtx, shutdownCtx context.Context, cfg *receiver.Config) error {
 	db := cfg.Postgres.BunDB()
 
-	producer, err := centclient.NewProducer(
+	producer, err := centutil.NewClientProducer(
 		cfg.CentrifugeClient.Address,
 		cfg.Channel,
 		cfg.Installation,
@@ -61,12 +62,32 @@ func Run(runCtx, shutdownCtx context.Context, cfg *receiver.Config) error {
 	grpcServer := grpcext.NewServer(grpcext.WithServerInstallation(cfg.Installation))
 	receiverpb.RegisterReceiverServiceServer(grpcServer, receiverService)
 
+	g, gctx := errgroup.WithContext(runCtx)
+
 	if cfg.MetricsAddress != "" {
-		go metrics.RunServer(runCtx, shutdownCtx, cfg.MetricsAddress)
+		g.Go(func() error {
+			metrics.RunServer(runCtx, shutdownCtx, cfg.MetricsAddress)
+			return nil
+		})
 	}
 
-	if err := grpcext.RunServer(runCtx, shutdownCtx, grpcServer, cfg.ListenAddress); err != nil {
-		return fmt.Errorf("running server: %w", err)
+	g.Go(func() error {
+		if err := producer.Run(gctx); err != nil {
+			return fmt.Errorf("running client: %w", err)
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		if err := grpcext.RunServer(gctx, shutdownCtx, grpcServer, cfg.ListenAddress); err != nil {
+			return fmt.Errorf("running server: %w", err)
+		}
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("waiting: %w", err)
 	}
+
 	return nil
 }

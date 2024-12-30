@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 
+	"github.com/c4t-but-s4d/fastad/internal/centutil"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
@@ -20,11 +22,19 @@ import (
 
 const scoreboardRefreshInterval = 2 * time.Second
 
+type ScoreboardState struct {
+	Teams      []*teamspb.Team
+	Services   []*servicespb.Service
+	Scoreboard *scoreboardpb.Scoreboard
+}
+
 type BoardBuilder struct {
 	teamsClient    *teams.Client
 	servicesClient *services.Client
 	receiverClient receiverpb.ReceiverServiceClient
 	slacClient     slacpb.SlacServiceClient
+
+	producer centutil.Producer
 
 	mu          sync.RWMutex
 	lastRefresh time.Time
@@ -33,6 +43,8 @@ type BoardBuilder struct {
 	teamsCache      []*teamspb.Team
 	servicesCache   []*servicespb.Service
 	scoreboardCache *scoreboardpb.Scoreboard
+
+	logger *zap.Logger
 }
 
 func NewBoardBuilder(
@@ -40,107 +52,92 @@ func NewBoardBuilder(
 	servicesClient *services.Client,
 	receiverClient receiverpb.ReceiverServiceClient,
 	slacClient slacpb.SlacServiceClient,
+	producer centutil.Producer,
 ) *BoardBuilder {
 	return &BoardBuilder{
 		teamsClient:    teamsClient,
 		servicesClient: servicesClient,
 		receiverClient: receiverClient,
 		slacClient:     slacClient,
+		producer:       producer,
+
+		logger: zap.L().With(zap.String("component", "board_builder")),
 	}
 }
 
-func (b *BoardBuilder) GetScoreboard(ctx context.Context) (*scoreboardpb.Scoreboard, error) {
+func (b *BoardBuilder) Run(ctx context.Context) {
+	ticker := time.NewTicker(scoreboardRefreshInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			b.logger.Debug("scoreboard refreshed")
+			if err := b.refresh(ctx); err != nil {
+				b.logger.Error("refreshing scoreboard", zap.Error(err))
+				break
+			}
+			b.logger.Debug("scoreboard refreshed")
+
+			state, err := b.GetState()
+			if err != nil {
+				b.logger.Error("getting state", zap.Error(err))
+				break
+			}
+
+			b.logger.Debug("publishing state")
+			if err := b.producer.PublishProto(ctx, state.Scoreboard); err != nil {
+				b.logger.Error("publishing state", zap.Error(err))
+			}
+		}
+	}
+}
+
+func (b *BoardBuilder) GetState() (*ScoreboardState, error) {
 	b.mu.RLock()
-	board := b.scoreboardCache
-	lastRefresh := b.lastRefresh
-	b.mu.RUnlock()
-
-	if board != nil && time.Since(lastRefresh) < scoreboardRefreshInterval {
-		return board, nil
-	}
-
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	if board != nil && time.Since(b.lastRefresh) < scoreboardRefreshInterval {
-		return b.scoreboardCache, nil
-	}
-
-	if err := b.refreshUnlocked(ctx); err != nil {
-		return nil, fmt.Errorf("refreshing scoreboard: %w", err)
-	}
-
-	return b.scoreboardCache, nil
+	defer b.mu.RUnlock()
+	return &ScoreboardState{
+		Teams:      b.teamsCache,
+		Services:   b.servicesCache,
+		Scoreboard: b.scoreboardCache,
+	}, nil
 }
 
-func (b *BoardBuilder) GetTeams(ctx context.Context) ([]*teamspb.Team, error) {
-	b.mu.RLock()
-	cache := b.teamsCache
-	lastRefresh := b.lastRefresh
-	b.mu.RUnlock()
-
-	if len(cache) > 0 && time.Since(lastRefresh) < scoreboardRefreshInterval {
-		return cache, nil
-	}
-
-	b.mu.Lock()
-	defer b.mu.Unlock()
-
-	if len(cache) > 0 && time.Since(lastRefresh) < scoreboardRefreshInterval {
-		return cache, nil
-	}
-
-	if err := b.refreshUnlocked(ctx); err != nil {
-		return nil, fmt.Errorf("refreshing scoreboard: %w", err)
-	}
-
-	return b.teamsCache, nil
-}
-
-func (b *BoardBuilder) refreshUnlocked(ctx context.Context) error {
-	if err := b.getTeamsUnlocked(ctx); err != nil {
-		return fmt.Errorf("getting teams: %w", err)
-	}
-
-	if err := b.getServicesUnlocked(ctx); err != nil {
-		return fmt.Errorf("getting services: %w", err)
-	}
-
-	sb, err := b.buildScoreboardStateUnlocked(ctx)
-	if err != nil {
-		return fmt.Errorf("building scoreboard state: %w", err)
-	}
-
-	b.scoreboardCache = sb
-	b.lastRefresh = time.Now()
-
-	return nil
-}
-
-func (b *BoardBuilder) getTeamsUnlocked(ctx context.Context) error {
+func (b *BoardBuilder) refresh(ctx context.Context) error {
 	teamsList, err := b.teamsClient.List(ctx)
 	if err != nil {
 		return fmt.Errorf("listing teams: %w", err)
 	}
 
-	b.teamsCache = teamsList
-	return nil
-}
-
-func (b *BoardBuilder) getServicesUnlocked(ctx context.Context) error {
 	servicesList, err := b.servicesClient.List(ctx)
 	if err != nil {
 		return fmt.Errorf("listing services: %w", err)
 	}
 
+	sb, err := b.buildScoreboard(ctx, teamsList, servicesList)
+	if err != nil {
+		return fmt.Errorf("building scoreboard state: %w", err)
+	}
+
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.teamsCache = teamsList
 	b.servicesCache = servicesList
+	b.scoreboardCache = sb
+
 	return nil
 }
 
-func (b *BoardBuilder) buildScoreboardStateUnlocked(ctx context.Context) (*scoreboardpb.Scoreboard, error) {
+func (b *BoardBuilder) buildScoreboard(
+	ctx context.Context,
+	teams []*teamspb.Team,
+	services []*servicespb.Service,
+) (*scoreboardpb.Scoreboard, error) {
 	sbMap := make(map[teamServiceKey]*scoreboardpb.Scoreboard_TeamServiceState)
-	for _, team := range b.teamsCache {
-		for _, service := range b.servicesCache {
+	for _, team := range teams {
+		for _, service := range services {
 			sbMap[teamServiceKey{TeamID: team.Id, ServiceID: service.Id}] = &scoreboardpb.Scoreboard_TeamServiceState{
 				TeamId:    team.Id,
 				ServiceId: service.Id,
