@@ -62,8 +62,7 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        with:
-          working-directory: front
+        working-directory: front
 
       - name: Lint front
         run: make lint-front
