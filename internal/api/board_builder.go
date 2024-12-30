@@ -36,8 +36,7 @@ type BoardBuilder struct {
 
 	producer centutil.Producer
 
-	mu          sync.RWMutex
-	lastRefresh time.Time
+	mu sync.RWMutex
 	// Never modify these fields, only replace them with new values.
 	// References to these fields are returned to the caller.
 	teamsCache      []*teamspb.Team

@@ -14,8 +14,6 @@ import (
 	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
 )
 
-const publishThrottle = 1 * time.Second
-
 type Service struct {
 	slacpb.UnimplementedSlacServiceServer
 
