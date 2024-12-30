@@ -15,6 +15,8 @@ import (
 	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
 )
 
+const publishThrottle = 1 * time.Second
+
 type Service struct {
 	slacpb.UnimplementedSlacServiceServer
 
@@ -26,6 +28,7 @@ type Service struct {
 	state *atomic.Pointer[State]
 
 	lastProcessorIteration time.Time
+	lastPublish            time.Time
 }
 
 func NewService(db *bun.DB, cfg *Config, centClient *centclient.Producer) *Service {
@@ -56,11 +59,13 @@ func (s *Service) Run(ctx context.Context) {
 			if err != nil {
 				s.logger.Error("check failed", zap.Error(err))
 			}
-			if changed {
+			if changed && time.Since(s.lastPublish) > publishThrottle {
 				s.logger.Debug("publishing state")
 				if err := s.centClient.PublishProto(ctx, s.state.Load().ToProto()); err != nil {
 					// Not a critical error, we can continue without publishing the state.
 					s.logger.Error("publishing state failed", zap.Error(err))
+				} else {
+					s.lastPublish = time.Now()
 				}
 			}
 			s.logger.Debug("checked", zap.Duration("duration", time.Since(start)))
@@ -207,6 +212,8 @@ func (s *Service) RestoreState(ctx context.Context) error {
 	if err := s.centClient.PublishProto(ctx, state.ToProto()); err != nil {
 		// Not a critical error, we can continue without publishing the state.
 		s.logger.Error("publishing state failed", zap.Error(err))
+	} else {
+		s.lastPublish = time.Now()
 	}
 
 	return nil
