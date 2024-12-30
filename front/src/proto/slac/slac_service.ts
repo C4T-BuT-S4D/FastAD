@@ -5,40 +5,5 @@
 // source: slac/slac_service.proto
 
 /* eslint-disable */
-import { type CallContext, type CallOptions } from "nice-grpc-common";
-import { GetStateRequest, GetStateResponse } from "./slac";
 
 export const protobufPackage = "slac";
-
-export type SlacServiceDefinition = typeof SlacServiceDefinition;
-export const SlacServiceDefinition = {
-  name: "SlacService",
-  fullName: "slac.SlacService",
-  methods: {
-    getState: {
-      name: "GetState",
-      requestType: GetStateRequest,
-      requestStream: false,
-      responseType: GetStateResponse,
-      responseStream: false,
-      options: {},
-    },
-  },
-} as const;
-
-export interface SlacServiceImplementation<CallContextExt = {}> {
-  getState(request: GetStateRequest, context: CallContext & CallContextExt): Promise<DeepPartial<GetStateResponse>>;
-}
-
-export interface SlacServiceClient<CallOptionsExt = {}> {
-  getState(request: DeepPartial<GetStateRequest>, options?: CallOptions & CallOptionsExt): Promise<GetStateResponse>;
-}
-
-type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
-
-export type DeepPartial<T> = T extends Builtin ? T
-  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
-  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
-  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
-  : Partial<T>;

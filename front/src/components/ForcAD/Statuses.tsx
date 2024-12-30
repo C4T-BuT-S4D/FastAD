@@ -8,27 +8,27 @@ const StatusBarItem = styled('div')({
   alignItems: 'center',
   justifyContent: 'center',
   color: 'black',
-  padding: '0.3em'
+  padding: '0.3em',
 });
 
 const UpStatusBarItem = styled(StatusBarItem)(({ theme }) => ({
-  backgroundColor: theme.palette.statusUp!.main
+  backgroundColor: theme.palette.statusUp!.main,
 }));
 
 const CorruptStatusBarItem = styled(StatusBarItem)(({ theme }) => ({
-  backgroundColor: theme.palette.statusCorrupt!.main
+  backgroundColor: theme.palette.statusCorrupt!.main,
 }));
 
 const MumbleStatusBarItem = styled(StatusBarItem)(({ theme }) => ({
-  backgroundColor: theme.palette.statusMumble!.main
+  backgroundColor: theme.palette.statusMumble!.main,
 }));
 
 const DownStatusBarItem = styled(StatusBarItem)(({ theme }) => ({
-  backgroundColor: theme.palette.statusDown!.main
+  backgroundColor: theme.palette.statusDown!.main,
 }));
 
 const CheckFailedStatusBarItem = styled(StatusBarItem)(({ theme }) => ({
-  backgroundColor: theme.palette.statusCheckFailed!.main
+  backgroundColor: theme.palette.statusCheckFailed!.main,
 }));
 
 export default function Statuses() {
