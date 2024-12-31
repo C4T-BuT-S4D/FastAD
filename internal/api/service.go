@@ -6,6 +6,7 @@ import (
 
 	"github.com/centrifugal/centrifuge"
 	"github.com/labstack/echo/v4"
+	"github.com/uptrace/bun"
 	"go.uber.org/zap"
 
 	"github.com/c4t-but-s4d/fastad/internal/centutil"
@@ -19,6 +20,7 @@ import (
 type Service struct {
 	config *Config
 
+	db              *bun.DB
 	centNode        *centrifuge.Node
 	teamsClient     *teams.Client
 	servicesClient  *services.Client
@@ -31,6 +33,7 @@ type Service struct {
 
 func NewService(
 	cfg *Config,
+	db *bun.DB,
 	centNode *centrifuge.Node,
 	teamsClient *teams.Client,
 	servicesClient *services.Client,
@@ -42,6 +45,7 @@ func NewService(
 	return &Service{
 		config: cfg,
 
+		db:              db,
 		centNode:        centNode,
 		teamsClient:     teamsClient,
 		servicesClient:  servicesClient,
@@ -56,6 +60,7 @@ func NewService(
 func (s *Service) RegisterRoutes(e *echo.Echo) {
 	apiGroup := e.Group("/api")
 	apiGroup.GET("/teams", s.HandleTeamsList())
+	apiGroup.GET("/teams/:team_id/history", s.HandleTeamHistory())
 	apiGroup.GET("/services", s.HandleServicesList())
 	apiGroup.GET("/scoreboard", s.HandleGetScoreboard())
 	apiGroup.GET("/ctftime", s.HandleGetCTFTimeScoreboard())

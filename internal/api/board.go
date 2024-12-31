@@ -8,7 +8,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func (s *Service) HandleGetScoreboard() echo.HandlerFunc {
@@ -18,12 +17,7 @@ func (s *Service) HandleGetScoreboard() echo.HandlerFunc {
 			return fmt.Errorf("getting scoreboard state: %w", err)
 		}
 
-		raw, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(bs.Scoreboard)
-		if err != nil {
-			return fmt.Errorf("marshalling scoreboard: %w", err)
-		}
-
-		return c.JSONBlob(http.StatusOK, raw)
+		return ProtoJSON(c, http.StatusOK, bs.Scoreboard)
 	}
 }
 

@@ -12,6 +12,7 @@ type Config struct {
 
 	IntercomToken string `mapstructure:"intercom_token"`
 
+	Postgres    config.Postgres    `mapstructure:"postgres"`
 	DataService config.DataService `mapstructure:"data_service"`
 
 	ScoreboardChannel string `mapstructure:"scoreboard_channel" default:"scoreboard"`

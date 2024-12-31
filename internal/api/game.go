@@ -17,6 +17,6 @@ func (s *Service) HandleGetGameState() echo.HandlerFunc {
 			return httpext.NewErrorFromStatus(err, "getting game state")
 		}
 
-		return c.JSON(http.StatusOK, gs)
+		return ProtoJSON(c, http.StatusOK, gs)
 	}
 }

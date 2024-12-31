@@ -5,9 +5,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
-	"google.golang.org/protobuf/encoding/protojson"
 
+	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
@@ -20,7 +21,6 @@ func (s *Service) HandleTeamsList() echo.HandlerFunc {
 			return httpext.NewErrorFromStatus(err, "listing teams")
 		}
 
-		// TODO: return proto from clients.
 		resp := &teamspb.Team_Batch{
 			Teams: lo.Map(teams, func(team *teamspb.Team, _ int) *teamspb.Team {
 				teamCloned := team.CloneVT()
@@ -29,15 +29,75 @@ func (s *Service) HandleTeamsList() echo.HandlerFunc {
 			}),
 		}
 
-		raw, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(resp)
-		if err != nil {
+		return ProtoJSON(c, http.StatusOK, resp)
+	}
+}
+
+func (s *Service) HandleTeamHistory() echo.HandlerFunc {
+	type request struct {
+		TeamID    int `param:"team_id"`
+		ServiceID int `query:"service_id"`
+		Limit     int `query:"limit"`
+	}
+
+	const (
+		defaultLimit = 100
+		maxLimit     = 500
+	)
+
+	// TODO: cache this handler.
+	return func(c echo.Context) error {
+		ctx := httpext.ContextFromEcho(c)
+
+		req := new(request)
+		if err := c.Bind(req); err != nil {
 			return httpext.NewErrorf(
-				http.StatusInternalServerError,
-				"marshaling teams: %v",
+				http.StatusBadRequest,
+				"binding request: %v",
 				err,
 			)
 		}
 
-		return c.JSONBlob(http.StatusOK, raw)
+		if req.TeamID == 0 {
+			return httpext.NewErrorf(http.StatusBadRequest, "team_id is required")
+		}
+
+		limit := req.Limit
+		if limit <= 0 {
+			limit = defaultLimit
+		}
+
+		query := s.db.
+			NewSelect().
+			Model(&models.CheckerExecution{}).
+			Where("team_id = ?", req.TeamID).
+			OrderExpr("created_at DESC").
+			Limit(min(maxLimit, limit))
+
+		if req.ServiceID != 0 {
+			query.Where("service_id = ?", req.ServiceID)
+		}
+
+		var executions []*models.CheckerExecution
+		if err := query.Scan(ctx, &executions); err != nil {
+			return httpext.NewErrorf(
+				http.StatusInternalServerError,
+				"listing executions: %v",
+				err,
+			)
+		}
+
+		resp := &checkerpb.Execution_Batch{
+			Executions: lo.Map(
+				executions,
+				func(execution *models.CheckerExecution, _ int) *checkerpb.Execution {
+					execution.Private = ""
+					execution.Command = ""
+					return execution.ToProto()
+				},
+			),
+		}
+
+		return ProtoJSON(c, http.StatusOK, resp)
 	}
 }

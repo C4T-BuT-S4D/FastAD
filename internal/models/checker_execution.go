@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/uptrace/bun"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
@@ -29,4 +30,17 @@ type CheckerExecution struct {
 	// Foreign keys.
 	Team    *Team    `bun:"rel:belongs-to,join:team_id=id"`
 	Service *Service `bun:"rel:belongs-to,join:service_id=id"`
+}
+
+func (e *CheckerExecution) ToProto() *checkerpb.Execution {
+	return &checkerpb.Execution{
+		TeamId:    int64(e.TeamID),
+		ServiceId: int64(e.ServiceID),
+		Action:    e.Action,
+		Status:    e.Status,
+		Public:    e.Public,
+		Private:   e.Private,
+		Command:   e.Command,
+		CreatedAt: timestamppb.New(e.CreatedAt),
+	}
 }

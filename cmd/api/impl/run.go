@@ -75,8 +75,11 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 		producer,
 	)
 
+	db := cfg.Postgres.BunDB()
+
 	apiService := api.NewService(
 		cfg,
+		db,
 		node,
 		teamsClient,
 		servicesClient,

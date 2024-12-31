@@ -5,7 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/samber/lo"
-	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
@@ -29,16 +28,6 @@ func (s *Service) HandleServicesList() echo.HandlerFunc {
 			}),
 		}
 
-		// TODO: helper for returning protojson.
-		raw, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(resp)
-		if err != nil {
-			return httpext.NewErrorf(
-				http.StatusInternalServerError,
-				"marshaling services: %v",
-				err,
-			)
-		}
-
-		return c.JSONBlob(http.StatusOK, raw)
+		return ProtoJSON(c, http.StatusOK, resp)
 	}
 }
