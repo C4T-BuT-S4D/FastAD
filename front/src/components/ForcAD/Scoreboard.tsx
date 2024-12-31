@@ -1,6 +1,8 @@
 import { useScoreboard } from '@/lib/hooks/scoreboard';
+import statusColor from '@/lib/styles/statusColor';
 import { Status } from '@/proto/checker/checker';
 import FlagIcon from '@mui/icons-material/Flag';
+import HistoryIcon from '@mui/icons-material/History';
 import InfoIcon from '@mui/icons-material/Info';
 import {
   Avatar,
@@ -19,29 +21,12 @@ import {
 import { styled, Theme } from '@mui/material/styles';
 import { useWindowSize } from '@uidotdev/usehooks';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 const RANK_COL_WIDTH = 40;
 const TEAM_COL_WIDTH = 400;
 const SCORE_COL_WIDTH = 120;
 const SERVICE_COL_MIN_WIDTH = 200;
-
-const statusColor = (theme: Theme, status: Status) => {
-  // Convert the numeric `status` enum to the typed Status enum
-  switch (status) {
-    case Status.STATUS_UP:
-      return theme.palette.statusUp;
-    case Status.STATUS_DOWN:
-      return theme.palette.statusDown;
-    case Status.STATUS_CORRUPT:
-      return theme.palette.statusCorrupt;
-    case Status.STATUS_MUMBLE:
-      return theme.palette.statusMumble;
-    case Status.STATUS_CHECK_FAILED:
-      return theme.palette.statusCheckFailed;
-    default:
-      return theme.palette.statusUnspecified;
-  }
-};
 
 const MonoFontCell = styled(TableCell)({
   fontFamily: 'Roboto Mono',
@@ -53,12 +38,16 @@ const HeaderCell = styled(MonoFontCell)({
 
 const TeamServiceCell = styled(MonoFontCell)({
   transition: 'background-color 1s ease-in-out',
+  whiteSpace: 'nowrap',
+  py: '0',
+  px: '1em',
 });
 
 export default function ScoreboardTable() {
   const [tableWidth, setTableWidth] = useState('');
   const { width: windowWidth } = useWindowSize();
   const { teams, services, scoreboard } = useScoreboard();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fullWidth =
@@ -121,7 +110,8 @@ export default function ScoreboardTable() {
               <TableRow key={'team:' + team.id + '-' + rank}>
                 <MonoFontCell align="center">{rank}</MonoFontCell>
                 <MonoFontCell align="center">
-                  <Box
+                  <Stack
+                    direction="row"
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -165,7 +155,18 @@ export default function ScoreboardTable() {
                         {team.address}
                       </Typography>
                     </Box>
-                  </Box>
+                    <Box>
+                      <IconButton
+                        size="small"
+                        sx={{ p: 0, color: 'inherit' }}
+                        onClick={() => {
+                          navigate(`/teams/${team.id}/history`);
+                        }}
+                      >
+                        <HistoryIcon />
+                      </IconButton>
+                    </Box>
+                  </Stack>
                 </MonoFontCell>
                 <MonoFontCell align="center">
                   {scoreboard.getTeamScore(team.id).toFixed(2)}
@@ -193,9 +194,6 @@ export default function ScoreboardTable() {
                       sx={(theme: Theme) => ({
                         backgroundColor: statusColor(theme, st).main,
                         color: '#000000',
-                        whiteSpace: 'nowrap',
-                        py: '0',
-                        px: '1em',
                       })}
                     >
                       <Stack

@@ -5,6 +5,8 @@
 // source: checker/checker.proto
 
 /* eslint-disable */
+import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
+import { Timestamp } from "../google/protobuf/timestamp";
 
 export const protobufPackage = "checker";
 
@@ -148,4 +150,378 @@ export function typeToJSON(object: Type): string {
     default:
       throw new globalThis.Error("Unrecognized enum value " + object + " for enum Type");
   }
+}
+
+export interface Execution {
+  teamId: string;
+  serviceId: string;
+  action: Action;
+  status: Status;
+  public: string;
+  private: string;
+  command: string;
+  createdAt: Date | undefined;
+}
+
+export interface Execution_Batch {
+  executions: Execution[];
+}
+
+function createBaseExecution(): Execution {
+  return {
+    teamId: "0",
+    serviceId: "0",
+    action: 0,
+    status: 0,
+    public: "",
+    private: "",
+    command: "",
+    createdAt: undefined,
+  };
+}
+
+export const Execution: MessageFns<Execution> = {
+  encode(message: Execution, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.teamId !== "0") {
+      writer.uint32(8).int64(message.teamId);
+    }
+    if (message.serviceId !== "0") {
+      writer.uint32(16).int64(message.serviceId);
+    }
+    if (message.action !== 0) {
+      writer.uint32(24).int32(message.action);
+    }
+    if (message.status !== 0) {
+      writer.uint32(32).int32(message.status);
+    }
+    if (message.public !== "") {
+      writer.uint32(42).string(message.public);
+    }
+    if (message.private !== "") {
+      writer.uint32(50).string(message.private);
+    }
+    if (message.command !== "") {
+      writer.uint32(58).string(message.command);
+    }
+    if (message.createdAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(66).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Execution {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseExecution();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.teamId = reader.int64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.serviceId = reader.int64().toString();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.action = reader.int32() as any;
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.status = reader.int32() as any;
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.public = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.private = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.command = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<Execution, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<Execution | Execution[]> | Iterable<Execution | Execution[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Execution.encode(p).finish()];
+        }
+      } else {
+        yield* [Execution.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, Execution>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<Execution> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Execution.decode(p)];
+        }
+      } else {
+        yield* [Execution.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): Execution {
+    return {
+      teamId: isSet(object.teamId) ? globalThis.String(object.teamId) : "0",
+      serviceId: isSet(object.serviceId) ? globalThis.String(object.serviceId) : "0",
+      action: isSet(object.action) ? actionFromJSON(object.action) : 0,
+      status: isSet(object.status) ? statusFromJSON(object.status) : 0,
+      public: isSet(object.public) ? globalThis.String(object.public) : "",
+      private: isSet(object.private) ? globalThis.String(object.private) : "",
+      command: isSet(object.command) ? globalThis.String(object.command) : "",
+      createdAt: isSet(object.createdAt) ? fromJsonTimestamp(object.createdAt) : undefined,
+    };
+  },
+
+  toJSON(message: Execution): unknown {
+    const obj: any = {};
+    if (message.teamId !== "0") {
+      obj.teamId = message.teamId;
+    }
+    if (message.serviceId !== "0") {
+      obj.serviceId = message.serviceId;
+    }
+    if (message.action !== 0) {
+      obj.action = actionToJSON(message.action);
+    }
+    if (message.status !== 0) {
+      obj.status = statusToJSON(message.status);
+    }
+    if (message.public !== "") {
+      obj.public = message.public;
+    }
+    if (message.private !== "") {
+      obj.private = message.private;
+    }
+    if (message.command !== "") {
+      obj.command = message.command;
+    }
+    if (message.createdAt !== undefined) {
+      obj.createdAt = message.createdAt.toISOString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Execution>, I>>(base?: I): Execution {
+    return Execution.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Execution>, I>>(object: I): Execution {
+    const message = createBaseExecution();
+    message.teamId = object.teamId ?? "0";
+    message.serviceId = object.serviceId ?? "0";
+    message.action = object.action ?? 0;
+    message.status = object.status ?? 0;
+    message.public = object.public ?? "";
+    message.private = object.private ?? "";
+    message.command = object.command ?? "";
+    message.createdAt = object.createdAt ?? undefined;
+    return message;
+  },
+};
+
+function createBaseExecution_Batch(): Execution_Batch {
+  return { executions: [] };
+}
+
+export const Execution_Batch: MessageFns<Execution_Batch> = {
+  encode(message: Execution_Batch, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.executions) {
+      Execution.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Execution_Batch {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseExecution_Batch();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.executions.push(Execution.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<Execution_Batch, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<Execution_Batch | Execution_Batch[]> | Iterable<Execution_Batch | Execution_Batch[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Execution_Batch.encode(p).finish()];
+        }
+      } else {
+        yield* [Execution_Batch.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, Execution_Batch>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<Execution_Batch> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [Execution_Batch.decode(p)];
+        }
+      } else {
+        yield* [Execution_Batch.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): Execution_Batch {
+    return {
+      executions: globalThis.Array.isArray(object?.executions)
+        ? object.executions.map((e: any) => Execution.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: Execution_Batch): unknown {
+    const obj: any = {};
+    if (message.executions?.length) {
+      obj.executions = message.executions.map((e) => Execution.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Execution_Batch>, I>>(base?: I): Execution_Batch {
+    return Execution_Batch.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Execution_Batch>, I>>(object: I): Execution_Batch {
+    const message = createBaseExecution_Batch();
+    message.executions = object.executions?.map((e) => Execution.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
+
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
+  : Partial<T>;
+
+type KeysOfUnion<T> = T extends T ? keyof T : never;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = Math.trunc(date.getTime() / 1_000).toString();
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = (globalThis.Number(t.seconds) || 0) * 1_000;
+  millis += (t.nanos || 0) / 1_000_000;
+  return new globalThis.Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof globalThis.Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new globalThis.Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}
+
+function isSet(value: any): boolean {
+  return value !== null && value !== undefined;
+}
+
+export interface MessageFns<T> {
+  encode(message: T, writer?: BinaryWriter): BinaryWriter;
+  decode(input: BinaryReader | Uint8Array, length?: number): T;
+  encodeTransform(source: AsyncIterable<T | T[]> | Iterable<T | T[]>): AsyncIterable<Uint8Array>;
+  decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<T>;
+  fromJSON(object: any): T;
+  toJSON(message: T): unknown;
+  create<I extends Exact<DeepPartial<T>, I>>(base?: I): T;
+  fromPartial<I extends Exact<DeepPartial<T>, I>>(object: I): T;
 }
