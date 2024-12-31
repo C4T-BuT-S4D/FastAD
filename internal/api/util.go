@@ -22,3 +22,16 @@ func ProtoJSON(c echo.Context, code int, msg proto.Message) error {
 
 	return c.JSONBlob(code, raw)
 }
+
+func ProtoRaw(c echo.Context, code int, msg proto.Message) error {
+	raw, err := proto.Marshal(msg)
+	if err != nil {
+		return httpext.NewErrorf(
+			http.StatusInternalServerError,
+			"marshaling teams: %v",
+			err,
+		)
+	}
+
+	return c.Blob(code, "application/octet-stream", raw)
+}

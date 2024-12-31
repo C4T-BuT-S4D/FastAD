@@ -139,3 +139,5 @@ linters-settings:
       - .Errorf(
       - (context.Context).Err()
       - (*google.golang.org/grpc/internal/status.Status).Err()
+      - (github.com/labstack/echo/v4.Context).JSONBlob(code int, b []byte) error
+      - (github.com/labstack/echo/v4.Context).Blob(code int, contentType string, b []byte) error

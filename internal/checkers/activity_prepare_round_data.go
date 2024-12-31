@@ -71,6 +71,18 @@ func (a *PrepareRoundActivity) prepareRoundPutState(
 	params *PrepareRoundActivityParameters,
 	logger log.Logger,
 ) ([]*FQFlagInfo, error) {
+	logger.Info(
+		"bumping round to next",
+		"round", params.GameState.RunningRound+1,
+	)
+
+	if _, err := a.gameStateClient.UpdateRound(ctx, &gspb.UpdateRoundRequest{
+		RunningRound:      params.GameState.RunningRound,
+		RunningRoundStart: params.GameState.RunningRoundStart,
+	}); err != nil {
+		return nil, fmt.Errorf("updating round: %w", err)
+	}
+
 	logger.Info("preparing flags for teams and services", "teams", len(params.Teams), "services", len(params.Services))
 
 	flags := make([]*FQFlagInfo, 0, len(params.Teams)*len(params.Services))
@@ -100,24 +112,13 @@ func (a *PrepareRoundActivity) prepareRoundPutState(
 		return flags, nil
 	}
 
-	logger.Info(
-		"inserting flags, bumping round to next",
-		"flags", len(flagModels),
-		"round", params.GameState.RunningRound+1,
-	)
+	logger.Info("inserting flags", "flags", len(flagModels))
 
 	if err := a.checkersController.AddFlags(ctx, flagModels); err != nil {
 		return nil, fmt.Errorf("adding flags: %w", err)
 	}
 
-	logger.Info("inserted flags", "flags", len(flagModels), "first_flag", flagModels[0])
-
-	if _, err := a.gameStateClient.UpdateRound(ctx, &gspb.UpdateRoundRequest{
-		RunningRound:      params.GameState.RunningRound,
-		RunningRoundStart: params.GameState.RunningRoundStart,
-	}); err != nil {
-		return nil, fmt.Errorf("updating round: %w", err)
-	}
+	logger.Info("inserted flags", "flags", len(flagModels))
 
 	return flags, nil
 }
