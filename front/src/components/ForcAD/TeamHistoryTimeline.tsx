@@ -1,4 +1,4 @@
-import { createProtoTransform } from '@/lib/clients/common';
+import { createProtoJSONTransform } from '@/lib/clients/common';
 import statusColor from '@/lib/styles/statusColor';
 import {
   actionToJSON,
@@ -21,29 +21,33 @@ import { useEffect, useState } from 'react';
 
 interface Props {
   teamID: string;
+  serviceID: string;
 }
 
-export default function TeamHistoryTimeline({ teamID }: Props) {
+export default function TeamHistoryTimeline(props: Props) {
   const [services, setServices] = useState<Map<string, Service> | null>(null);
   const [history, setHistory] = useState<Execution[]>([]);
 
   useEffect(() => {
     async function fetchHistory() {
       const { data } = await axios.get<Execution_Batch>(
-        `/teams/${teamID}/history`,
+        `/teams/${props.teamID}/history`,
         {
-          transformResponse: createProtoTransform(Execution_Batch),
+          transformResponse: createProtoJSONTransform(Execution_Batch),
+          params: {
+            serviceId: props.serviceID,
+          },
         },
       );
       setHistory(data.executions);
     }
     fetchHistory();
-  }, [teamID]);
+  }, [props]);
 
   useEffect(() => {
     async function fetchServices() {
       const { data } = await axios.get<Service_Batch>(`/services`, {
-        transformResponse: createProtoTransform(Service_Batch),
+        transformResponse: createProtoJSONTransform(Service_Batch),
       });
       setServices(
         new Map(data.services.map((service) => [service.id, service])),

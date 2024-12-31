@@ -21,7 +21,7 @@ import {
 import { styled, Theme } from '@mui/material/styles';
 import { useWindowSize } from '@uidotdev/usehooks';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link } from 'react-router';
 
 const RANK_COL_WIDTH = 40;
 const TEAM_COL_WIDTH = 400;
@@ -47,7 +47,6 @@ export default function ScoreboardTable() {
   const [tableWidth, setTableWidth] = useState('');
   const { width: windowWidth } = useWindowSize();
   const { teams, services, scoreboard } = useScoreboard();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fullWidth =
@@ -159,9 +158,8 @@ export default function ScoreboardTable() {
                       <IconButton
                         size="small"
                         sx={{ p: 0, color: 'inherit' }}
-                        onClick={() => {
-                          navigate(`/teams/${team.id}/history`);
-                        }}
+                        component={Link}
+                        to={`/teams/${team.id}/history`}
                       >
                         <HistoryIcon />
                       </IconButton>
@@ -225,10 +223,29 @@ export default function ScoreboardTable() {
                             </Typography>
                           </Stack>
                         </Box>
-                        <Box sx={{ alignSelf: 'center' }}>
-                          <Tooltip title={tooltipMessage}>
+                        <Stack direction="column" gap={1}>
+                          <Box>
+                            <Tooltip title={tooltipMessage}>
+                              <IconButton
+                                size="small"
+                                sx={{
+                                  p: 0,
+                                  color: 'inherit',
+                                  opacity: 0.7,
+                                  '&:hover': {
+                                    opacity: 1,
+                                  },
+                                }}
+                              >
+                                <InfoIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
+                          <Box>
                             <IconButton
                               size="small"
+                              component={Link}
+                              to={`/teams/${team.id}/history?serviceId=${service.id}`}
                               sx={{
                                 p: 0,
                                 color: 'inherit',
@@ -238,10 +255,10 @@ export default function ScoreboardTable() {
                                 },
                               }}
                             >
-                              <InfoIcon fontSize="small" />
+                              <HistoryIcon fontSize="small" />
                             </IconButton>
-                          </Tooltip>
-                        </Box>
+                          </Box>
+                        </Stack>
                       </Stack>
                     </TeamServiceCell>
                   );

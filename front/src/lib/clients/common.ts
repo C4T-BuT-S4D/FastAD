@@ -8,7 +8,6 @@ import {
 const onRequest = (
   config: InternalAxiosRequestConfig,
 ): InternalAxiosRequestConfig => {
-  console.info(`[request] [${JSON.stringify(config)}]`);
   return config;
 };
 
@@ -18,7 +17,6 @@ const onRequestError = (error: AxiosError): Promise<AxiosError> => {
 };
 
 const onResponse = (response: AxiosResponse): AxiosResponse => {
-  console.info(`[response] [${JSON.stringify(response)}]`);
   return response;
 };
 
@@ -38,8 +36,20 @@ export function setupInterceptorsTo(
 interface ProtoMessage {
   // eslint-disable-next-line no-unused-vars
   fromJSON(data: any): any;
+  // eslint-disable-next-line no-unused-vars
+  decode(data: Uint8Array): any;
+}
+
+export function createProtoJSONTransform<T extends ProtoMessage>(
+  messageType: T,
+) {
+  return (response: string) => {
+    return messageType.fromJSON(JSON.parse(response));
+  };
 }
 
 export function createProtoTransform<T extends ProtoMessage>(messageType: T) {
-  return (response: string) => messageType.fromJSON(JSON.parse(response));
+  return (response: ArrayBufferLike) => {
+    return messageType.decode(new Uint8Array(response));
+  };
 }
