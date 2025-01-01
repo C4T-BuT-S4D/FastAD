@@ -38,6 +38,7 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 	laoCtx := workflow.WithLocalActivityOptions(ctx, lao)
 
 	// TODO: fail if the last PUT failed.
+	// TODO: skip if it's the first round.
 
 	var pickFlagResult *PickGetFlagActivityResult
 	if err := workflow.ExecuteLocalActivity(
@@ -54,39 +55,45 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 
 	logger.Debug("picked flag", "flag", pickFlagResult.Flag)
 
-	// TODO: fail if pick hasn't succeeded.
+	var verdict *Verdict
 	if pickFlagResult.Flag == nil {
-		logger.Info("no flag picked, skipping get")
-		return nil
-	}
-
-	service := models.NewServiceFromProto(params.Service)
-
-	getActivityCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		ScheduleToCloseTimeout: service.CheckerTimeout(checkerpb.Action_ACTION_GET) + checkerKillDelay*2,
-	})
-
-	var getResult GetActivityResult
-	if err := workflow.ExecuteActivity(
-		getActivityCtx,
-		GetActivityName,
-		&GetActivityParameters{
-			GameState: params.GameState,
-			Team:      params.Team,
-			Service:   service,
-			Flag:      pickFlagResult.Flag,
-		},
-	).Get(ctx, &getResult); err != nil {
-		logger.Error("running activity", "error", err)
-		getResult.Verdict = &Verdict{
+		verdict = &Verdict{
 			Action:  checkerpb.Action_ACTION_GET,
-			Status:  checkerpb.Status_STATUS_CHECK_FAILED,
-			Public:  "checker error",
-			Private: fmt.Sprintf("running activity: %v", err),
+			Status:  checkerpb.Status_STATUS_CORRUPT,
+			Public:  "no flags to get",
+			Private: "unable to pick live flag",
 		}
-	}
+		logger.Debug("no flags available, failing")
+	} else {
+		service := models.NewServiceFromProto(params.Service)
 
-	logger.Debug("checker finished, saving verdict", "verdict", getResult.Verdict)
+		getActivityCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+			ScheduleToCloseTimeout: service.CheckerTimeout(checkerpb.Action_ACTION_GET) + checkerKillDelay*2,
+		})
+
+		var getResult GetActivityResult
+		if err := workflow.ExecuteActivity(
+			getActivityCtx,
+			GetActivityName,
+			&GetActivityParameters{
+				GameState: params.GameState,
+				Team:      params.Team,
+				Service:   service,
+				Flag:      pickFlagResult.Flag,
+			},
+		).Get(ctx, &getResult); err != nil {
+			logger.Error("running activity", "error", err)
+			getResult.Verdict = &Verdict{
+				Action:  checkerpb.Action_ACTION_GET,
+				Status:  checkerpb.Status_STATUS_CHECK_FAILED,
+				Public:  "checker error",
+				Private: fmt.Sprintf("running activity: %v", err),
+			}
+		}
+
+		verdict = getResult.Verdict
+		logger.Debug("checker finished, saving verdict", "verdict", verdict)
+	}
 
 	if err := workflow.ExecuteLocalActivity(
 		laoCtx,
@@ -94,7 +101,7 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 		&SaveVerdictActivityParameters{
 			Team:    params.Team,
 			Service: params.Service,
-			Verdict: getResult.Verdict,
+			Verdict: verdict,
 		},
 	).Get(ctx, nil); err != nil {
 		logger.Error("running save verdict activity", "error", err)
