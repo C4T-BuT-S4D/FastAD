@@ -102,22 +102,31 @@ func (s *CheckScheduler) Run(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-t.C:
-			if s.gameState.Load().GetPaused() {
+			gs := s.gameState.Load()
+			if gs.GetPaused() {
 				s.logger.Debug("game is paused, skipping check")
-				if err := s.updateStateOnPause(ctx); err != nil {
-					s.logger.Error("updating state on pause", zap.Error(err))
+				if err := s.skipRun(ctx); err != nil {
+					s.logger.Error("skipping scheduler run", zap.Error(err))
 				}
 				continue
 			}
 
-			if err := s.TryRunCheck(ctx); err != nil {
+			if s.Action == checkerpb.Action_ACTION_GET && gs.GetRunningRound() <= 1 {
+				s.logger.Debug("skipping GET check on the first round")
+				if err := s.skipRun(ctx); err != nil {
+					s.logger.Error("skipping scheduler run", zap.Error(err))
+				}
+				continue
+			}
+
+			if err := s.TryRunCheck(ctx, gs); err != nil {
 				s.logger.Error("running check", zap.Error(err))
 			}
 		}
 	}
 }
 
-func (s *CheckScheduler) TryRunCheck(ctx context.Context) error {
+func (s *CheckScheduler) TryRunCheck(ctx context.Context, gs *gspb.GameState) error {
 	now := time.Now()
 
 	var state models.SchedulerState
@@ -173,7 +182,7 @@ func (s *CheckScheduler) TryRunCheck(ctx context.Context) error {
 			WorkflowExecutionErrorWhenAlreadyStarted: true,
 		},
 		s.workflowName,
-		s.workflowParams(),
+		s.workflowParams(gs),
 	)
 	if err != nil {
 		return fmt.Errorf("executing workflow: %w", err)
@@ -203,7 +212,7 @@ func (s *CheckScheduler) TryRunCheck(ctx context.Context) error {
 	return nil
 }
 
-func (s *CheckScheduler) updateStateOnPause(ctx context.Context) error {
+func (s *CheckScheduler) skipRun(ctx context.Context) error {
 	if _, err := s.db.
 		NewInsert().
 		Model(&models.SchedulerState{
@@ -245,17 +254,17 @@ func (s *CheckScheduler) checkerTimeout() time.Duration {
 	return checkerTimeout
 }
 
-func (s *CheckScheduler) workflowParams() any {
+func (s *CheckScheduler) workflowParams(gs *gspb.GameState) any {
 	switch s.Action {
 	case checkerpb.Action_ACTION_CHECK:
 		return checkers.CheckWorkflowParameters{
-			GameState: s.gameState.Load(),
+			GameState: gs,
 			Team:      s.Team,
 			Service:   s.Service,
 		}
 	case checkerpb.Action_ACTION_GET:
 		return checkers.GetWorkflowParameters{
-			GameState: s.gameState.Load(),
+			GameState: gs,
 			Team:      s.Team,
 			Service:   s.Service,
 		}

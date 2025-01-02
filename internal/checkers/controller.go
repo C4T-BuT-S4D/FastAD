@@ -125,7 +125,7 @@ func (c *Controller) PickFlag(
 		NewSelect().
 		Model(&flag).
 		Where(
-			"team_id = ? AND service_id = ? AND round >= ?",
+			"team_id = ? AND service_id = ? AND round >= ? AND put_finished is true",
 			teamID,
 			serviceID,
 			minRound,
@@ -140,4 +140,31 @@ func (c *Controller) PickFlag(
 	}
 
 	return &flag, nil
+}
+
+func (c *Controller) GetLastExecution(
+	ctx context.Context,
+	teamID, serviceID int,
+	action checkerpb.Action,
+) (*models.CheckerExecution, error) {
+	var execution models.CheckerExecution
+	if err := c.db.
+		NewSelect().
+		Model(&execution).
+		Where(
+			"team_id = ? AND service_id = ? AND action = ?",
+			teamID,
+			serviceID,
+			action,
+		).
+		OrderExpr("created_at DESC").
+		Scan(ctx); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			//nolint:nilnil // Easier to handle in the caller.
+			return nil, nil
+		}
+		return nil, fmt.Errorf("getting last put execution: %w", err)
+	}
+
+	return &execution, nil
 }
