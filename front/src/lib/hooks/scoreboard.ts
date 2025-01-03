@@ -8,20 +8,27 @@ import { useEffect, useMemo, useState } from 'react';
 import { createProtoJSONTransform } from '../clients/common';
 import { ScoreboardState } from '../models/scoreboardState';
 
-export function useScoreboard() {
+export function useTeams() {
   const [teams, setTeams] = useState<Team[] | null>(null);
-  const [services, setServices] = useState<Service[] | null>(null);
-  const [scoreboard, setScoreboard] = useState<ScoreboardState | null>(null);
 
   useEffect(() => {
     async function fetchTeams() {
       const { data } = await axios.get<Team_Batch>('/teams', {
         transformResponse: createProtoJSONTransform(Team_Batch),
       });
-      data.teams[0].name = 'very very very long team name (yes it is)';
       setTeams(data.teams);
     }
 
+    fetchTeams();
+  }, []);
+
+  return teams;
+}
+
+export function useServices() {
+  const [services, setServices] = useState<Service[] | null>(null);
+
+  useEffect(() => {
     async function fetchServices() {
       const res = await axios.get<Service_Batch>('/services', {
         transformResponse: createProtoJSONTransform(Service_Batch),
@@ -29,6 +36,18 @@ export function useScoreboard() {
       setServices(res.data.services);
     }
 
+    fetchServices();
+  }, []);
+
+  return services;
+}
+
+export function useScoreboard() {
+  const teams = useTeams();
+  const services = useServices();
+  const [scoreboard, setScoreboard] = useState<ScoreboardState | null>(null);
+
+  useEffect(() => {
     async function fetchScoreboard() {
       const { data: scoreboardData } = await axios.get<Scoreboard>(
         '/scoreboard',
@@ -41,8 +60,6 @@ export function useScoreboard() {
       setScoreboard(scoreboardState);
     }
 
-    fetchTeams();
-    fetchServices();
     fetchScoreboard();
   }, []);
 

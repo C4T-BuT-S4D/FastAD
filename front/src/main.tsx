@@ -1,4 +1,5 @@
 import ForcADScoreboardLayout from '@/layouts/ForcADScoreboard.tsx';
+import LiveLayout from '@/layouts/Live.tsx';
 import TeamHistoryLayout from '@/layouts/TeamHistory.tsx';
 import { setupInterceptorsTo } from '@/lib/clients/common.ts';
 import theme from '@/theme.ts';
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')!).render(
             path="/teams/:teamID/history"
             element={<TeamHistoryLayout />}
           />
+          <Route path="/live" element={<LiveLayout />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

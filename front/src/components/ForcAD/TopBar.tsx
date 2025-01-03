@@ -33,7 +33,7 @@ export default function TopBar() {
         <Typography
           variant="h6"
           component="div"
-          sx={{ flexGrow: 0, fontFamily: 'Roboto Mono', mr: 4 }}
+          sx={{ flexGrow: 0, fontFamily: 'Roboto Mono' }}
         >
           FastAD
         </Typography>
@@ -41,7 +41,7 @@ export default function TopBar() {
         <Box
           component={Link}
           to="/live"
-          sx={{ textDecoration: 'none', color: 'inherit', mr: 2 }}
+          sx={{ textDecoration: 'none', color: 'inherit', ml: 4 }}
         >
           <Typography variant="body1" sx={{ fontFamily: 'Roboto Mono' }}>
             Live
@@ -50,8 +50,18 @@ export default function TopBar() {
 
         <Box
           component={Link}
+          to="/attack_data"
+          sx={{ textDecoration: 'none', color: 'inherit', ml: 3 }}
+        >
+          <Typography variant="body1" sx={{ fontFamily: 'Roboto Mono' }}>
+            Attack Data
+          </Typography>
+        </Box>
+
+        <Box
+          component={Link}
           to="https://github.com/C4T-BuT-S4D/FastAD"
-          sx={{ textDecoration: 'none', color: 'inherit' }}
+          sx={{ textDecoration: 'none', color: 'inherit', ml: 3 }}
         >
           <Typography variant="body1" sx={{ fontFamily: 'Roboto Mono' }}>
             GitHub

@@ -26,6 +26,9 @@ importers:
       '@mui/material':
         specifier: ^6.3.0
         version: 6.3.0(@emotion/react@11.14.0(@types/react@18.3.18)(react@19.0.0))(@emotion/styled@11.14.0(@emotion/react@11.14.0(@types/react@18.3.18)(react@19.0.0))(@types/react@18.3.18)(react@19.0.0))(@types/react@18.3.18)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      '@types/react-window':
+        specifier: ^1.8.8
+        version: 1.8.8
       '@uidotdev/usehooks':
         specifier: ^2.4.1
         version: 2.4.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
@@ -44,6 +47,9 @@ importers:
       react-router:
         specifier: ^7.1.1
         version: 7.1.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react-window:
+        specifier: ^1.8.11
+        version: 1.8.11(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
     devDependencies:
       '@eslint/js':
         specifier: ^9.17.0
@@ -781,6 +787,9 @@ packages:
     peerDependencies:
       '@types/react': '*'
 
+  '@types/react-window@1.8.8':
+    resolution: {integrity: sha512-8Ls660bHR1AUA2kuRvVG9D/4XpRC6wjAaPT9dil7Ckc76eP9TKWZwwmgfq8Q1LANX3QNDnoU4Zp48A3w+zK69Q==}
+
   '@types/react@18.3.18':
     resolution: {integrity: sha512-t4yC+vtgnkYjNSKlFx1jkAhH8LgTo2N/7Qvi83kdEaUtMDiwpbLAktKDaAMlRcJ5eSxZkH74eEGt1ky31d7kfQ==}
 
@@ -1250,6 +1259,9 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
+  memoize-one@5.2.1:
+    resolution: {integrity: sha512-zYiwtZUcYyXKo/np96AGZAckk+FWWsUdJ3cHGGmld7+AhvcWmQyGCYUh1hc4Q/pkOhb65dQR/pqCyK0cOaHz4Q==}
+
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
@@ -1397,6 +1409,13 @@ packages:
     peerDependencies:
       react: '>=16.6.0'
       react-dom: '>=16.6.0'
+
+  react-window@1.8.11:
+    resolution: {integrity: sha512-+SRbUVT2scadgFSWx+R1P754xHPEqvcfSfVX10QYg6POOz+WNgkN48pS+BtZNIMGiL1HYrSEiCkwsMS15QogEQ==}
+    engines: {node: '>8.0.0'}
+    peerDependencies:
+      react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   react@19.0.0:
     resolution: {integrity: sha512-V8AVnmPIICiWpGfm6GLzCR/W5FXLchHop40W4nXBmdlEceh16rCN8O8LNWm5bh5XUX91fh7KpA+W0TgMKmgTpQ==}
@@ -2204,6 +2223,10 @@ snapshots:
     dependencies:
       '@types/react': 18.3.18
 
+  '@types/react-window@1.8.8':
+    dependencies:
+      '@types/react': 18.3.18
+
   '@types/react@18.3.18':
     dependencies:
       '@types/prop-types': 15.7.14
@@ -2702,6 +2725,8 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
+  memoize-one@5.2.1: {}
+
   merge2@1.4.1: {}
 
   micromatch@4.0.8:
@@ -2841,6 +2866,13 @@ snapshots:
       dom-helpers: 5.2.1
       loose-envify: 1.4.0
       prop-types: 15.8.1
+      react: 19.0.0
+      react-dom: 19.0.0(react@19.0.0)
+
+  react-window@1.8.11(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
+    dependencies:
+      '@babel/runtime': 7.26.0
+      memoize-one: 5.2.1
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
 
