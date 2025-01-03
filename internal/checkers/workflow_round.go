@@ -112,7 +112,9 @@ func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) er
 		laoCtx,
 		SaveRoundDataActivityName,
 		&SaveRoundDataActivityParameters{
-			PutResults: putResults,
+			RunningRound:       fetchDataResult.GameState.RunningRound,
+			FlagLifetimeRounds: fetchDataResult.GameState.FlagLifetimeRounds,
+			PutResults:         putResults,
 		},
 	).Get(ctx, nil); err != nil {
 		logger.Error("running save round data activity", "error", err)

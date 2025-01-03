@@ -50,6 +50,7 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 		},
 	).Get(ctx, &getExecutionResult); err != nil {
 		logger.Error("running get last execution activity", "error", err)
+		getExecutionResult = &GetLastExecutionActivityResult{}
 	}
 
 	if lastPut := getExecutionResult.Execution; lastPut != nil && lastPut.Status != checkerpb.Status_STATUS_UP {
@@ -72,6 +73,7 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 			},
 		).Get(ctx, &pickFlagResult); err != nil {
 			logger.Error("running pick flag activity", "error", err)
+			pickFlagResult = &PickGetFlagActivityResult{}
 		}
 
 		logger.Debug("picked flag", "flag", pickFlagResult.Flag)

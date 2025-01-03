@@ -12,19 +12,16 @@ import (
 //nolint:gochecknoinits // Migrations should be initialized in init functions.
 func init() {
 	Migrations.MustRegister(func(ctx context.Context, db *bun.DB) error {
-		fmt.Print(" [up migration] ")
-
 		if _, err := db.NewCreateTable().
 			Model((*models.SlacProcessedItem)(nil)).
 			IfNotExists().
 			// Don't create foreign keys here.
 			Exec(ctx); err != nil {
-			return fmt.Errorf("create processor_states: %w", err)
+			return fmt.Errorf("creating processor_states: %w", err)
 		}
 
 		return nil
 	}, func(context.Context, *bun.DB) error {
-		fmt.Print(" [down migration] ")
 		return nil
 	})
 }

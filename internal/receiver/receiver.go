@@ -160,7 +160,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 			}
 
 			// TODO: check flag lifetime (skipped for now for easier manual tests).
-			// if gameState.RunningRound-flag.Round > gameState.FlagLifetimeRounds {
+			// if gameState.RunningRound-flag.Round >= gameState.FlagLifetimeRounds {
 			// 	baseResponse.Verdict = receiverpb.FlagResponse_VERDICT_OLD
 			// 	baseResponse.Message = oldFlagMessage
 			// 	resp.Responses = append(resp.Responses, baseResponse)

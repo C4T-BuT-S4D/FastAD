@@ -21,7 +21,9 @@ func NewSaveRoundDataActivity(checkersController *Controller) *SaveRoundDataActi
 }
 
 type SaveRoundDataActivityParameters struct {
-	PutResults []*PutActivityResult
+	RunningRound       uint64
+	FlagLifetimeRounds uint64
+	PutResults         []*PutActivityResult
 }
 
 type SaveRoundDataActivityResult struct{}
@@ -36,6 +38,13 @@ func (s *SaveRoundDataActivity) ActivityDefinition(ctx context.Context, params *
 
 	if err := s.checkersController.SavePutExecutions(ctx, params.PutResults); err != nil {
 		return nil, fmt.Errorf("adding checker executions: %w", err)
+	}
+	if err := s.checkersController.SaveAttackDataSnapshot(
+		ctx,
+		params.RunningRound,
+		params.FlagLifetimeRounds,
+	); err != nil {
+		return nil, fmt.Errorf("saving attack data snapshot: %w", err)
 	}
 
 	return &SaveRoundDataActivityResult{}, nil

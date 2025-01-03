@@ -1,10 +1,13 @@
 package api
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 
+	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
 )
 
@@ -32,5 +35,24 @@ func (s *Service) HandleGetGameState() echo.HandlerFunc {
 		default:
 			return ProtoJSON(c, http.StatusOK, gs)
 		}
+	}
+}
+
+func (s *Service) HandleGetAttackData() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ctx := httpext.ContextFromEcho(c)
+
+		var lastSnapshot models.AttackDataSnapshot
+		if err := s.db.NewSelect().
+			Model(&lastSnapshot).
+			OrderExpr("created_at DESC").
+			Scan(ctx); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return httpext.NewErrorf(http.StatusNotFound, "no attack data snapshots")
+			}
+			return httpext.NewErrorFromStatus(err, "getting last attack data snapshot")
+		}
+
+		return c.JSON(http.StatusOK, lastSnapshot.Payload)
 	}
 }

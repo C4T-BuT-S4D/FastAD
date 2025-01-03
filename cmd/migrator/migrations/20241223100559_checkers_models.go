@@ -12,15 +12,13 @@ import (
 //nolint:gochecknoinits // Migrations should be initialized in init functions.
 func init() {
 	Migrations.MustRegister(func(ctx context.Context, db *bun.DB) error {
-		fmt.Print(" [up migration] ")
-
 		if _, err := db.
 			NewCreateTable().
 			Model((*models.CheckerExecution)(nil)).
 			IfNotExists().
 			WithForeignKeys().
 			Exec(ctx); err != nil {
-			return fmt.Errorf("create checkers_executions: %w", err)
+			return fmt.Errorf("creating checkers_executions: %w", err)
 		}
 
 		if _, err := db.
@@ -29,12 +27,20 @@ func init() {
 			IfNotExists().
 			WithForeignKeys().
 			Exec(ctx); err != nil {
-			return fmt.Errorf("create flags: %w", err)
+			return fmt.Errorf("creating flags: %w", err)
+		}
+
+		if _, err := db.
+			NewCreateTable().
+			Model((*models.AttackDataSnapshot)(nil)).
+			IfNotExists().
+			WithForeignKeys().
+			Exec(ctx); err != nil {
+			return fmt.Errorf("creating attack_data_snapshots: %w", err)
 		}
 
 		return nil
 	}, func(context.Context, *bun.DB) error {
-		fmt.Print(" [down migration] ")
 		return nil
 	})
 }

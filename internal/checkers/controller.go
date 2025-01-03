@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/samber/lo"
 	"github.com/uptrace/bun"
@@ -99,6 +100,72 @@ func (c *Controller) SavePutExecutions(ctx context.Context, putResults []*PutAct
 	return nil
 }
 
+func (c *Controller) SaveAttackDataSnapshot(ctx context.Context, runningRound, lifetimeRounds uint64) error {
+	minRound := uint64(0)
+	if runningRound > lifetimeRounds {
+		minRound = runningRound - lifetimeRounds
+	}
+
+	var validFlags []*models.Flag
+	if err := c.db.NewSelect().
+		Model(&validFlags).
+		Where(
+			"round > ? AND f.put_finished is true",
+			minRound,
+		).
+		Order("f.round").
+		Scan(ctx); err != nil {
+		return fmt.Errorf("getting valid flags: %w", err)
+	}
+
+	type teamServiceKey struct {
+		teamID, serviceID int
+	}
+	validFlagsMap := lo.GroupBy(validFlags, func(flag *models.Flag) teamServiceKey {
+		return teamServiceKey{flag.TeamID, flag.ServiceID}
+	})
+
+	var teams []*models.Team
+	if err := c.db.NewSelect().
+		Model(&teams).
+		Scan(ctx); err != nil {
+		return fmt.Errorf("getting teams: %w", err)
+	}
+
+	var services []*models.Service
+	if err := c.db.NewSelect().
+		Model(&services).
+		Scan(ctx); err != nil {
+		return fmt.Errorf("getting services: %w", err)
+	}
+
+	attackDataPayload := make(models.AttackDataPayload)
+	for _, service := range services {
+		attackDataPayload[service.Name] = make(models.ServiceAttackData)
+		for _, team := range teams {
+			attackDataPayload[service.Name][team.Address] = []string{}
+			key := teamServiceKey{team.ID, service.ID}
+			for _, flag := range validFlagsMap[key] {
+				attackDataPayload[service.Name][team.Address] = append(
+					attackDataPayload[service.Name][team.Address],
+					flag.Public,
+				)
+			}
+		}
+	}
+
+	snapshot := &models.AttackDataSnapshot{
+		CreatedAt: time.Now(),
+		Round:     runningRound,
+		Payload:   attackDataPayload,
+	}
+	if _, err := c.db.NewInsert().Model(snapshot).Exec(ctx); err != nil {
+		return fmt.Errorf("inserting snapshot: %w", err)
+	}
+
+	return nil
+}
+
 func (c *Controller) AddCheckerExecutions(ctx context.Context, executions ...*models.CheckerExecution) error {
 	if _, err := c.db.
 		NewInsert().
@@ -125,7 +192,7 @@ func (c *Controller) PickFlag(
 		NewSelect().
 		Model(&flag).
 		Where(
-			"team_id = ? AND service_id = ? AND round >= ? AND put_finished is true",
+			"team_id = ? AND service_id = ? AND round > ? AND put_finished is true",
 			teamID,
 			serviceID,
 			minRound,
