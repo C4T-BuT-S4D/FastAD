@@ -11,6 +11,7 @@ export const protobufPackage = "receiver";
 
 export interface SubmitFlagsRequest {
   flags: string[];
+  teamToken: string;
 }
 
 export interface FlagResponse {
@@ -130,13 +131,16 @@ export interface GetStateResponse {
 }
 
 function createBaseSubmitFlagsRequest(): SubmitFlagsRequest {
-  return { flags: [] };
+  return { flags: [], teamToken: "" };
 }
 
 export const SubmitFlagsRequest: MessageFns<SubmitFlagsRequest> = {
   encode(message: SubmitFlagsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.flags) {
       writer.uint32(10).string(v!);
+    }
+    if (message.teamToken !== "") {
+      writer.uint32(18).string(message.teamToken);
     }
     return writer;
   },
@@ -154,6 +158,14 @@ export const SubmitFlagsRequest: MessageFns<SubmitFlagsRequest> = {
           }
 
           message.flags.push(reader.string());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.teamToken = reader.string();
           continue;
         }
       }
@@ -200,13 +212,19 @@ export const SubmitFlagsRequest: MessageFns<SubmitFlagsRequest> = {
   },
 
   fromJSON(object: any): SubmitFlagsRequest {
-    return { flags: globalThis.Array.isArray(object?.flags) ? object.flags.map((e: any) => globalThis.String(e)) : [] };
+    return {
+      flags: globalThis.Array.isArray(object?.flags) ? object.flags.map((e: any) => globalThis.String(e)) : [],
+      teamToken: isSet(object.teamToken) ? globalThis.String(object.teamToken) : "",
+    };
   },
 
   toJSON(message: SubmitFlagsRequest): unknown {
     const obj: any = {};
     if (message.flags?.length) {
       obj.flags = message.flags;
+    }
+    if (message.teamToken !== "") {
+      obj.teamToken = message.teamToken;
     }
     return obj;
   },
@@ -217,6 +235,7 @@ export const SubmitFlagsRequest: MessageFns<SubmitFlagsRequest> = {
   fromPartial<I extends Exact<DeepPartial<SubmitFlagsRequest>, I>>(object: I): SubmitFlagsRequest {
     const message = createBaseSubmitFlagsRequest();
     message.flags = object.flags?.map((e) => e) || [];
+    message.teamToken = object.teamToken ?? "";
     return message;
   },
 };

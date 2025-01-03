@@ -65,7 +65,10 @@ func (s *Service) RegisterRoutes(e *echo.Echo) {
 	apiGroup.GET("/scoreboard", s.HandleGetScoreboard())
 	apiGroup.GET("/ctftime", s.HandleGetCTFTimeScoreboard())
 	apiGroup.GET("/game", s.HandleGetGameState())
-	apiGroup.GET("/attack_data", s.HandleGetAttackData())
+
+	// Global handlers.
+	e.GET("/attack_data", s.HandleGetAttackData())
+	e.POST("/flags", s.HandleSubmitFlags())
 
 	wsHandler := centrifuge.NewWebsocketHandler(s.centNode, centrifuge.WebsocketConfig{
 		CheckOrigin: func(*http.Request) bool {

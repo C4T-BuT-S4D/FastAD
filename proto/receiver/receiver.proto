@@ -4,6 +4,7 @@ package receiver;
 
 message SubmitFlagsRequest {
   repeated string flags = 1;
+  string team_token = 2;
 }
 
 message FlagResponse {

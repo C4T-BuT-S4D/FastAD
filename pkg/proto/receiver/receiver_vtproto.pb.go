@@ -21,6 +21,7 @@ func (m *SubmitFlagsRequest) CloneVT() *SubmitFlagsRequest {
 		return (*SubmitFlagsRequest)(nil)
 	}
 	r := new(SubmitFlagsRequest)
+	r.TeamToken = m.TeamToken
 	if rhs := m.Flags; rhs != nil {
 		tmpContainer := make([]string, len(rhs))
 		copy(tmpContainer, rhs)
@@ -218,6 +219,9 @@ func (this *SubmitFlagsRequest) EqualVT(that *SubmitFlagsRequest) bool {
 		if vx != vy {
 			return false
 		}
+	}
+	if this.TeamToken != that.TeamToken {
+		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/uptrace/bun"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	"github.com/c4t-but-s4d/fastad/internal/centutil"
@@ -76,9 +75,8 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 		return nil, status.Errorf(codes.InvalidArgument, "too many flags (max %d)", maxFlagsInRequest)
 	}
 
-	tokens := metadata.ValueFromIncomingContext(ctx, "team_token")
-	if len(tokens) != 1 {
-		return nil, status.Error(codes.InvalidArgument, "team token required")
+	if req.TeamToken == "" {
+		return nil, status.Error(codes.InvalidArgument, "team token is required")
 	}
 
 	gameState, err := s.gameStateClient.Get(ctx)
@@ -94,7 +92,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 		return int(srv.Id)
 	})
 
-	attacker, err := s.teamsClient.GetByToken(ctx, tokens[0])
+	attacker, err := s.teamsClient.GetByToken(ctx, req.TeamToken)
 	if err != nil {
 		return nil, fmt.Errorf("fetching attacker: %w", err)
 	}
