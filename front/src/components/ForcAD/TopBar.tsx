@@ -70,13 +70,20 @@ export default function TopBar() {
 
         <Box sx={{ flexGrow: 1 }} />
 
-        {gameState?.runningRoundStart && gameState?.roundDuration && (
-          <TopBarRoundProgress
-            round={gameState.runningRound}
-            totalRounds={gameState.totalRounds}
-            startTime={gameState.runningRoundStart}
-            duration={gameState.roundDuration}
-          />
+        {gameState?.finished ? (
+          <Typography variant="body1" sx={{ fontFamily: 'Roboto Mono' }}>
+            Game Over
+          </Typography>
+        ) : (
+          gameState?.runningRoundStart &&
+          gameState?.roundDuration && (
+            <TopBarRoundProgress
+              round={gameState.runningRound}
+              totalRounds={gameState.totalRounds}
+              startTime={gameState.runningRoundStart}
+              duration={gameState.roundDuration}
+            />
+          )
         )}
       </Toolbar>
     </AppBar>

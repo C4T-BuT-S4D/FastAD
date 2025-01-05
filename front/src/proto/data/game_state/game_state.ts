@@ -50,6 +50,7 @@ export interface GameState {
   endTime: Date | undefined;
   totalRounds: string;
   paused: boolean;
+  finished: boolean;
   flagLifetimeRounds: string;
   roundDuration: Duration | undefined;
   mode: GameMode;
@@ -95,12 +96,21 @@ export interface UpdateRoundResponse {
   version: Version | undefined;
 }
 
+export interface FinishGameRequest {
+}
+
+export interface FinishGameResponse {
+  gameState: GameState | undefined;
+  version: Version | undefined;
+}
+
 function createBaseGameState(): GameState {
   return {
     startTime: undefined,
     endTime: undefined,
     totalRounds: "0",
     paused: false,
+    finished: false,
     flagLifetimeRounds: "0",
     roundDuration: undefined,
     mode: 0,
@@ -124,6 +134,9 @@ export const GameState: MessageFns<GameState> = {
     }
     if (message.paused !== false) {
       writer.uint32(32).bool(message.paused);
+    }
+    if (message.finished !== false) {
+      writer.uint32(96).bool(message.finished);
     }
     if (message.flagLifetimeRounds !== "0") {
       writer.uint32(40).uint64(message.flagLifetimeRounds);
@@ -186,6 +199,14 @@ export const GameState: MessageFns<GameState> = {
           }
 
           message.paused = reader.bool();
+          continue;
+        }
+        case 12: {
+          if (tag !== 96) {
+            break;
+          }
+
+          message.finished = reader.bool();
           continue;
         }
         case 5: {
@@ -291,6 +312,7 @@ export const GameState: MessageFns<GameState> = {
       endTime: isSet(object.endTime) ? fromJsonTimestamp(object.endTime) : undefined,
       totalRounds: isSet(object.totalRounds) ? globalThis.String(object.totalRounds) : "0",
       paused: isSet(object.paused) ? globalThis.Boolean(object.paused) : false,
+      finished: isSet(object.finished) ? globalThis.Boolean(object.finished) : false,
       flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? globalThis.String(object.flagLifetimeRounds) : "0",
       roundDuration: isSet(object.roundDuration) ? Duration.fromJSON(object.roundDuration) : undefined,
       mode: isSet(object.mode) ? gameModeFromJSON(object.mode) : 0,
@@ -314,6 +336,9 @@ export const GameState: MessageFns<GameState> = {
     }
     if (message.paused !== false) {
       obj.paused = message.paused;
+    }
+    if (message.finished !== false) {
+      obj.finished = message.finished;
     }
     if (message.flagLifetimeRounds !== "0") {
       obj.flagLifetimeRounds = message.flagLifetimeRounds;
@@ -348,6 +373,7 @@ export const GameState: MessageFns<GameState> = {
     message.endTime = object.endTime ?? undefined;
     message.totalRounds = object.totalRounds ?? "0";
     message.paused = object.paused ?? false;
+    message.finished = object.finished ?? false;
     message.flagLifetimeRounds = object.flagLifetimeRounds ?? "0";
     message.roundDuration = (object.roundDuration !== undefined && object.roundDuration !== null)
       ? Duration.fromPartial(object.roundDuration)
@@ -1123,6 +1149,195 @@ export const UpdateRoundResponse: MessageFns<UpdateRoundResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<UpdateRoundResponse>, I>>(object: I): UpdateRoundResponse {
     const message = createBaseUpdateRoundResponse();
+    message.gameState = (object.gameState !== undefined && object.gameState !== null)
+      ? GameState.fromPartial(object.gameState)
+      : undefined;
+    message.version = (object.version !== undefined && object.version !== null)
+      ? Version.fromPartial(object.version)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseFinishGameRequest(): FinishGameRequest {
+  return {};
+}
+
+export const FinishGameRequest: MessageFns<FinishGameRequest> = {
+  encode(_: FinishGameRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FinishGameRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFinishGameRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<FinishGameRequest, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<FinishGameRequest | FinishGameRequest[]> | Iterable<FinishGameRequest | FinishGameRequest[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [FinishGameRequest.encode(p).finish()];
+        }
+      } else {
+        yield* [FinishGameRequest.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, FinishGameRequest>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<FinishGameRequest> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [FinishGameRequest.decode(p)];
+        }
+      } else {
+        yield* [FinishGameRequest.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(_: any): FinishGameRequest {
+    return {};
+  },
+
+  toJSON(_: FinishGameRequest): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FinishGameRequest>, I>>(base?: I): FinishGameRequest {
+    return FinishGameRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FinishGameRequest>, I>>(_: I): FinishGameRequest {
+    const message = createBaseFinishGameRequest();
+    return message;
+  },
+};
+
+function createBaseFinishGameResponse(): FinishGameResponse {
+  return { gameState: undefined, version: undefined };
+}
+
+export const FinishGameResponse: MessageFns<FinishGameResponse> = {
+  encode(message: FinishGameResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.gameState !== undefined) {
+      GameState.encode(message.gameState, writer.uint32(10).fork()).join();
+    }
+    if (message.version !== undefined) {
+      Version.encode(message.version, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FinishGameResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFinishGameResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.gameState = GameState.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.version = Version.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<FinishGameResponse, Uint8Array>
+  async *encodeTransform(
+    source:
+      | AsyncIterable<FinishGameResponse | FinishGameResponse[]>
+      | Iterable<FinishGameResponse | FinishGameResponse[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [FinishGameResponse.encode(p).finish()];
+        }
+      } else {
+        yield* [FinishGameResponse.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, FinishGameResponse>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<FinishGameResponse> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [FinishGameResponse.decode(p)];
+        }
+      } else {
+        yield* [FinishGameResponse.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): FinishGameResponse {
+    return {
+      gameState: isSet(object.gameState) ? GameState.fromJSON(object.gameState) : undefined,
+      version: isSet(object.version) ? Version.fromJSON(object.version) : undefined,
+    };
+  },
+
+  toJSON(message: FinishGameResponse): unknown {
+    const obj: any = {};
+    if (message.gameState !== undefined) {
+      obj.gameState = GameState.toJSON(message.gameState);
+    }
+    if (message.version !== undefined) {
+      obj.version = Version.toJSON(message.version);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FinishGameResponse>, I>>(base?: I): FinishGameResponse {
+    return FinishGameResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FinishGameResponse>, I>>(object: I): FinishGameResponse {
+    const message = createBaseFinishGameResponse();
     message.gameState = (object.gameState !== undefined && object.gameState !== null)
       ? GameState.fromPartial(object.gameState)
       : undefined;
