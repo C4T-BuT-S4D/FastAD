@@ -22,6 +22,7 @@ const (
 	GameStateService_Get_FullMethodName         = "/data.game_state.GameStateService/Get"
 	GameStateService_Update_FullMethodName      = "/data.game_state.GameStateService/Update"
 	GameStateService_UpdateRound_FullMethodName = "/data.game_state.GameStateService/UpdateRound"
+	GameStateService_FinishGame_FullMethodName  = "/data.game_state.GameStateService/FinishGame"
 )
 
 // GameStateServiceClient is the client API for GameStateService service.
@@ -31,6 +32,7 @@ type GameStateServiceClient interface {
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
 	Update(ctx context.Context, in *UpdateRequest, opts ...grpc.CallOption) (*UpdateResponse, error)
 	UpdateRound(ctx context.Context, in *UpdateRoundRequest, opts ...grpc.CallOption) (*UpdateRoundResponse, error)
+	FinishGame(ctx context.Context, in *FinishGameRequest, opts ...grpc.CallOption) (*FinishGameResponse, error)
 }
 
 type gameStateServiceClient struct {
@@ -71,6 +73,16 @@ func (c *gameStateServiceClient) UpdateRound(ctx context.Context, in *UpdateRoun
 	return out, nil
 }
 
+func (c *gameStateServiceClient) FinishGame(ctx context.Context, in *FinishGameRequest, opts ...grpc.CallOption) (*FinishGameResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FinishGameResponse)
+	err := c.cc.Invoke(ctx, GameStateService_FinishGame_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GameStateServiceServer is the server API for GameStateService service.
 // All implementations must embed UnimplementedGameStateServiceServer
 // for forward compatibility.
@@ -78,6 +90,7 @@ type GameStateServiceServer interface {
 	Get(context.Context, *GetRequest) (*GetResponse, error)
 	Update(context.Context, *UpdateRequest) (*UpdateResponse, error)
 	UpdateRound(context.Context, *UpdateRoundRequest) (*UpdateRoundResponse, error)
+	FinishGame(context.Context, *FinishGameRequest) (*FinishGameResponse, error)
 	mustEmbedUnimplementedGameStateServiceServer()
 }
 
@@ -96,6 +109,9 @@ func (UnimplementedGameStateServiceServer) Update(context.Context, *UpdateReques
 }
 func (UnimplementedGameStateServiceServer) UpdateRound(context.Context, *UpdateRoundRequest) (*UpdateRoundResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateRound not implemented")
+}
+func (UnimplementedGameStateServiceServer) FinishGame(context.Context, *FinishGameRequest) (*FinishGameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FinishGame not implemented")
 }
 func (UnimplementedGameStateServiceServer) mustEmbedUnimplementedGameStateServiceServer() {}
 func (UnimplementedGameStateServiceServer) testEmbeddedByValue()                          {}
@@ -172,6 +188,24 @@ func _GameStateService_UpdateRound_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GameStateService_FinishGame_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FinishGameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameStateServiceServer).FinishGame(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameStateService_FinishGame_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameStateServiceServer).FinishGame(ctx, req.(*FinishGameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GameStateService_ServiceDesc is the grpc.ServiceDesc for GameStateService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -190,6 +224,10 @@ var GameStateService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateRound",
 			Handler:    _GameStateService_UpdateRound_Handler,
+		},
+		{
+			MethodName: "FinishGame",
+			Handler:    _GameStateService_FinishGame_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

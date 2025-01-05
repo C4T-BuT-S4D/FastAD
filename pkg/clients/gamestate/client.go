@@ -55,6 +55,14 @@ func (c *Client) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) 
 	return resp.GameState, nil
 }
 
+func (c *Client) FinishGame(ctx context.Context) (*gspb.GameState, error) {
+	resp, err := c.c.FinishGame(ctx, &gspb.FinishGameRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("finishing game: %w", err)
+	}
+	return resp.GameState, nil
+}
+
 func (c *Client) RawClient() gspb.GameStateServiceClient {
 	return c.c
 }

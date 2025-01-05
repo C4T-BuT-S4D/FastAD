@@ -61,6 +61,7 @@ func NewCheckManager(
 	teamsClient *teams.Client,
 	servicesClient *services.Client,
 	temporalClient client.Client,
+	logger *zap.Logger,
 ) *CheckManager {
 	return &CheckManager{
 		activeSchedulers: make(map[teamServiceKey]*CheckScheduler),
@@ -75,7 +76,7 @@ func NewCheckManager(
 
 		gameState: atomic.NewPointer[gspb.GameState](nil),
 
-		logger: zap.L().With(zap.String("component", "check_manager")),
+		logger: logger.Named("check_manager"),
 	}
 }
 
@@ -195,6 +196,23 @@ func (m *CheckManager) refreshData(ctx context.Context) error {
 		return fmt.Errorf("getting game state: %w", err)
 	}
 	m.gameState.Store(gs)
+
+	if gs.GetFinished() {
+		m.logger.Info("game is finished")
+		if len(m.activeSchedulers) > 0 {
+			m.logger.Info("stopping all check schedulers")
+			for key, cancel := range m.cancellers {
+				cancel()
+				delete(m.cancellers, key)
+			}
+			for key := range m.activeSchedulers {
+				<-m.dones[key]
+				delete(m.dones, key)
+			}
+			clear(m.activeSchedulers)
+		}
+		return nil
+	}
 
 	teamsList, err := m.teamsClient.List(ctx)
 	if err != nil {

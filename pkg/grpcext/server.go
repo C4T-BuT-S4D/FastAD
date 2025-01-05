@@ -47,9 +47,8 @@ func WithServerInstallation(name string) ServerOption {
 func NewServer(opts ...ServerOption) *grpc.Server {
 	cfg := GetServerConfig(opts...)
 
-	rpcLogger := zap.L().With(
-		zap.String("service", "gRPC/server"),
-		zap.String("component", cfg.installation),
+	rpcLogger := zap.L().Named("grpc_server").With(
+		zap.String("installation", cfg.installation),
 	)
 
 	var coounterOpts []grpcprom.CounterOption

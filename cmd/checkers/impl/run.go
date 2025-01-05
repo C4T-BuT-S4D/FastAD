@@ -28,7 +28,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *checkers.Config) error {
 	temporalClientOpts := client.Options{
 		HostPort: cfg.Temporal.Address,
 		Logger: logging.NewTemporalAdapter(
-			zap.L().With(zap.String("component", "checkers_worker")),
+			zap.L().Named("checkers_worker"),
 		),
 	}
 	if cfg.MetricsAddress != "" {

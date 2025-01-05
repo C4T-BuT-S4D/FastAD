@@ -84,3 +84,17 @@ func (s *Service) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest)
 		Version:   version.NewVersionProto(newVersion),
 	}, nil
 }
+
+func (s *Service) FinishGame(ctx context.Context, req *gspb.FinishGameRequest) (*gspb.FinishGameResponse, error) {
+	zap.L().Debug("GameStateService/FinishGame", zap.Any("request", req))
+
+	gs, newVersion, err := s.controller.FinishGame(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("finishing game: %w", err)
+	}
+
+	return &gspb.FinishGameResponse{
+		GameState: gs.ToProto(),
+		Version:   version.NewVersionProto(newVersion),
+	}, nil
+}

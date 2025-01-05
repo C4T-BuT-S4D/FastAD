@@ -3,7 +3,6 @@ package impl
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"go.temporal.io/sdk/client"
 	"go.uber.org/zap"
@@ -24,10 +23,12 @@ import (
 )
 
 func Run(runCtx, shutdownCtx context.Context, cfg *scheduler.Config) error {
+	logger := zap.L().Named(cfg.Installation)
+
 	temporalClient, err := client.Dial(client.Options{
 		HostPort: cfg.Temporal.Address,
 		Logger: logging.NewTemporalAdapter(
-			zap.L().With(zap.String("component", "scheduler")),
+			logger.Named("temporal_client"),
 		),
 	})
 	if err != nil {
@@ -50,9 +51,21 @@ func Run(runCtx, shutdownCtx context.Context, cfg *scheduler.Config) error {
 	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn))
 	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn))
 
-	t := scheduler.NewRoundScheduler(time.Second*10, temporalClient, gameStateClient, db)
+	t := scheduler.NewRoundScheduler(
+		temporalClient,
+		gameStateClient,
+		db,
+		logger,
+	)
 
-	cm := scheduler.NewCheckManager(db, gameStateClient, teamsClient, servicesClient, temporalClient)
+	cm := scheduler.NewCheckManager(
+		db,
+		gameStateClient,
+		teamsClient,
+		servicesClient,
+		temporalClient,
+		logger,
+	)
 
 	g, gctx := errgroup.WithContext(runCtx)
 	g.Go(func() error {

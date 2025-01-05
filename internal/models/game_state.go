@@ -14,30 +14,33 @@ import (
 type GameState struct {
 	bun.BaseModel `bun:"game_state,alias:gs"`
 
-	ID int `bun:"id,pk" json:"id"`
+	ID int `bun:"id,pk"`
 
-	StartTime   time.Time  `bun:"start_time,notnull" json:"start_time"`
-	EndTime     *time.Time `bun:"end_time" json:"end_time,omitempty"`
-	TotalRounds uint64     `bun:"total_rounds" json:"total_rounds,omitempty"`
+	StartTime   time.Time  `bun:"start_time,notnull"`
+	EndTime     *time.Time `bun:"end_time"`
+	TotalRounds uint64     `bun:"total_rounds"`
 
-	Paused bool `bun:"paused" json:"paused,omitempty"`
+	Paused   bool `bun:"paused"`
+	Finished bool `bun:"finished"`
 
-	FlagLifetimeRounds uint64        `bun:"flag_lifetime_rounds,notnull" json:"flag_lifetime_rounds"`
-	RoundDuration      time.Duration `bun:"round_duration,notnull" json:"round_duration"`
+	FlagLifetimeRounds uint64        `bun:"flag_lifetime_rounds,notnull"`
+	RoundDuration      time.Duration `bun:"round_duration,notnull"`
 
 	// TODO: game_mode.
-	Hardness  float64 `bun:"hardness,notnull" json:"hardness,omitempty"`
-	Inflation bool    `bun:"inflation" json:"inflation,omitempty"`
+	Hardness  float64 `bun:"hardness,notnull"`
+	Inflation bool    `bun:"inflation"`
 
-	RunningRound      uint64    `bun:"running_round" json:"running_round"`
-	RunningRoundStart time.Time `bun:"running_round_start" json:"running_round_start"`
+	RunningRound      uint64    `bun:"running_round"`
+	RunningRoundStart time.Time `bun:"running_round_start"`
 }
 
 func (gs *GameState) ToProto() *gspb.GameState {
 	res := &gspb.GameState{
 		StartTime:   timestamppb.New(gs.StartTime),
 		TotalRounds: gs.TotalRounds,
-		Paused:      gs.Paused,
+
+		Paused:   gs.Paused,
+		Finished: gs.Finished,
 
 		FlagLifetimeRounds: gs.FlagLifetimeRounds,
 		RoundDuration:      durationpb.New(gs.RoundDuration),
@@ -58,7 +61,9 @@ func NewGameStateFromProto(p *gspb.GameState) *GameState {
 	res := &GameState{
 		StartTime:   p.StartTime.AsTime(),
 		TotalRounds: p.TotalRounds,
-		Paused:      p.Paused,
+
+		Paused:   p.Paused,
+		Finished: p.Finished,
 
 		FlagLifetimeRounds: p.FlagLifetimeRounds,
 		RoundDuration:      p.RoundDuration.AsDuration(),

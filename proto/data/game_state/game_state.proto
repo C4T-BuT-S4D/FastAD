@@ -18,6 +18,7 @@ message GameState {
   uint64 total_rounds = 3;
 
   bool paused = 4;
+  bool finished = 12;
 
   uint64 flag_lifetime_rounds = 5;
   google.protobuf.Duration round_duration = 6;
@@ -29,6 +30,8 @@ message GameState {
 
   double hardness = 10;
   bool inflation = 11;
+
+  reserved 13 to 100;
 }
 
 message GetRequest {
@@ -66,6 +69,14 @@ message UpdateRoundRequest {
 }
 
 message UpdateRoundResponse {
+  data.game_state.GameState game_state = 1;
+  data.version.Version version = 2;
+}
+
+message FinishGameRequest {
+}
+
+message FinishGameResponse {
   data.game_state.GameState game_state = 1;
   data.version.Version version = 2;
 }

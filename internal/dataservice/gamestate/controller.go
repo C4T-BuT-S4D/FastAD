@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/samber/lo"
 	"github.com/uptrace/bun"
@@ -38,41 +39,27 @@ func (c *Controller) Get(ctx context.Context) (*models.GameState, error) {
 }
 
 func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*models.GameState, int, error) {
-	gs := &models.GameState{
-		ID:                 1,
-		StartTime:          req.StartTime.AsTime(),
-		TotalRounds:        req.TotalRounds,
-		Paused:             req.Paused,
-		FlagLifetimeRounds: req.FlagLifetimeRounds,
-		RoundDuration:      req.RoundDuration.AsDuration(),
-		Hardness:           req.Hardness,
-		Inflation:          req.Inflation,
-	}
-
-	if req.EndTime != nil {
-		gs.EndTime = lo.ToPtr(req.EndTime.AsTime())
-	}
-
 	var newVersion int
+	var gs *models.GameState
 	if err := c.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-		if err := c.db.
-			NewInsert().
-			Model(gs).
-			On("CONFLICT (id) DO UPDATE").
-			Set("start_time = EXCLUDED.start_time").
-			Set("end_time = EXCLUDED.end_time").
-			Set("total_rounds = EXCLUDED.total_rounds").
-			Set("paused = EXCLUDED.paused").
-			Set("flag_lifetime_rounds = EXCLUDED.flag_lifetime_rounds").
-			Set("round_duration = EXCLUDED.round_duration").
-			Returning("*").
-			Scan(ctx); err != nil {
-			return fmt.Errorf("inserting game state: %w", err)
-		}
-
 		var err error
-		if newVersion, err = c.Versions.Increment(ctx, tx, VersionKey); err != nil {
-			return fmt.Errorf("incrementing version: %w", err)
+		if gs, newVersion, err = c.updateImpl(ctx, tx, func(query *bun.UpdateQuery) *bun.UpdateQuery {
+			var endTime *time.Time
+			if req.EndTime != nil {
+				endTime = lo.ToPtr(req.EndTime.AsTime())
+			}
+
+			return query.
+				Set("start_time = ?", req.StartTime.AsTime()).
+				Set("end_time = ?", endTime).
+				Set("total_rounds = ?", req.TotalRounds).
+				Set("paused = ?", req.Paused).
+				Set("flag_lifetime_rounds = ?", req.FlagLifetimeRounds).
+				Set("round_duration = ?", req.RoundDuration.AsDuration()).
+				Set("hardness = ?", req.Hardness).
+				Set("inflation = ?", req.Inflation)
+		}); err != nil {
+			return fmt.Errorf("updating game state: %w", err)
 		}
 		return nil
 	}); err != nil {
@@ -83,29 +70,16 @@ func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*mode
 }
 
 func (c *Controller) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*models.GameState, int, error) {
-	gs := &models.GameState{
-		ID:                1,
-		RunningRound:      req.RunningRound,
-		RunningRoundStart: req.RunningRoundStart.AsTime(),
-		Hardness:          1337,
-	}
-
 	var newVersion int
+	var gs *models.GameState
 	if err := c.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
-		if err := c.db.
-			NewInsert().
-			Model(gs).
-			On("CONFLICT (id) DO UPDATE").
-			Set("running_round = EXCLUDED.running_round").
-			Set("running_round_start = EXCLUDED.running_round_start").
-			Returning("*").
-			Scan(ctx); err != nil {
-			return fmt.Errorf("updating game state: %w", err)
-		}
-
 		var err error
-		if newVersion, err = c.Versions.Increment(ctx, tx, VersionKey); err != nil {
-			return fmt.Errorf("incrementing version: %w", err)
+		if gs, newVersion, err = c.updateImpl(ctx, tx, func(query *bun.UpdateQuery) *bun.UpdateQuery {
+			return query.
+				Set("running_round = ?", req.RunningRound).
+				Set("running_round_start = ?", req.RunningRoundStart.AsTime())
+		}); err != nil {
+			return fmt.Errorf("updating game state: %w", err)
 		}
 		return nil
 	}); err != nil {
@@ -113,4 +87,51 @@ func (c *Controller) UpdateRound(ctx context.Context, req *gspb.UpdateRoundReque
 	}
 
 	return gs, newVersion, nil
+}
+
+func (c *Controller) FinishGame(ctx context.Context) (*models.GameState, int, error) {
+	var newVersion int
+	var gs *models.GameState
+	if err := c.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		var err error
+		if gs, newVersion, err = c.updateImpl(ctx, tx, func(query *bun.UpdateQuery) *bun.UpdateQuery {
+			return query.Set("finished = true")
+		}); err != nil {
+			return fmt.Errorf("updating game state: %w", err)
+		}
+		return nil
+	}); err != nil {
+		return nil, 0, fmt.Errorf("in transaction: %w", err)
+	}
+
+	return gs, newVersion, nil
+}
+
+func (c *Controller) updateImpl(
+	ctx context.Context,
+	tx bun.Tx,
+	queryMod func(query *bun.UpdateQuery) *bun.UpdateQuery,
+) (*models.GameState, int, error) {
+	if err := tx.
+		NewSelect().
+		Model(&models.GameState{}).
+		Where("id = 1").
+		For("UPDATE").
+		Scan(ctx); err != nil {
+		return nil, 0, fmt.Errorf("locking game state: %w", err)
+	}
+
+	var gs models.GameState
+	query := tx.NewUpdate().Model(&gs).Where("id = 1").Returning("*")
+	query = queryMod(query)
+
+	if err := query.Scan(ctx); err != nil {
+		return nil, 0, fmt.Errorf("updating game state: %w", err)
+	}
+
+	newVersion, err := c.Versions.Increment(ctx, tx, VersionKey)
+	if err != nil {
+		return nil, 0, fmt.Errorf("incrementing version: %w", err)
+	}
+	return &gs, newVersion, nil
 }

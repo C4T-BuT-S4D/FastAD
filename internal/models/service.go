@@ -22,18 +22,18 @@ type ServiceActionConfig struct {
 type Service struct {
 	bun.BaseModel `bun:"services,alias:s"`
 
-	ID   int    `bun:"id,pk,autoincrement" json:"id"`
-	Name string `bun:"name,notnull,unique" json:"name"`
+	ID   int    `bun:"id,pk,autoincrement"`
+	Name string `bun:"name,notnull,unique"`
 
-	CheckerType checkerpb.Type `bun:"checker_type,notnull" json:"checker_type,omitempty"`
-	CheckerPath string         `bun:"checker_path,notnull" json:"checker_path,omitempty"`
+	CheckerType checkerpb.Type `bun:"checker_type,notnull"`
+	CheckerPath string         `bun:"checker_path,notnull"`
 
-	DefaultScore float64 `bun:"default_score,notnull" json:"default_score,omitempty"`
+	DefaultScore float64 `bun:"default_score,notnull"`
 
-	DefaultTimeout time.Duration                             `bun:"default_timeout,notnull" json:"default_timeout,omitempty"`
-	Actions        map[checkerpb.Action]*ServiceActionConfig `bun:"actions,type:jsonb,notnull" json:"actions,omitempty"`
+	DefaultTimeout time.Duration                             `bun:"default_timeout,notnull"`
+	Actions        map[checkerpb.Action]*ServiceActionConfig `bun:"actions,type:jsonb,notnull"`
 
-	Disabled bool `bun:"disabled,notnull" json:"disabled"`
+	Disabled bool `bun:"disabled,notnull"`
 
 	// TODO: vulns format.
 	// Places int

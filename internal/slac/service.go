@@ -32,7 +32,7 @@ func NewService(db *bun.DB, cfg *Config) *Service {
 		config: cfg,
 
 		state:  atomic.NewPointer(NewState()),
-		logger: zap.L().With(zap.String("component", "slac")),
+		logger: zap.L().Named("slac"),
 	}
 }
 

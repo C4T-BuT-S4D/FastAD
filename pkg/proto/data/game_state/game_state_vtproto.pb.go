@@ -29,6 +29,7 @@ func (m *GameState) CloneVT() *GameState {
 	r.EndTime = (*timestamppb.Timestamp)((*timestamppb1.Timestamp)(m.EndTime).CloneVT())
 	r.TotalRounds = m.TotalRounds
 	r.Paused = m.Paused
+	r.Finished = m.Finished
 	r.FlagLifetimeRounds = m.FlagLifetimeRounds
 	r.RoundDuration = (*durationpb.Duration)((*durationpb1.Duration)(m.RoundDuration).CloneVT())
 	r.Mode = m.Mode
@@ -161,6 +162,40 @@ func (m *UpdateRoundResponse) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
 
+func (m *FinishGameRequest) CloneVT() *FinishGameRequest {
+	if m == nil {
+		return (*FinishGameRequest)(nil)
+	}
+	r := new(FinishGameRequest)
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *FinishGameRequest) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *FinishGameResponse) CloneVT() *FinishGameResponse {
+	if m == nil {
+		return (*FinishGameResponse)(nil)
+	}
+	r := new(FinishGameResponse)
+	r.GameState = m.GameState.CloneVT()
+	r.Version = m.Version.CloneVT()
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *FinishGameResponse) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
 func (this *GameState) EqualVT(that *GameState) bool {
 	if this == that {
 		return true
@@ -198,6 +233,9 @@ func (this *GameState) EqualVT(that *GameState) bool {
 		return false
 	}
 	if this.Inflation != that.Inflation {
+		return false
+	}
+	if this.Finished != that.Finished {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -355,6 +393,44 @@ func (this *UpdateRoundResponse) EqualVT(that *UpdateRoundResponse) bool {
 
 func (this *UpdateRoundResponse) EqualMessageVT(thatMsg proto.Message) bool {
 	that, ok := thatMsg.(*UpdateRoundResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *FinishGameRequest) EqualVT(that *FinishGameRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *FinishGameRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*FinishGameRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *FinishGameResponse) EqualVT(that *FinishGameResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.GameState.EqualVT(that.GameState) {
+		return false
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *FinishGameResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*FinishGameResponse)
 	if !ok {
 		return false
 	}

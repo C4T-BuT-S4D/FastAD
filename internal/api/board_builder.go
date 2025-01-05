@@ -60,7 +60,7 @@ func NewBoardBuilder(
 		slacClient:     slacClient,
 		producer:       producer,
 
-		logger: zap.L().With(zap.String("component", "board_builder")),
+		logger: zap.L().Named("board_builder"),
 	}
 }
 

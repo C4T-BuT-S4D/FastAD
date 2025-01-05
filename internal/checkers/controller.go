@@ -110,7 +110,7 @@ func (c *Controller) SaveAttackDataSnapshot(ctx context.Context, runningRound, l
 	if err := c.db.NewSelect().
 		Model(&validFlags).
 		Where(
-			"round > ? AND f.put_finished is true",
+			"round >= ? AND f.put_finished is true",
 			minRound,
 		).
 		Order("f.round").
@@ -192,7 +192,7 @@ func (c *Controller) PickFlag(
 		NewSelect().
 		Model(&flag).
 		Where(
-			"team_id = ? AND service_id = ? AND round > ? AND put_finished is true",
+			"team_id = ? AND service_id = ? AND round >= ? AND put_finished is true",
 			teamID,
 			serviceID,
 			minRound,

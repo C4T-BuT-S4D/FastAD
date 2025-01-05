@@ -70,11 +70,9 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 	if len(req.Flags) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "no flags")
 	}
-
 	if len(req.Flags) > maxFlagsInRequest {
 		return nil, status.Errorf(codes.InvalidArgument, "too many flags (max %d)", maxFlagsInRequest)
 	}
-
 	if req.TeamToken == "" {
 		return nil, status.Error(codes.InvalidArgument, "team token is required")
 	}
@@ -82,6 +80,13 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 	gameState, err := s.gameStateClient.Get(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("fetching game state: %w", err)
+	}
+
+	if gameState.Paused {
+		return nil, status.Error(codes.Unavailable, "game is paused")
+	}
+	if gameState.Finished || gameState.EndTime != nil && time.Now().After(gameState.EndTime.AsTime()) {
+		return nil, status.Error(codes.FailedPrecondition, "game is finished")
 	}
 
 	serviceList, err := s.servicesClient.List(ctx)
@@ -95,10 +100,6 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 	attacker, err := s.teamsClient.GetByToken(ctx, req.TeamToken)
 	if err != nil {
 		return nil, fmt.Errorf("fetching attacker: %w", err)
-	}
-
-	if gameState.Paused {
-		return nil, status.Error(codes.Unavailable, "game is paused")
 	}
 
 	attacksRequestID := uuid.NewString()
@@ -158,7 +159,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 			}
 
 			// TODO: check flag lifetime (skipped for now for easier manual tests).
-			// if gameState.RunningRound-flag.Round >= gameState.FlagLifetimeRounds {
+			// if gameState.RunningRound-flag.Round > gameState.FlagLifetimeRounds {
 			// 	baseResponse.Verdict = receiverpb.FlagResponse_VERDICT_OLD
 			// 	baseResponse.Message = oldFlagMessage
 			// 	resp.Responses = append(resp.Responses, baseResponse)

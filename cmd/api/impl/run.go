@@ -100,7 +100,14 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 			LogRemoteIP:  true,
 			LogRoutePath: true,
 			LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
-				zap.L().Info("request",
+				logFunc := zap.L().Debug
+				if v.Status/100 == 5 {
+					logFunc = zap.L().Error
+				} else if v.Status/100 == 4 {
+					logFunc = zap.L().Warn
+				}
+
+				logFunc("request",
 					zap.String("method", v.Method),
 					zap.String("URI", v.URI),
 					zap.Int("status", v.Status),

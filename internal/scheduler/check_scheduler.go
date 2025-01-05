@@ -66,8 +66,7 @@ func NewCheckScheduler(
 		db:             db,
 		temporalClient: temporalClient,
 
-		logger: zap.L().With(
-			zap.String("component", "check_scheduler"),
+		logger: zap.L().Named("check_scheduler").With(
 			zap.Int64("team_id", team.Id),
 			zap.Int64("service_id", service.Id),
 			zap.String("action", action.String()),
@@ -103,6 +102,12 @@ func (s *CheckScheduler) Run(ctx context.Context) {
 			return
 		case <-t.C:
 			gs := s.gameState.Load()
+
+			if gs.GetFinished() {
+				s.logger.Info("game is finished, stopping scheduler")
+				return
+			}
+
 			if gs.GetPaused() {
 				s.logger.Debug("game is paused, skipping check")
 				if err := s.skipRun(ctx); err != nil {

@@ -23,15 +23,14 @@ import (
 const RoundSchedulerID = "round_scheduler"
 
 const (
-	RoundLateThreshold = 5 * time.Second
-	CheckRoundInterval = 1 * time.Second
+	RoundLateThreshold       = 5 * time.Second
+	CheckRoundInterval       = 1 * time.Second
+	RefreshGameStateInterval = 5 * time.Second
 )
 
 const RoundWorkflowID = "round_workflow"
 
 type RoundScheduler struct {
-	refreshInterval time.Duration
-
 	gameStateClient *gamestate.Client
 	temporalClient  client.Client
 
@@ -43,19 +42,18 @@ type RoundScheduler struct {
 }
 
 func NewRoundScheduler(
-	refreshInterval time.Duration,
 	temporalClient client.Client,
 	gameStateClient *gamestate.Client,
 	db *bun.DB,
+	logger *zap.Logger,
 ) *RoundScheduler {
 	return &RoundScheduler{
-		refreshInterval: refreshInterval,
 		temporalClient:  temporalClient,
 		gameStateClient: gameStateClient,
 
 		db: db,
 
-		logger: zap.L().With(zap.String("component", "scheduler")),
+		logger: logger.Named("round_scheduler"),
 	}
 }
 
@@ -64,7 +62,7 @@ func (s *RoundScheduler) Run(ctx context.Context) error {
 		return fmt.Errorf("fetching initial game state: %w", err)
 	}
 
-	refreshTicker := time.NewTicker(s.refreshInterval)
+	refreshTicker := time.NewTicker(RefreshGameStateInterval)
 	defer refreshTicker.Stop()
 
 	checkTicker := time.NewTicker(CheckRoundInterval)
@@ -79,6 +77,12 @@ func (s *RoundScheduler) Run(ctx context.Context) error {
 				s.logger.Info("game state is not initialized, skipping round update")
 				continue
 			}
+
+			if s.gameState.GetFinished() {
+				s.logger.Info("game is finished, skipping round update")
+				continue
+			}
+
 			if s.gameState.GetPaused() {
 				s.logger.Info("game is paused, skipping round update")
 				if err := s.updateStateOnPause(ctx); err != nil {
@@ -87,8 +91,28 @@ func (s *RoundScheduler) Run(ctx context.Context) error {
 				continue
 			}
 
+			if s.gameState.GetTotalRounds() > 0 && s.gameState.GetRunningRound() >= s.gameState.GetTotalRounds() {
+				s.logger.Info("finishing game, skipping round update")
+				if err := s.finishGame(ctx); err != nil {
+					s.logger.Error("finishing game", zap.Error(err))
+				}
+				continue
+			}
+
+			if s.gameState.GetEndTime() != nil && time.Now().After(s.gameState.GetEndTime().AsTime()) {
+				s.logger.Info("finishing game, skipping round update")
+				if err := s.finishGame(ctx); err != nil {
+					s.logger.Error("finishing game", zap.Error(err))
+				}
+				continue
+			}
+
 			if err := s.TryRunRound(ctx); err != nil {
 				s.logger.Error("running round scheduler", zap.Error(err))
+			}
+
+			if err := s.refreshGameState(ctx); err != nil {
+				s.logger.Error("refreshing game state", zap.Error(err))
 			}
 		case <-refreshTicker.C:
 			if err := s.refreshGameState(ctx); err != nil {
@@ -208,5 +232,12 @@ func (s *RoundScheduler) refreshGameState(ctx context.Context) error {
 		return fmt.Errorf("getting game state: %w", err)
 	}
 	s.gameState = gs
+	return nil
+}
+
+func (s *RoundScheduler) finishGame(ctx context.Context) error {
+	if _, err := s.gameStateClient.FinishGame(ctx); err != nil {
+		return fmt.Errorf("finishing game: %w", err)
+	}
 	return nil
 }

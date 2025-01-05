@@ -39,8 +39,7 @@ func NewClientProducer(address, channel, name, token string) (*ClientProducer, e
 		client:       client,
 		channel:      channel,
 		disconnected: make(chan struct{}),
-		logger: zap.L().With(
-			zap.String("component", "centrifuge-client"),
+		logger: zap.L().Named("centrifuge_client").With(
 			zap.String("channel", channel),
 		),
 	}
