@@ -9,6 +9,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
@@ -23,7 +24,7 @@ func NewGetActivity() *GetActivity {
 type GetActivityParameters struct {
 	GameState *gspb.GameState
 	Team      *teamspb.Team
-	Service   *models.Service
+	Service   *servicespb.Service
 	Flag      *models.Flag
 }
 
@@ -34,8 +35,8 @@ type GetActivityResult struct {
 func (*GetActivity) ActivityDefinition(ctx context.Context, params *GetActivityParameters) (*GetActivityResult, error) {
 	logger := log.With(
 		activity.GetLogger(ctx),
-		"team", params.Team.Name,
-		"service", params.Service.Name,
+		"team", params.Team.GetId(),
+		"service", params.Service.GetId(),
 		"action", checkerpb.Action_ACTION_GET,
 		"activity", GetActivityName,
 	)

@@ -45,19 +45,19 @@ func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*mode
 		var err error
 		if gs, newVersion, err = c.updateImpl(ctx, tx, func(query *bun.UpdateQuery) *bun.UpdateQuery {
 			var endTime *time.Time
-			if req.EndTime != nil {
-				endTime = lo.ToPtr(req.EndTime.AsTime())
+			if req.GetEndTime() != nil {
+				endTime = lo.ToPtr(req.GetEndTime().AsTime())
 			}
 
 			return query.
-				Set("start_time = ?", req.StartTime.AsTime()).
+				Set("start_time = ?", req.GetStartTime().AsTime()).
 				Set("end_time = ?", endTime).
-				Set("total_rounds = ?", req.TotalRounds).
-				Set("paused = ?", req.Paused).
-				Set("flag_lifetime_rounds = ?", req.FlagLifetimeRounds).
-				Set("round_duration = ?", req.RoundDuration.AsDuration()).
-				Set("hardness = ?", req.Hardness).
-				Set("inflation = ?", req.Inflation)
+				Set("total_rounds = ?", req.GetTotalRounds()).
+				Set("paused = ?", req.GetPaused()).
+				Set("flag_lifetime_rounds = ?", req.GetFlagLifetimeRounds()).
+				Set("round_duration = ?", req.GetRoundDuration().AsDuration()).
+				Set("hardness = ?", req.GetHardness()).
+				Set("inflation = ?", req.GetInflation())
 		}); err != nil {
 			return fmt.Errorf("updating game state: %w", err)
 		}
@@ -76,8 +76,8 @@ func (c *Controller) UpdateRound(ctx context.Context, req *gspb.UpdateRoundReque
 		var err error
 		if gs, newVersion, err = c.updateImpl(ctx, tx, func(query *bun.UpdateQuery) *bun.UpdateQuery {
 			return query.
-				Set("running_round = ?", req.RunningRound).
-				Set("running_round_start = ?", req.RunningRoundStart.AsTime())
+				Set("running_round = ?", req.GetRunningRound()).
+				Set("running_round_start = ?", req.GetRunningRoundStart().AsTime())
 		}); err != nil {
 			return fmt.Errorf("updating game state: %w", err)
 		}

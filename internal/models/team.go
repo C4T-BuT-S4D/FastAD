@@ -34,10 +34,10 @@ func (t *Team) ToProto() *teamspb.Team {
 
 func NewTeamFromProto(team *teamspb.Team) *Team {
 	return &Team{
-		ID:      int(team.Id),
-		Name:    team.Name,
-		Address: team.Address,
-		Token:   team.Token,
-		Labels:  team.Labels,
+		ID:      int(team.GetId()),
+		Name:    team.GetName(),
+		Address: team.GetAddress(),
+		Token:   team.GetToken(),
+		Labels:  team.GetLabels(),
 	}
 }

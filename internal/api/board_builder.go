@@ -137,10 +137,11 @@ func (b *BoardBuilder) buildScoreboard(
 	sbMap := make(map[teamServiceKey]*scoreboardpb.Scoreboard_TeamServiceState)
 	for _, team := range teams {
 		for _, service := range services {
-			sbMap[teamServiceKey{TeamID: team.Id, ServiceID: service.Id}] = &scoreboardpb.Scoreboard_TeamServiceState{
-				TeamId:    team.Id,
-				ServiceId: service.Id,
-				Points:    service.DefaultScore,
+			key := teamServiceKey{TeamID: team.GetId(), ServiceID: service.GetId()}
+			sbMap[key] = &scoreboardpb.Scoreboard_TeamServiceState{
+				TeamId:    team.GetId(),
+				ServiceId: service.GetId(),
+				Points:    service.GetDefaultScore(),
 			}
 		}
 	}

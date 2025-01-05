@@ -7,7 +7,6 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
 
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
@@ -54,7 +53,7 @@ func (c *Client) CreateBatch(ctx context.Context, teams []*teamspb.Team) ([]*tea
 		return nil, fmt.Errorf("refreshing: %w", err)
 	}
 
-	return resp.Teams, nil
+	return resp.GetTeams(), nil
 }
 
 func (c *Client) refresh(ctx context.Context) error {
@@ -66,11 +65,11 @@ func (c *Client) refresh(ctx context.Context) error {
 		return fmt.Errorf("getting teams: %w", err)
 	}
 
-	if proto.Equal(c.version, resp.Version) {
+	if c.version.EqualVT(resp.GetVersion()) {
 		return nil
 	}
 
-	c.cache.SetTeams(resp.Teams)
+	c.cache.SetTeams(resp.GetTeams())
 
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/workflow"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
+	"github.com/c4t-but-s4d/fastad/pkg/modelsutil"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
@@ -25,8 +25,8 @@ type CheckWorkflowParameters struct {
 func CheckWorkflowDefinition(ctx workflow.Context, params CheckWorkflowParameters) error {
 	logger := log.With(
 		workflow.GetLogger(ctx),
-		"team", params.Team.Name,
-		"service", params.Service.Name,
+		"team", params.Team.GetId(),
+		"service", params.Service.GetId(),
 		"action", checkerpb.Action_ACTION_CHECK,
 	)
 
@@ -43,9 +43,9 @@ func CheckWorkflowDefinition(ctx workflow.Context, params CheckWorkflowParameter
 		laoCtx,
 		GetLastExecutionActivityName,
 		&GetLastExecutionActivityParameters{
-			Action:  checkerpb.Action_ACTION_PUT,
-			Team:    params.Team,
-			Service: params.Service,
+			Action:    checkerpb.Action_ACTION_PUT,
+			TeamID:    int(params.Team.GetId()),
+			ServiceID: int(params.Service.GetId()),
 		},
 	).Get(ctx, &getExecutionResult); err != nil {
 		logger.Error("running get last execution activity", "error", err)
@@ -60,10 +60,9 @@ func CheckWorkflowDefinition(ctx workflow.Context, params CheckWorkflowParameter
 		}
 		logger.Debug("last put failed", "verdict", verdict)
 	} else {
-		service := models.NewServiceFromProto(params.Service)
-
+		checkerTimeout := modelsutil.ServiceCheckerTimeout(params.Service, checkerpb.Action_ACTION_CHECK)
 		checkActivityCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-			ScheduleToCloseTimeout: service.CheckerTimeout(checkerpb.Action_ACTION_CHECK) + checkerKillDelay*2,
+			ScheduleToCloseTimeout: checkerTimeout + checkerKillDelay*2,
 		})
 
 		var checkResult CheckActivityResult
@@ -73,7 +72,7 @@ func CheckWorkflowDefinition(ctx workflow.Context, params CheckWorkflowParameter
 			&CheckActivityParameters{
 				GameState: params.GameState,
 				Team:      params.Team,
-				Service:   service,
+				Service:   params.Service,
 			},
 		).Get(ctx, &checkResult); err != nil {
 			logger.Error("running activity", "error", err)
@@ -93,9 +92,9 @@ func CheckWorkflowDefinition(ctx workflow.Context, params CheckWorkflowParameter
 		laoCtx,
 		SaveVerdictActivityName,
 		&SaveVerdictActivityParameters{
-			Team:    params.Team,
-			Service: params.Service,
-			Verdict: verdict,
+			TeamID:    int(params.Team.GetId()),
+			ServiceID: int(params.Service.GetId()),
+			Verdict:   verdict,
 		},
 	).Get(ctx, nil); err != nil {
 		logger.Error("running save verdict activity", "error", err)

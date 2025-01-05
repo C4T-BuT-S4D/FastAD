@@ -61,7 +61,7 @@ func (s *Service) CreateBatch(ctx context.Context, req *servicespb.CreateBatchRe
 		return nil, status.Errorf(codes.InvalidArgument, "validating request: %v", err)
 	}
 
-	services := lo.Map(req.Services, func(service *servicespb.Service, _ int) *models.Service {
+	services := lo.Map(req.GetServices(), func(service *servicespb.Service, _ int) *models.Service {
 		serviceModel := models.NewServiceFromProto(service)
 		serviceModel.ID = 0
 		return serviceModel

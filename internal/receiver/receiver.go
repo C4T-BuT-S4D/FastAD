@@ -67,13 +67,13 @@ func New(
 func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRequest) (*receiverpb.SubmitFlagsResponse, error) {
 	zap.L().Debug("Receiver/SubmitFlags", zap.Any("request", req))
 
-	if len(req.Flags) == 0 {
+	if len(req.GetFlags()) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "no flags")
 	}
-	if len(req.Flags) > maxFlagsInRequest {
+	if len(req.GetFlags()) > maxFlagsInRequest {
 		return nil, status.Errorf(codes.InvalidArgument, "too many flags (max %d)", maxFlagsInRequest)
 	}
-	if req.TeamToken == "" {
+	if req.GetTeamToken() == "" {
 		return nil, status.Error(codes.InvalidArgument, "team token is required")
 	}
 
@@ -82,10 +82,10 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 		return nil, fmt.Errorf("fetching game state: %w", err)
 	}
 
-	if gameState.Paused {
+	if gameState.GetPaused() {
 		return nil, status.Error(codes.Unavailable, "game is paused")
 	}
-	if gameState.Finished || gameState.EndTime != nil && time.Now().After(gameState.EndTime.AsTime()) {
+	if gameState.GetFinished() || gameState.GetEndTime() != nil && time.Now().After(gameState.GetEndTime().AsTime()) {
 		return nil, status.Error(codes.FailedPrecondition, "game is finished")
 	}
 
@@ -94,10 +94,10 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 		return nil, fmt.Errorf("fetching services: %w", err)
 	}
 	serviceByID := lo.KeyBy(serviceList, func(srv *servicespb.Service) int {
-		return int(srv.Id)
+		return int(srv.GetId())
 	})
 
-	attacker, err := s.teamsClient.GetByToken(ctx, req.TeamToken)
+	attacker, err := s.teamsClient.GetByToken(ctx, req.GetTeamToken())
 	if err != nil {
 		return nil, fmt.Errorf("fetching attacker: %w", err)
 	}
@@ -106,7 +106,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 
 	var addedAttacks []*models.Attack
 
-	uniqueFlags := lo.Uniq(req.Flags)
+	uniqueFlags := lo.Uniq(req.GetFlags())
 	resp := &receiverpb.SubmitFlagsResponse{}
 	if err := s.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		var flagModels []*models.Flag
@@ -144,14 +144,14 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 				VictimId:  int64(flag.TeamID),
 			}
 
-			if service, ok := serviceByID[flag.ServiceID]; !ok || service.Disabled {
+			if service, ok := serviceByID[flag.ServiceID]; !ok || service.GetDisabled() {
 				baseResponse.Verdict = receiverpb.FlagResponse_VERDICT_INVALID
 				baseResponse.Message = serviceInvalidMessage
 				resp.Responses = append(resp.Responses, baseResponse)
 				continue
 			}
 
-			if flag.TeamID == int(attacker.Id) {
+			if flag.TeamID == int(attacker.GetId()) {
 				baseResponse.Verdict = receiverpb.FlagResponse_VERDICT_OWN
 				baseResponse.Message = ownFlagMessage
 				resp.Responses = append(resp.Responses, baseResponse)
@@ -175,7 +175,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 
 			attacksToAdd = append(attacksToAdd, &models.Attack{
 				ServiceID:  flag.ServiceID,
-				AttackerID: int(attacker.Id),
+				AttackerID: int(attacker.GetId()),
 				VictimID:   flag.TeamID,
 				FlagID:     flag.ID,
 				RequestID:  attacksRequestID,
@@ -297,7 +297,7 @@ func (s *Service) RestoreState(ctx context.Context) error {
 	}
 
 	servicesByID := lo.KeyBy(serviceList, func(service *servicespb.Service) int {
-		return int(service.Id)
+		return int(service.GetId())
 	})
 
 	start := time.Now()

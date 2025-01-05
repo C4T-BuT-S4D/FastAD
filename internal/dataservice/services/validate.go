@@ -9,28 +9,28 @@ import (
 )
 
 func (s *Service) validateCreateBatch(req *servicespb.CreateBatchRequest) error {
-	if len(req.Services) == 0 {
+	if len(req.GetServices()) == 0 {
 		return status.Errorf(codes.InvalidArgument, "services required")
 	}
-	for i, service := range req.Services {
-		if service.Name == "" {
+	for i, service := range req.GetServices() {
+		if service.GetName() == "" {
 			return status.Errorf(codes.InvalidArgument, "services.%d: name required", i)
 		}
-		if service.Checker == nil {
+		if service.GetChecker() == nil {
 			return status.Errorf(codes.InvalidArgument, "services.%d: checker required", i)
 		}
-		checker := service.Checker
-		if checker.Type == checkerpb.Type_TYPE_UNSPECIFIED {
+		checker := service.GetChecker()
+		if checker.GetType() == checkerpb.Type_TYPE_UNSPECIFIED {
 			return status.Errorf(codes.InvalidArgument, "services.%d.checker: type required", i)
 		}
-		if checker.Path == "" {
+		if checker.GetPath() == "" {
 			return status.Errorf(codes.InvalidArgument, "services.%d.checker: path required", i)
 		}
-		if checker.DefaultTimeout.AsDuration() == 0 {
+		if checker.GetDefaultTimeout().AsDuration() == 0 {
 			return status.Errorf(codes.InvalidArgument, "services.%d.checker: default_timeout required", i)
 		}
-		for j, action := range checker.Actions {
-			if action.Action == checkerpb.Action_ACTION_UNSPECIFIED {
+		for j, action := range checker.GetActions() {
+			if action.GetAction() == checkerpb.Action_ACTION_UNSPECIFIED {
 				return status.Errorf(codes.InvalidArgument, "services.%d.checker.actions.%d: action required", i, j)
 			}
 		}

@@ -7,7 +7,7 @@ import (
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/workflow"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
+	"github.com/c4t-but-s4d/fastad/pkg/modelsutil"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
@@ -25,8 +25,8 @@ type GetWorkflowParameters struct {
 func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) error {
 	logger := log.With(
 		workflow.GetLogger(ctx),
-		"team", params.Team.Name,
-		"service", params.Service.Name,
+		"team", params.Team.GetId(),
+		"service", params.Service.GetId(),
 		"action", checkerpb.Action_ACTION_GET,
 	)
 
@@ -44,9 +44,9 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 		laoCtx,
 		GetLastExecutionActivityName,
 		&GetLastExecutionActivityParameters{
-			Action:  checkerpb.Action_ACTION_PUT,
-			Team:    params.Team,
-			Service: params.Service,
+			Action:    checkerpb.Action_ACTION_PUT,
+			TeamID:    int(params.Team.GetId()),
+			ServiceID: int(params.Service.GetId()),
 		},
 	).Get(ctx, &getExecutionResult); err != nil {
 		logger.Error("running get last execution activity", "error", err)
@@ -67,9 +67,10 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 			laoCtx,
 			PickGetFlagActivityName,
 			&PickGetFlagActivityParameters{
-				GameState: params.GameState,
-				Team:      params.Team,
-				Service:   params.Service,
+				TeamID:             int(params.Team.GetId()),
+				ServiceID:          int(params.Service.GetId()),
+				RunningRound:       params.GameState.GetRunningRound(),
+				FlagLifetimeRounds: params.GameState.GetFlagLifetimeRounds(),
 			},
 		).Get(ctx, &pickFlagResult); err != nil {
 			logger.Error("running pick flag activity", "error", err)
@@ -87,10 +88,9 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 			}
 			logger.Debug("no flags available, failing")
 		} else {
-			service := models.NewServiceFromProto(params.Service)
-
+			checkerTimeout := modelsutil.ServiceCheckerTimeout(params.Service, checkerpb.Action_ACTION_GET)
 			getActivityCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-				ScheduleToCloseTimeout: service.CheckerTimeout(checkerpb.Action_ACTION_GET) + checkerKillDelay*2,
+				ScheduleToCloseTimeout: checkerTimeout + checkerKillDelay*2,
 			})
 
 			var getResult GetActivityResult
@@ -100,7 +100,7 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 				&GetActivityParameters{
 					GameState: params.GameState,
 					Team:      params.Team,
-					Service:   service,
+					Service:   params.Service,
 					Flag:      pickFlagResult.Flag,
 				},
 			).Get(ctx, &getResult); err != nil {
@@ -122,9 +122,9 @@ func GetWorkflowDefinition(ctx workflow.Context, params GetWorkflowParameters) e
 		laoCtx,
 		SaveVerdictActivityName,
 		&SaveVerdictActivityParameters{
-			Team:    params.Team,
-			Service: params.Service,
-			Verdict: verdict,
+			TeamID:    int(params.Team.GetId()),
+			ServiceID: int(params.Service.GetId()),
+			Verdict:   verdict,
 		},
 	).Get(ctx, nil); err != nil {
 		logger.Error("running save verdict activity", "error", err)

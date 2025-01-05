@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/c4t-but-s4d/fastad/pkg/modelsutil"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
 
@@ -29,10 +30,10 @@ func RunCheckAction(
 ) *Verdict {
 	return RunAction(
 		ctx,
-		params.Service.CheckerPath,
+		params.Service.GetChecker().GetPath(),
 		checkerpb.Action_ACTION_CHECK,
-		[]string{checkAction, params.Team.Address},
-		params.Service.CheckerTimeout(checkerpb.Action_ACTION_CHECK),
+		[]string{checkAction, params.Team.GetAddress()},
+		modelsutil.ServiceCheckerTimeout(params.Service, checkerpb.Action_ACTION_CHECK),
 	)
 }
 
@@ -42,16 +43,16 @@ func RunPutAction(
 ) *Verdict {
 	return RunAction(
 		ctx,
-		params.FlagInfo.Service.CheckerPath,
+		params.FlagInfo.Service.GetChecker().GetPath(),
 		checkerpb.Action_ACTION_PUT,
 		[]string{
 			putAction,
-			params.FlagInfo.Team.Address,
+			params.FlagInfo.Team.GetAddress(),
 			params.FlagInfo.Flag.Private,
 			params.FlagInfo.Flag.Flag,
 			"1", // TODO: vulns.
 		},
-		params.FlagInfo.Service.CheckerTimeout(checkerpb.Action_ACTION_PUT),
+		modelsutil.ServiceCheckerTimeout(params.FlagInfo.Service, checkerpb.Action_ACTION_PUT),
 	)
 }
 
@@ -61,16 +62,16 @@ func RunGetAction(
 ) *Verdict {
 	return RunAction(
 		ctx,
-		params.Service.CheckerPath,
+		params.Service.GetChecker().GetPath(),
 		checkerpb.Action_ACTION_GET,
 		[]string{
 			getAction,
-			params.Team.Address,
+			params.Team.GetAddress(),
 			params.Flag.Private,
 			params.Flag.Flag,
 			"1", // TODO: vulns.
 		},
-		params.Service.CheckerTimeout(checkerpb.Action_ACTION_GET),
+		modelsutil.ServiceCheckerTimeout(params.Service, checkerpb.Action_ACTION_GET),
 	)
 }
 

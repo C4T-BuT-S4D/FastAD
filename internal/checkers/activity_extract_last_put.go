@@ -6,8 +6,6 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
-	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
-	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
 const GetLastExecutionActivityName = "GetLastExecution"
@@ -21,9 +19,9 @@ func NewGetLastExecutionActivity(checkersController *Controller) *GetLastExecuti
 }
 
 type GetLastExecutionActivityParameters struct {
-	Action  checkerpb.Action
-	Team    *teamspb.Team
-	Service *servicespb.Service
+	Action    checkerpb.Action
+	TeamID    int
+	ServiceID int
 }
 
 type GetLastExecutionActivityResult struct {
@@ -36,8 +34,8 @@ func (a *GetLastExecutionActivity) ActivityDefinition(
 ) (*GetLastExecutionActivityResult, error) {
 	lastPutExecution, err := a.checkersController.GetLastExecution(
 		ctx,
-		int(params.Team.Id),
-		int(params.Service.Id),
+		params.TeamID,
+		params.ServiceID,
 		params.Action,
 	)
 	if err != nil {

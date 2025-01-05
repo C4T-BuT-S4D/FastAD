@@ -12,8 +12,11 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
+	"github.com/c4t-but-s4d/fastad/pkg/modelsutil"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
 const PrepareRoundActivityName = "PrepareRound"
@@ -35,13 +38,13 @@ func NewPrepareRoundActivity(
 
 type PrepareRoundActivityParameters struct {
 	GameState *gspb.GameState
-	Teams     []*models.Team
-	Services  []*models.Service
+	Teams     []*teamspb.Team
+	Services  []*servicespb.Service
 }
 
 type FQFlagInfo struct {
-	Team    *models.Team
-	Service *models.Service
+	Team    *teamspb.Team
+	Service *servicespb.Service
 	Flag    *models.Flag
 }
 
@@ -53,7 +56,7 @@ func (a *PrepareRoundActivity) ActivityDefinition(ctx context.Context, params *P
 	logger := log.With(
 		activity.GetLogger(ctx),
 		"activity", PrepareRoundActivityName,
-		"running_round", params.GameState.RunningRound,
+		"running_round", params.GameState.GetRunningRound(),
 	)
 
 	logger.Info("starting")
@@ -71,31 +74,31 @@ func (a *PrepareRoundActivity) prepareRoundPutState(
 	params *PrepareRoundActivityParameters,
 	logger log.Logger,
 ) ([]*FQFlagInfo, error) {
-	logger.Info(
-		"bumping round to next",
-		"round", params.GameState.RunningRound+1,
-	)
-
+	logger.Info("updating round", "round", params.GameState.GetRunningRound())
 	if _, err := a.gameStateClient.UpdateRound(ctx, &gspb.UpdateRoundRequest{
-		RunningRound:      params.GameState.RunningRound,
-		RunningRoundStart: params.GameState.RunningRoundStart,
+		RunningRound:      params.GameState.GetRunningRound(),
+		RunningRoundStart: params.GameState.GetRunningRoundStart(),
 	}); err != nil {
 		return nil, fmt.Errorf("updating round: %w", err)
 	}
 
-	logger.Info("preparing flags for teams and services", "teams", len(params.Teams), "services", len(params.Services))
+	logger.Info(
+		"preparing flags for teams and services",
+		"teams", len(params.Teams),
+		"services", len(params.Services),
+	)
 
 	flags := make([]*FQFlagInfo, 0, len(params.Teams)*len(params.Services))
 	flagModels := make([]*models.Flag, 0, len(params.Teams)*len(params.Services))
 	for _, team := range params.Teams {
 		for _, service := range params.Services {
-			for range service.GetRunCount(checkerpb.Action_ACTION_PUT) {
+			for range modelsutil.ServiceCheckerRunCount(service, checkerpb.Action_ACTION_PUT) {
 				flag := &models.Flag{
 					Flag:      generateFlag(service),
-					TeamID:    team.ID,
-					ServiceID: service.ID,
-					CreatedAt: params.GameState.RunningRoundStart.AsTime(),
-					Round:     params.GameState.RunningRound,
+					TeamID:    int(team.GetId()),
+					ServiceID: int(service.GetId()),
+					Round:     params.GameState.GetRunningRound(),
+					CreatedAt: params.GameState.GetRunningRoundStart().AsTime(),
 				}
 				flags = append(flags, &FQFlagInfo{
 					Team:    team,
@@ -123,7 +126,7 @@ func (a *PrepareRoundActivity) prepareRoundPutState(
 	return flags, nil
 }
 
-func generateFlag(service *models.Service) string {
+func generateFlag(service *servicespb.Service) string {
 	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	const length = 30
 	var result [length]byte
@@ -136,5 +139,5 @@ func generateFlag(service *models.Service) string {
 		result[i] = charset[randomIndex.Int64()]
 	}
 
-	return strings.ToUpper(service.Name[:1]) + string(result[:]) + "="
+	return strings.ToUpper(service.GetName()[:1]) + string(result[:]) + "="
 }

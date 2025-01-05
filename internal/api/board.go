@@ -40,17 +40,17 @@ func (s *Service) HandleGetCTFTimeScoreboard() echo.HandlerFunc {
 
 		teamStates := make(map[int64]*ctftimeTeamState)
 		for _, team := range bs.Teams {
-			teamStates[team.Id] = &ctftimeTeamState{
-				Team:  team.Name,
+			teamStates[team.GetId()] = &ctftimeTeamState{
+				Team:  team.GetName(),
 				Score: 0,
 			}
 		}
-		for _, tss := range bs.Scoreboard.TeamServiceStates {
+		for _, tss := range bs.Scoreboard.GetTeamServiceStates() {
 			sla := 0.0
-			if tss.ChecksTotal > 0 {
-				sla = float64(tss.ChecksPassed) / float64(tss.ChecksTotal)
+			if total := tss.GetChecksTotal(); total > 0 {
+				sla = float64(tss.GetChecksPassed()) / float64(total)
 			}
-			teamStates[tss.TeamId].Score += tss.Points * sla
+			teamStates[tss.GetTeamId()].Score += tss.GetPoints() * sla
 		}
 
 		teamStatesList := lo.Filter(lo.Values(teamStates), func(item *ctftimeTeamState, _ int) bool {

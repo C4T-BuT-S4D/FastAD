@@ -45,8 +45,8 @@ type ServiceState struct {
 
 func newServiceState(service *servicespb.Service) *ServiceState {
 	return &ServiceState{
-		ServiceID:    int(service.Id),
-		DefaultScore: service.DefaultScore,
+		ServiceID:    int(service.GetId()),
+		DefaultScore: service.GetDefaultScore(),
 		TeamStates:   make(map[int]*TeamServiceState),
 	}
 }
@@ -68,13 +68,14 @@ func (s *ServiceState) Apply(gs *gspb.GameState, attack *models.Attack) error {
 	attackerScore := attackerState.Points
 	victimScore := victimState.Points
 
-	scale := 50 * math.Sqrt(gs.Hardness)
-	norm := math.Log(math.Log(gs.Hardness)) / 12
+	hardness := gs.GetHardness()
+	scale := 50 * math.Sqrt(hardness)
+	norm := math.Log(math.Log(hardness)) / 12
 	ratingDelta := math.Sqrt(attackerScore) - math.Sqrt(victimScore)
 	ratingDeltaNorm := ratingDelta * norm
 	attackerDelta := scale / (1 + math.Exp(ratingDeltaNorm))
 	victimDelta := -min(victimScore, attackerDelta)
-	if !gs.Inflation {
+	if !gs.GetInflation() {
 		attackerDelta = min(attackerDelta, -victimDelta)
 	}
 	attack.AttackerDelta = attackerDelta
@@ -165,10 +166,10 @@ func (s *State) ToProto() *receiverpb.State {
 }
 
 func (s *State) getOrCreate(service *servicespb.Service) *ServiceState {
-	ss, ok := s.ServiceStates[service.Id]
+	ss, ok := s.ServiceStates[service.GetId()]
 	if !ok {
 		ss = newServiceState(service)
-		s.ServiceStates[service.Id] = ss
+		s.ServiceStates[service.GetId()] = ss
 	}
 	return ss
 }

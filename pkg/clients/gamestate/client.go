@@ -7,7 +7,6 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/proto"
 
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
@@ -44,7 +43,7 @@ func (c *Client) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.Gam
 	if err != nil {
 		return nil, fmt.Errorf("updating state: %w", err)
 	}
-	return resp.GameState, nil
+	return resp.GetGameState(), nil
 }
 
 func (c *Client) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*gspb.GameState, error) {
@@ -52,7 +51,7 @@ func (c *Client) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) 
 	if err != nil {
 		return nil, fmt.Errorf("updating round: %w", err)
 	}
-	return resp.GameState, nil
+	return resp.GetGameState(), nil
 }
 
 func (c *Client) FinishGame(ctx context.Context) (*gspb.GameState, error) {
@@ -60,7 +59,7 @@ func (c *Client) FinishGame(ctx context.Context) (*gspb.GameState, error) {
 	if err != nil {
 		return nil, fmt.Errorf("finishing game: %w", err)
 	}
-	return resp.GameState, nil
+	return resp.GetGameState(), nil
 }
 
 func (c *Client) RawClient() gspb.GameStateServiceClient {
@@ -76,12 +75,12 @@ func (c *Client) refresh(ctx context.Context) error {
 		return fmt.Errorf("getting state: %w", err)
 	}
 
-	if proto.Equal(c.version, resp.Version) {
+	if c.version.EqualVT(resp.GetVersion()) {
 		return nil
 	}
 
-	c.version = resp.Version
-	c.cache.SetState(resp.GameState)
+	c.version = resp.GetVersion()
+	c.cache.SetState(resp.GetGameState())
 
 	return nil
 }

@@ -29,8 +29,8 @@ type PutActivityResult struct {
 func (a *PutActivity) ActivityDefinition(ctx context.Context, params *PutActivityParameters) (*PutActivityResult, error) {
 	logger := log.With(
 		activity.GetLogger(ctx),
-		"team", params.FlagInfo.Team.Name,
-		"service", params.FlagInfo.Service.Name,
+		"team", params.FlagInfo.Team.GetId(),
+		"service", params.FlagInfo.Service.GetId(),
 		"action", checkerpb.Action_ACTION_PUT,
 	)
 

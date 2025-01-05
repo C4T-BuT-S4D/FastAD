@@ -63,7 +63,7 @@ func (s *Service) CreateBatch(ctx context.Context, req *teamspb.CreateBatchReque
 		return nil, fmt.Errorf("validating request: %w", err)
 	}
 
-	teams := lo.Map(req.Teams, func(team *teamspb.Team, _ int) *models.Team {
+	teams := lo.Map(req.GetTeams(), func(team *teamspb.Team, _ int) *models.Team {
 		teamModel := models.NewTeamFromProto(team)
 		teamModel.ID = 0
 		teamModel.Token = uuid.NewString()

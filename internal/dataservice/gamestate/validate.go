@@ -8,29 +8,29 @@ import (
 )
 
 func (s *Service) validateUpdateRequest(req *gspb.UpdateRequest) error {
-	if req.StartTime == nil {
+	if req.GetStartTime() == nil {
 		return status.Error(codes.InvalidArgument, "start_time required")
 	}
-	if end := req.EndTime; end != nil && end.AsTime().Before(req.StartTime.AsTime()) {
+	if end := req.GetEndTime(); end != nil && end.AsTime().Before(req.GetStartTime().AsTime()) {
 		return status.Error(codes.InvalidArgument, "end_time is before start time")
 	}
-	if req.RoundDuration.AsDuration() == 0 {
+	if req.GetRoundDuration().AsDuration() == 0 {
 		return status.Error(codes.InvalidArgument, "round_duration required")
 	}
-	if req.FlagLifetimeRounds == 0 {
+	if req.GetFlagLifetimeRounds() == 0 {
 		return status.Error(codes.InvalidArgument, "flag_lifetime_rounds required")
 	}
-	if req.Mode == gspb.GameMode_GAME_MODE_UNSPECIFIED {
-		return status.Error(codes.InvalidArgument, "mode required")
+	if req.GetMode() == gspb.GameMode_GAME_MODE_UNSPECIFIED {
+		req.Mode = gspb.GameMode_GAME_MODE_CLASSIC
 	}
 	return nil
 }
 
 func (s *Service) validateUpdateRoundRequest(req *gspb.UpdateRoundRequest) error {
-	if req.RunningRound == 0 {
+	if req.GetRunningRound() == 0 {
 		return status.Error(codes.InvalidArgument, "running_round required")
 	}
-	if req.RunningRoundStart == nil {
+	if req.GetRunningRoundStart() == nil {
 		return status.Error(codes.InvalidArgument, "running_round_start required")
 	}
 	return nil

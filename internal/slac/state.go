@@ -45,12 +45,12 @@ func (s *State) Apply(execution *models.CheckerExecution) {
 	if execution.Status == checkerpb.Status_STATUS_UP {
 		tss.ChecksPassed++
 	}
-	tss.CheckStatuses = append(tss.CheckStatuses, &slacpb.TeamServiceState_CheckStatus{
+	tss.CheckStatuses = append(tss.GetCheckStatuses(), &slacpb.TeamServiceState_CheckStatus{
 		Status:  execution.Status,
 		Message: execution.Public,
 	})
-	if len(tss.CheckStatuses) > keepLastChecks {
-		tss.CheckStatuses = tss.CheckStatuses[len(tss.CheckStatuses)-keepLastChecks:]
+	if len(tss.GetCheckStatuses()) > keepLastChecks {
+		tss.CheckStatuses = tss.GetCheckStatuses()[len(tss.GetCheckStatuses())-keepLastChecks:]
 	}
 }
 

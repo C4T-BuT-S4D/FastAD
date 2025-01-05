@@ -28,11 +28,11 @@ func NewController(db *bun.DB, versionController *version.Controller) *Controlle
 }
 
 func (c *Controller) List(ctx context.Context) ([]*models.Service, error) {
-	var teams []*models.Service
-	if err := c.db.NewSelect().Model(&teams).Scan(ctx); err != nil {
-		return nil, fmt.Errorf("getting teams: %w", err)
+	var services []*models.Service
+	if err := c.db.NewSelect().Model(&services).Scan(ctx); err != nil {
+		return nil, fmt.Errorf("getting services: %w", err)
 	}
-	return teams, nil
+	return services, nil
 }
 
 func (c *Controller) CreateBatch(ctx context.Context, services []*models.Service) error {

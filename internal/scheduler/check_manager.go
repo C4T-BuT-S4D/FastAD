@@ -107,8 +107,8 @@ func (m *CheckManager) syncSchedulers(ctx context.Context) error {
 		for _, service := range m.services {
 			for _, action := range []checkerpb.Action{checkerpb.Action_ACTION_CHECK, checkerpb.Action_ACTION_GET} {
 				key := teamServiceKey{
-					teamID:    team.Id,
-					serviceID: service.Id,
+					teamID:    team.GetId(),
+					serviceID: service.GetId(),
 					action:    action,
 				}
 				needKeys[key] = struct{}{}

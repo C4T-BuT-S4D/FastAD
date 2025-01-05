@@ -3,7 +3,6 @@ package models
 import (
 	"time"
 
-	"github.com/samber/lo"
 	"github.com/uptrace/bun"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -53,29 +52,6 @@ func (gs *GameState) ToProto() *gspb.GameState {
 	}
 	if gs.EndTime != nil {
 		res.EndTime = timestamppb.New(*gs.EndTime)
-	}
-	return res
-}
-
-func NewGameStateFromProto(p *gspb.GameState) *GameState {
-	res := &GameState{
-		StartTime:   p.StartTime.AsTime(),
-		TotalRounds: p.TotalRounds,
-
-		Paused:   p.Paused,
-		Finished: p.Finished,
-
-		FlagLifetimeRounds: p.FlagLifetimeRounds,
-		RoundDuration:      p.RoundDuration.AsDuration(),
-
-		RunningRound:      p.RunningRound,
-		RunningRoundStart: p.RunningRoundStart.AsTime(),
-
-		Hardness:  p.Hardness,
-		Inflation: p.Inflation,
-	}
-	if p.EndTime != nil {
-		res.EndTime = lo.ToPtr(p.EndTime.AsTime())
 	}
 	return res
 }

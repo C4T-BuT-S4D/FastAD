@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"google.golang.org/protobuf/proto"
-
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
 )
@@ -41,7 +39,7 @@ func (c *Client) CreateBatch(ctx context.Context, services []*servicespb.Service
 		return nil, fmt.Errorf("refreshing: %w", err)
 	}
 
-	return resp.Services, nil
+	return resp.GetServices(), nil
 }
 
 func (c *Client) refresh(ctx context.Context) error {
@@ -53,13 +51,13 @@ func (c *Client) refresh(ctx context.Context) error {
 		return fmt.Errorf("getting services: %w", err)
 	}
 
-	if proto.Equal(c.version, resp.Version) {
+	if c.version.EqualVT(resp.GetVersion()) {
 		return nil
 	}
 
-	c.version = resp.Version
+	c.version = resp.GetVersion()
 
-	c.cache.SetServices(resp.Services)
+	c.cache.SetServices(resp.GetServices())
 
 	return nil
 }

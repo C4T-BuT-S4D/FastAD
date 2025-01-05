@@ -8,14 +8,14 @@ import (
 )
 
 func (s *Service) validateCreateBatchRequest(req *teamspb.CreateBatchRequest) error {
-	if len(req.Teams) == 0 {
+	if len(req.GetTeams()) == 0 {
 		return status.Error(codes.InvalidArgument, "teams required")
 	}
-	for i, team := range req.Teams {
-		if team.Name == "" {
+	for i, team := range req.GetTeams() {
+		if team.GetName() == "" {
 			return status.Errorf(codes.InvalidArgument, "teams.%d: name required", i)
 		}
-		if team.Address == "" {
+		if team.GetAddress() == "" {
 			return status.Errorf(codes.InvalidArgument, "teams.%d: address required", i)
 		}
 	}

@@ -7,6 +7,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/c4t-but-s4d/fastad/pkg/modelsutil"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
 
@@ -40,7 +41,7 @@ func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) er
 		"services",
 		len(fetchDataResult.Services),
 		"round",
-		fetchDataResult.GameState.RunningRound,
+		fetchDataResult.GameState.GetRunningRound(),
 	)
 
 	fetchDataResult.GameState.RunningRound++
@@ -69,8 +70,9 @@ func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) er
 		workflow.Go(ctx, func(ctx workflow.Context) {
 			defer wg.Done()
 
+			checkerTimeout := modelsutil.ServiceCheckerTimeout(flagInfo.Service, checkerpb.Action_ACTION_PUT)
 			putActivityCtx := workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-				ScheduleToCloseTimeout: flagInfo.Service.CheckerTimeout(checkerpb.Action_ACTION_PUT) + checkerKillDelay*2,
+				ScheduleToCloseTimeout: checkerTimeout + checkerKillDelay*2,
 			})
 
 			var putResult *PutActivityResult
@@ -112,8 +114,8 @@ func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) er
 		laoCtx,
 		SaveRoundDataActivityName,
 		&SaveRoundDataActivityParameters{
-			RunningRound:       fetchDataResult.GameState.RunningRound,
-			FlagLifetimeRounds: fetchDataResult.GameState.FlagLifetimeRounds,
+			RunningRound:       fetchDataResult.GameState.GetRunningRound(),
+			FlagLifetimeRounds: fetchDataResult.GameState.GetFlagLifetimeRounds(),
 			PutResults:         putResults,
 		},
 	).Get(ctx, nil); err != nil {
@@ -121,7 +123,7 @@ func RoundWorkflowDefinition(ctx workflow.Context, _ RoundWorkflowParameters) er
 		return fmt.Errorf("save round data: %w", err)
 	}
 
-	logger.Info("finished round", "round", fetchDataResult.GameState.RunningRound)
+	logger.Info("finished round", "round", fetchDataResult.GameState.GetRoundDuration())
 
 	return nil
 }

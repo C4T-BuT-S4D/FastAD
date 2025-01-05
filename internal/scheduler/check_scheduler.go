@@ -10,7 +10,6 @@ import (
 	"math/rand/v2"
 	"time"
 
-	"github.com/samber/lo"
 	"github.com/uptrace/bun"
 	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
@@ -19,6 +18,7 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
 	"github.com/c4t-but-s4d/fastad/internal/models"
+	"github.com/c4t-but-s4d/fastad/pkg/modelsutil"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
@@ -41,6 +41,7 @@ type CheckScheduler struct {
 	db             *bun.DB
 	temporalClient client.Client
 	rnd            *rand.Rand
+	checkerTimeout time.Duration
 
 	logger *zap.Logger
 }
@@ -60,15 +61,16 @@ func NewCheckScheduler(
 
 		gameState: gameState,
 
-		schedulerID: fmt.Sprintf("check_scheduler_%s_%d_%d", action, team.Id, service.Id),
-		workflowID:  fmt.Sprintf("check_workflow_%s_%d_%d", action, team.Id, service.Id),
+		schedulerID: fmt.Sprintf("check_scheduler_%s_%d_%d", action, team.GetId(), service.GetId()),
+		workflowID:  fmt.Sprintf("check_workflow_%s_%d_%d", action, team.GetId(), service.GetId()),
 
 		db:             db,
 		temporalClient: temporalClient,
+		checkerTimeout: modelsutil.ServiceCheckerTimeout(service, action),
 
 		logger: zap.L().Named("check_scheduler").With(
-			zap.Int64("team_id", team.Id),
-			zap.Int64("service_id", service.Id),
+			zap.Int64("team_id", team.GetId()),
+			zap.Int64("service_id", service.GetId()),
 			zap.String("action", action.String()),
 		),
 	}
@@ -153,23 +155,21 @@ func (s *CheckScheduler) TryRunCheck(ctx context.Context, gs *gspb.GameState) er
 		return fmt.Errorf("getting scheduler state: %w", err)
 	}
 
-	checkerTimeout := s.checkerTimeout()
-
-	lowerInterval := checkerTimeout
-	upperInterval := 2 * checkerTimeout
+	lowerInterval := s.checkerTimeout
+	upperInterval := 2 * s.checkerTimeout
 
 	if now.Before(state.ExpectedNextRun) {
 		if state.ExpectedNextRun.Sub(now) > upperInterval {
 			s.logger.Debug(
 				"check is not ready yet, but expected start is too far away",
 				zap.Time("expected_next_run", state.ExpectedNextRun),
-				zap.Duration("checker_timeout", checkerTimeout),
+				zap.Duration("checker_timeout", s.checkerTimeout),
 			)
 		} else {
 			s.logger.Debug(
 				"check is not ready yet",
 				zap.Time("expected_next_run", state.ExpectedNextRun),
-				zap.Duration("checker_timeout", checkerTimeout),
+				zap.Duration("checker_timeout", s.checkerTimeout),
 			)
 			return nil
 		}
@@ -236,27 +236,6 @@ func (s *CheckScheduler) randomDelay(minDelay, maxDelay time.Duration) time.Dura
 	minN := minDelay.Nanoseconds()
 	maxN := maxDelay.Nanoseconds()
 	return time.Duration(s.rnd.Int64N(maxN-minN) + minN)
-}
-
-func (s *CheckScheduler) checkerTimeout() time.Duration {
-	checkerTimeout := s.Service.Checker.DefaultTimeout.AsDuration()
-	if s.Action == checkerpb.Action_ACTION_CHECK {
-		checkAction, ok := lo.Find(s.Service.Checker.Actions, func(action *servicespb.Service_Checker_Action) bool {
-			return action.Action == s.Action
-		})
-		if ok && checkAction.Timeout.AsDuration() != 0 {
-			checkerTimeout = checkAction.Timeout.AsDuration()
-		}
-	}
-	if s.Action == checkerpb.Action_ACTION_GET {
-		getAction, ok := lo.Find(s.Service.Checker.Actions, func(action *servicespb.Service_Checker_Action) bool {
-			return action.Action == s.Action
-		})
-		if ok && getAction.Timeout.AsDuration() != 0 {
-			checkerTimeout = getAction.Timeout.AsDuration()
-		}
-	}
-	return checkerTimeout
 }
 
 func (s *CheckScheduler) workflowParams(gs *gspb.GameState) any {

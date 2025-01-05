@@ -6,9 +6,9 @@ import (
 	"go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/log"
 
-	"github.com/c4t-but-s4d/fastad/internal/models"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
@@ -23,7 +23,7 @@ func NewCheckActivity() *CheckActivity {
 type CheckActivityParameters struct {
 	GameState *gspb.GameState
 	Team      *teamspb.Team
-	Service   *models.Service
+	Service   *servicespb.Service
 }
 
 type CheckActivityResult struct {
@@ -36,8 +36,8 @@ func (*CheckActivity) ActivityDefinition(
 ) (*CheckActivityResult, error) {
 	logger := log.With(
 		activity.GetLogger(ctx),
-		"team", params.Team.Name,
-		"service", params.Service.Name,
+		"team", params.Team.GetId(),
+		"service", params.Service.GetId(),
 		"action", checkerpb.Action_ACTION_CHECK,
 		"activity", CheckActivityName,
 	)

@@ -12,8 +12,6 @@ import (
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 )
 
-const defaultRunCount = 1
-
 type ServiceActionConfig struct {
 	Timeout  time.Duration `json:"timeout"`
 	RunCount int           `json:"run_count"`
@@ -43,20 +41,6 @@ func (s *Service) String() string {
 	return fmt.Sprintf("Service(name=%s)", s.Name)
 }
 
-func (s *Service) CheckerTimeout(action checkerpb.Action) time.Duration {
-	if cfg, ok := s.Actions[action]; ok {
-		return cfg.Timeout
-	}
-	return s.DefaultTimeout
-}
-
-func (s *Service) GetRunCount(action checkerpb.Action) int {
-	if cfg, ok := s.Actions[action]; ok {
-		return cfg.RunCount
-	}
-	return defaultRunCount
-}
-
 func (s *Service) ToProto() *servicespb.Service {
 	return &servicespb.Service{
 		Id:   int64(s.ID),
@@ -81,23 +65,23 @@ func (s *Service) ToProto() *servicespb.Service {
 
 func NewServiceFromProto(p *servicespb.Service) *Service {
 	return &Service{
-		ID:   int(p.Id),
-		Name: p.Name,
+		ID:   int(p.GetId()),
+		Name: p.GetName(),
 
-		CheckerType:    p.Checker.Type,
-		CheckerPath:    p.Checker.Path,
-		DefaultTimeout: p.Checker.DefaultTimeout.AsDuration(),
+		CheckerType:    p.GetChecker().GetType(),
+		CheckerPath:    p.GetChecker().GetPath(),
+		DefaultTimeout: p.GetChecker().GetDefaultTimeout().AsDuration(),
 		Actions: lo.SliceToMap(
-			p.Checker.Actions,
+			p.GetChecker().GetActions(),
 			func(t *servicespb.Service_Checker_Action) (checkerpb.Action, *ServiceActionConfig) {
-				return t.Action, &ServiceActionConfig{
-					Timeout:  t.Timeout.AsDuration(),
-					RunCount: int(t.RunCount),
+				return t.GetAction(), &ServiceActionConfig{
+					Timeout:  t.GetTimeout().AsDuration(),
+					RunCount: int(t.GetRunCount()),
 				}
 			},
 		),
 
-		DefaultScore: p.DefaultScore,
-		Disabled:     p.Disabled,
+		DefaultScore: p.GetDefaultScore(),
+		Disabled:     p.GetDisabled(),
 	}
 }

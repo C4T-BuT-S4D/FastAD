@@ -8,9 +8,6 @@ import (
 	"go.temporal.io/sdk/log"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
-	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
-	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
-	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
 const PickGetFlagActivityName = "PickGetFlag"
@@ -24,9 +21,10 @@ func NewPickGetFlagActivity(checkersController *Controller) *PickGetFlagActivity
 }
 
 type PickGetFlagActivityParameters struct {
-	GameState *gspb.GameState
-	Team      *teamspb.Team
-	Service   *servicespb.Service
+	TeamID             int
+	ServiceID          int
+	RunningRound       uint64
+	FlagLifetimeRounds uint64
 }
 
 type PickGetFlagActivityResult struct {
@@ -39,8 +37,8 @@ func (a *PickGetFlagActivity) ActivityDefinition(
 ) (*PickGetFlagActivityResult, error) {
 	logger := log.With(
 		activity.GetLogger(ctx),
-		"team", params.Team.Name,
-		"service", params.Service.Name,
+		"team", params.TeamID,
+		"service", params.ServiceID,
 		"activity", PickGetFlagActivityName,
 	)
 
@@ -48,10 +46,10 @@ func (a *PickGetFlagActivity) ActivityDefinition(
 
 	flag, err := a.checkersController.PickFlag(
 		ctx,
-		int(params.Team.Id),
-		int(params.Service.Id),
-		params.GameState.RunningRound,
-		params.GameState.FlagLifetimeRounds,
+		params.TeamID,
+		params.ServiceID,
+		params.RunningRound,
+		params.FlagLifetimeRounds,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("picking flag: %w", err)

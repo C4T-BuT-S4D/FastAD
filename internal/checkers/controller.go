@@ -36,8 +36,8 @@ func (c *Controller) SavePutExecutions(ctx context.Context, putResults []*PutAct
 	for _, putResult := range putResults {
 		execution := &models.CheckerExecution{
 			ExecutionID: fmt.Sprintf("put-flag-%d", putResult.FlagInfo.Flag.ID),
-			TeamID:      putResult.FlagInfo.Team.ID,
-			ServiceID:   putResult.FlagInfo.Service.ID,
+			TeamID:      int(putResult.FlagInfo.Team.GetId()),
+			ServiceID:   int(putResult.FlagInfo.Service.GetId()),
 			Action:      checkerpb.Action_ACTION_PUT,
 			Status:      putResult.Verdict.Status,
 			Public:      putResult.Verdict.Public,

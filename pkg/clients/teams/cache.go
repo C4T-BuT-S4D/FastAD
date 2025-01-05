@@ -26,7 +26,7 @@ func (c *Cache) SetTeams(teams []*teamspb.Team) {
 
 	c.teams = teams
 	c.teamsByToken = lo.KeyBy(teams, func(team *teamspb.Team) string {
-		return team.Token
+		return team.GetToken()
 	})
 }
 
