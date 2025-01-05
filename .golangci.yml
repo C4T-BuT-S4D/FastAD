@@ -55,8 +55,7 @@ linters:
     - perfsprint
     - prealloc
     - predeclared
-    # todo: fix
-    #    - protogetter
+    - protogetter
     - reassign
     - revive
     - rowserrcheck
