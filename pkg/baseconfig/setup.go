@@ -19,7 +19,12 @@ func NewViper(envPrefix string) (*viper.Viper, error) {
 	}
 	v.SetEnvPrefix(envPrefix)
 	v.AutomaticEnv()
-	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	v.SetEnvKeyReplacer(
+		strings.NewReplacer(
+			"-", "_",
+			".", "_",
+		),
+	)
 
 	return v, nil
 }

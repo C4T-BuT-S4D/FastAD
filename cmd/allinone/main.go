@@ -129,6 +129,16 @@ func setupConfig(cfg *Config) {
 	cfg.Slac.IntercomToken = cfg.IntercomToken
 	cfg.Receiver.IntercomToken = cfg.IntercomToken
 
+	cfg.DataService.Postgres = cfg.Postgres
+	cfg.Scheduler.Postgres = cfg.Postgres
+	cfg.Slac.Postgres = cfg.Postgres
+	cfg.API.Postgres = cfg.Postgres
+	cfg.Checkers.Postgres = cfg.Postgres
+	cfg.Receiver.Postgres = cfg.Postgres
+
+	cfg.Scheduler.Temporal = cfg.Temporal
+	cfg.Checkers.Temporal = cfg.Temporal
+
 	cfg.DataService.Installation = fmt.Sprintf("%s/dataservice", cfg.UserAgent)
 	cfg.Scheduler.Installation = fmt.Sprintf("%s/scheduler", cfg.UserAgent)
 	cfg.Slac.Installation = fmt.Sprintf("%s/slac", cfg.UserAgent)

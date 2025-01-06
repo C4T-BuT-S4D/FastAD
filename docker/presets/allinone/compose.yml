@@ -1,0 +1,96 @@
+services:
+  app:
+    build:
+      context: ../../../
+      dockerfile: ./docker/presets/allinone/app.Dockerfile
+    restart: unless-stopped
+    environment:
+      FASTAD_ALLINONE_POSTGRES_DSN: "postgres://fastad:fastad@postgres:5432/fastad?sslmode=disable"
+      FASTAD_MIGRATOR_POSTGRES_DSN: "postgres://fastad:fastad@postgres:5432/fastad?sslmode=disable"
+      FASTAD_ALLINONE_TEMPORAL_ADDRESS: "temporal:7233"
+      FASTAD_ALLINONE_API_LISTEN_ADDRESS: ":8080"
+      FASTAD_LOG_LEVEL: ${FASTAD_LOG_LEVEL:-info}
+    depends_on:
+      temporal:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  caddy:
+    build:
+      context: ../../../
+      dockerfile: ./docker/presets/allinone/caddy.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${FASTAD_PORT:-8080}:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+  temporal:
+    image: temporalio/auto-setup:1.26.2
+    restart: unless-stopped
+    environment:
+      - DB=postgres12
+      - DB_PORT=5432
+      - POSTGRES_USER=fastad
+      - POSTGRES_PWD=fastad
+      - POSTGRES_SEEDS=temporal-postgres
+    depends_on:
+      temporal-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ 'CMD-SHELL', 'tctl --address temporal:7233 workflow list' ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 1m
+
+  temporal-ui:
+    image: temporalio/ui:2.33.0
+    restart: unless-stopped
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_UI_PORT=8080
+    depends_on:
+      temporal:
+        condition: service_started
+
+  postgres:
+    image: postgres:17.2-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fastad
+      POSTGRES_PASSWORD: fastad
+      POSTGRES_DB: fastad
+    volumes:
+      - fastad-db:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U fastad -d fastad
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  temporal-postgres:
+    image: postgres:17.2-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fastad
+      POSTGRES_PASSWORD: fastad
+      POSTGRES_DB: fastad
+    volumes:
+      - temporal-db:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U fastad -d fastad
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  fastad-db:
+  temporal-db:
+  caddy-data:
+  caddy-config:

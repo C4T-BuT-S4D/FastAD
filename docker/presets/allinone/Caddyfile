@@ -1,0 +1,18 @@
+:80 {
+    handle /temporal* {
+        reverse_proxy temporal-ui:8080
+    }
+
+    handle /api/* {
+        reverse_proxy app:8080
+    }
+
+    handle /flags {
+        reverse_proxy app:8080
+    }
+
+    handle {
+        root * /front/build
+        file_server
+    }
+}
