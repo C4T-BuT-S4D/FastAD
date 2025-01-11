@@ -9,6 +9,8 @@ type Config struct {
 
 	MetricsAddress string `mapstructure:"metrics_address" default:":3005"`
 
+	IntercomToken string `mapstructure:"intercom_token"`
+
 	Postgres    config.Postgres    `mapstructure:"postgres"`
 	Temporal    config.Temporal    `mapstructure:"temporal"`
 	DataService config.DataService `mapstructure:"data_service"`

@@ -28,7 +28,11 @@ import (
 )
 
 func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
-	dataServiceConn, err := grpcext.Dial(cfg.DataService.Address, cfg.Installation)
+	dataServiceConn, err := grpcext.Dial(
+		cfg.DataService.Address,
+		cfg.Installation,
+		grpcext.AuthDialOptions(cfg.IntercomToken)...,
+	)
 	if err != nil {
 		return fmt.Errorf("connecting to data service: %w", err)
 	}
@@ -37,13 +41,21 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn))
 	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn))
 
-	receiverConn, err := grpcext.Dial(cfg.ReceiverAddress, cfg.Installation)
+	receiverConn, err := grpcext.Dial(
+		cfg.ReceiverAddress,
+		cfg.Installation,
+		grpcext.AuthDialOptions(cfg.IntercomToken)...,
+	)
 	if err != nil {
 		return fmt.Errorf("connecting to receiver: %w", err)
 	}
 	receiverClient := receiverpb.NewReceiverServiceClient(receiverConn)
 
-	slacConn, err := grpcext.Dial(cfg.SlacAddress, cfg.Installation)
+	slacConn, err := grpcext.Dial(
+		cfg.SlacAddress,
+		cfg.Installation,
+		grpcext.AuthDialOptions(cfg.IntercomToken)...,
+	)
 	if err != nil {
 		return fmt.Errorf("connecting to slac: %w", err)
 	}

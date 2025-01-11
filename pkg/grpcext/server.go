@@ -24,6 +24,7 @@ import (
 
 type ServerConfig struct {
 	installation string
+	token        string
 }
 
 func GetServerConfig(opts ...ServerOption) *ServerConfig {
@@ -41,6 +42,12 @@ type ServerOption func(*ServerConfig)
 func WithServerInstallation(name string) ServerOption {
 	return func(cfg *ServerConfig) {
 		cfg.installation = name
+	}
+}
+
+func WithServerTokenAuth(token string) ServerOption {
+	return func(cfg *ServerConfig) {
+		cfg.token = token
 	}
 }
 
@@ -89,25 +96,35 @@ func NewServer(opts ...ServerOption) *grpc.Server {
 		return status.Errorf(codes.Internal, "%s", p)
 	}
 
+	unaryInterceptors := []grpc.UnaryServerInterceptor{
+		srvMetrics.UnaryServerInterceptor(), // TODO: exemplars.
+		grpclog.UnaryServerInterceptor(
+			logging.InterceptorLogger(rpcLogger),
+			grpclog.WithLevels(logging.GRPCCodeToLevel),
+		), // TODO: tracing.
+		recovery.UnaryServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
+		UnwrapStatusUnaryServerInterceptor(),
+	}
+
+	streamInterceptors := []grpc.StreamServerInterceptor{
+		srvMetrics.StreamServerInterceptor(), // TODO: exemplars.
+		grpclog.StreamServerInterceptor(
+			logging.InterceptorLogger(rpcLogger),
+			grpclog.WithLevels(logging.GRPCCodeToLevel),
+		), // TODO: tracing.
+		recovery.StreamServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
+		UnwrapStatusStreamServerInterceptor(),
+	}
+
+	if cfg.token != "" {
+		authInterceptor := NewServerTokenInterceptor(cfg.token)
+		unaryInterceptors = append(unaryInterceptors, authInterceptor.Unary())
+		streamInterceptors = append(streamInterceptors, authInterceptor.Stream())
+	}
+
 	s := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(
-			srvMetrics.UnaryServerInterceptor(), // TODO: exemplars.
-			grpclog.UnaryServerInterceptor(
-				logging.InterceptorLogger(rpcLogger),
-				grpclog.WithLevels(logging.GRPCCodeToLevel),
-			), // TODO: tracing.
-			recovery.UnaryServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
-			UnwrapStatusUnaryServerInterceptor(),
-		),
-		grpc.ChainStreamInterceptor(
-			srvMetrics.StreamServerInterceptor(), // TODO: exemplars.
-			grpclog.StreamServerInterceptor(
-				logging.InterceptorLogger(rpcLogger),
-				grpclog.WithLevels(logging.GRPCCodeToLevel),
-			), // TODO: tracing.
-			recovery.StreamServerInterceptor(recovery.WithRecoveryHandler(grpcPanicRecoveryHandler)),
-			UnwrapStatusStreamServerInterceptor(),
-		),
+		grpc.ChainUnaryInterceptor(unaryInterceptors...),
+		grpc.ChainStreamInterceptor(streamInterceptors...),
 	)
 	reflection.Register(s)
 	pingerpb.RegisterPingerServiceServer(s, pinger.New())

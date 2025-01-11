@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"golang.org/x/sync/errgroup"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/c4t-but-s4d/fastad/internal/centutil"
 	"github.com/c4t-but-s4d/fastad/internal/receiver"
@@ -37,7 +35,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *receiver.Config) error {
 	dataServiceConn, err := grpcext.Dial(
 		cfg.DataService.Address,
 		cfg.Installation,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpcext.AuthDialOptions(cfg.IntercomToken)...,
 	)
 	if err != nil {
 		return fmt.Errorf("dialing data service: %w", err)
@@ -59,7 +57,10 @@ func Run(runCtx, shutdownCtx context.Context, cfg *receiver.Config) error {
 		return fmt.Errorf("restoring state: %w", err)
 	}
 
-	grpcServer := grpcext.NewServer(grpcext.WithServerInstallation(cfg.Installation))
+	grpcServer := grpcext.NewServer(
+		grpcext.WithServerInstallation(cfg.Installation),
+		grpcext.WithServerTokenAuth(cfg.IntercomToken),
+	)
 	receiverpb.RegisterReceiverServiceServer(grpcServer, receiverService)
 
 	g, gctx := errgroup.WithContext(runCtx)

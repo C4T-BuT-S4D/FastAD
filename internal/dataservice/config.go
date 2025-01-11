@@ -7,6 +7,8 @@ import (
 type Config struct {
 	Installation string `mapstructure:"installation" default:"dataservice"`
 
+	IntercomToken string `mapstructure:"intercom_token"`
+
 	ListenAddress  string `mapstructure:"listen_address" default:":8004"`
 	MetricsAddress string `mapstructure:"metrics_address" default:":3004"`
 

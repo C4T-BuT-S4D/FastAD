@@ -30,7 +30,10 @@ func Run(runCtx, shutdownCtx context.Context, cfg *dataservice.Config) error {
 	gameStateController := gamestate.NewController(db, versionController)
 	gameStateService := gamestate.NewService(gameStateController)
 
-	server := grpcext.NewServer(grpcext.WithServerInstallation(cfg.Installation))
+	server := grpcext.NewServer(
+		grpcext.WithServerInstallation(cfg.Installation),
+		grpcext.WithServerTokenAuth(cfg.IntercomToken),
+	)
 	teamspb.RegisterTeamsServiceServer(server, teamsService)
 	servicespb.RegisterServicesServiceServer(server, servicesService)
 	gspb.RegisterGameStateServiceServer(server, gameStateService)

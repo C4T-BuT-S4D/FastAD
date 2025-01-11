@@ -125,9 +125,12 @@ func setupConfig(cfg *Config) {
 		cfg.IntercomToken = uuid.NewString()
 	}
 
+	cfg.DataService.IntercomToken = cfg.IntercomToken
 	cfg.API.IntercomToken = cfg.IntercomToken
 	cfg.Slac.IntercomToken = cfg.IntercomToken
 	cfg.Receiver.IntercomToken = cfg.IntercomToken
+	cfg.Checkers.IntercomToken = cfg.IntercomToken
+	cfg.Scheduler.IntercomToken = cfg.IntercomToken
 
 	cfg.DataService.Postgres = cfg.Postgres
 	cfg.Scheduler.Postgres = cfg.Postgres

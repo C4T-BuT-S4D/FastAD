@@ -23,7 +23,10 @@ func Run(runCtx, shutdownCtx context.Context, cfg *slac.Config) error {
 
 	g, gctx := errgroup.WithContext(runCtx)
 
-	grpcServer := grpcext.NewServer(grpcext.WithServerInstallation(cfg.Installation))
+	grpcServer := grpcext.NewServer(
+		grpcext.WithServerInstallation(cfg.Installation),
+		grpcext.WithServerTokenAuth(cfg.IntercomToken),
+	)
 	slacpb.RegisterSlacServiceServer(grpcServer, service)
 
 	if cfg.MetricsAddress != "" {

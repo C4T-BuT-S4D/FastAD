@@ -9,8 +9,6 @@ import (
 	"go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 	"go.uber.org/zap"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
@@ -51,7 +49,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *checkers.Config) error {
 	dataServiceConn, err := grpcext.Dial(
 		cfg.DataService.Address,
 		cfg.Installation,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpcext.AuthDialOptions(cfg.IntercomToken)...,
 	)
 	if err != nil {
 		return fmt.Errorf("dialing data service: %w", err)

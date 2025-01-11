@@ -8,6 +8,15 @@ import (
 	"google.golang.org/grpc/encoding/gzip"
 )
 
+func AuthDialOptions(token string) []grpc.DialOption {
+	clientInterceptor := NewClientTokenInterceptor(token)
+
+	return []grpc.DialOption{
+		grpc.WithUnaryInterceptor(clientInterceptor.Unary()),
+		grpc.WithStreamInterceptor(clientInterceptor.Stream()),
+	}
+}
+
 func Dial(address, userAgent string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	opts = append(
 		opts,
