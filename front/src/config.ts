@@ -5,7 +5,7 @@ const apiURL = import.meta.env.DEV
 const centrifugeWSURL = import.meta.env.DEV
   ? 'ws://127.0.0.1:8001/centrifuge/websocket'
   : (window.location.protocol === 'https:' ? 'wss://' : 'ws://') +
-  window.location.host +
-  '/centrifuge/websocket';
+    window.location.host +
+    '/centrifuge/websocket';
 
 export { apiURL, centrifugeWSURL };
