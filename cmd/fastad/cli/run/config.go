@@ -1,12 +1,14 @@
-package setup
+package run
 
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
+	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
@@ -27,8 +29,6 @@ type Game struct {
 	Inflation          bool          `yaml:"inflation"`
 
 	CheckersBasePath string `yaml:"checkers_base_path"`
-
-	Mode GameMode `yaml:"mode"`
 }
 
 func (g *Game) Validate() error {
@@ -47,21 +47,21 @@ func (g *Game) Validate() error {
 	return nil
 }
 
-func (g *Game) ToUpdateRequestProto() *gspb.UpdateRequest {
-	res := &gspb.UpdateRequest{
-		StartTime:   timestamppb.New(g.StartTime),
-		TotalRounds: uint64(g.TotalRounds),
+func (g *Game) ToCreateRequestProto() *gspb.CreateRequest {
+	res := &gspb.CreateRequest{
+		GameState: &gspb.GameState{
+			StartTime:   timestamppb.New(g.StartTime),
+			TotalRounds: uint64(g.TotalRounds),
 
-		FlagLifetimeRounds: uint64(g.FlagLifetimeRounds),
-		RoundDuration:      durationpb.New(g.RoundDuration),
-		Hardness:           g.Hardness,
-		Inflation:          g.Inflation,
-
-		Mode: gspb.GameMode(g.Mode),
+			FlagLifetimeRounds: uint64(g.FlagLifetimeRounds),
+			RoundDuration:      durationpb.New(g.RoundDuration),
+			Hardness:           g.Hardness,
+			Inflation:          g.Inflation,
+		},
 	}
 
 	if g.EndTime != nil {
-		res.EndTime = timestamppb.New(*g.EndTime)
+		res.GameState.EndTime = timestamppb.New(*g.EndTime)
 	}
 
 	return res
@@ -162,16 +162,85 @@ func (s *Service) ToProto() *servicespb.Service {
 	}
 }
 
-type GameConfig struct {
-	Game *Game `yaml:"game"`
+type FastAD struct {
+	ListenPort    int    `yaml:"listen_port"`
+	LogLevel      string `yaml:"log_level"`
+	IntercomToken string `yaml:"intercom_token"`
+}
 
+func (f *FastAD) Validate() error {
+	if f.ListenPort == 0 {
+		f.ListenPort = 8080
+	}
+	if f.LogLevel == "" {
+		f.LogLevel = "info"
+	}
+	if f.IntercomToken == "" {
+		f.IntercomToken = uuid.NewString()
+		zap.L().Info(
+			"intercom token not provided, generated",
+			zap.String("token", f.IntercomToken),
+		)
+	}
+	return nil
+}
+
+type Admin struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
+func (a *Admin) Validate() error {
+	if a.Username == "" {
+		return errors.New("username required")
+	}
+	if a.Password == "" {
+		return errors.New("password required")
+	}
+	return nil
+}
+
+type Database struct {
+	ExternalDSN         string `yaml:"external_dsn"`
+	TemporalExternalDSN string `yaml:"temporal_external_dsn"`
+}
+
+type GameConfig struct {
+	FastAD   *FastAD   `yaml:"fastad"`
+	Admin    *Admin    `yaml:"admin"`
+	Database *Database `yaml:"database"`
+
+	Game     *Game      `yaml:"game"`
 	Teams    []*Team    `yaml:"teams"`
 	Services []*Service `yaml:"services"`
 }
 
 func (c *GameConfig) Validate() error {
+	if c.FastAD == nil {
+		c.FastAD = &FastAD{}
+	}
+	if err := c.FastAD.Validate(); err != nil {
+		return fmt.Errorf("fastad: %w", err)
+	}
+	if c.Game == nil {
+		return errors.New("game required")
+	}
 	if err := c.Game.Validate(); err != nil {
 		return fmt.Errorf("game: %w", err)
+	}
+
+	if c.Admin == nil {
+		c.Admin = &Admin{
+			Username: "fastad",
+			Password: strings.ReplaceAll(uuid.NewString(), "-", ""),
+		}
+		zap.L().Info(
+			"admin credentials not provided, generated",
+			zap.String("username", c.Admin.Username),
+			zap.String("password", c.Admin.Password),
+		)
+	} else if err := c.Admin.Validate(); err != nil {
+		return fmt.Errorf("admin: %w", err)
 	}
 
 	for i, team := range c.Teams {
@@ -190,7 +259,6 @@ func (c *GameConfig) Validate() error {
 		if err := service.Validate(); err != nil {
 			return fmt.Errorf("service %d: %w", i, err)
 		}
-		service.Checker.Path = filepath.Join(c.Game.CheckersBasePath, service.Checker.Path)
 	}
 	return nil
 }

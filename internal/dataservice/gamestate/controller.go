@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
-	"github.com/samber/lo"
 	"github.com/uptrace/bun"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/internal/version"
@@ -38,26 +38,76 @@ func (c *Controller) Get(ctx context.Context) (*models.GameState, error) {
 	return &gs, nil
 }
 
+func (c *Controller) Create(ctx context.Context, req *gspb.CreateRequest) (*models.GameState, int, error) {
+	var newVersion int
+	gs := models.NewGameStateFromProto(req.GetGameState())
+	if err := c.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
+		var err error
+		if newVersion, err = c.Versions.Increment(ctx, tx, VersionKey); err != nil {
+			return fmt.Errorf("incrementing version: %w", err)
+		}
+		if newVersion > 1 {
+			return status.Error(codes.FailedPrecondition, "game state already exists")
+		}
+		gs.ID = 1
+		if err := tx.NewInsert().Model(gs).Returning("*").Scan(ctx); err != nil {
+			return fmt.Errorf("inserting game state: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, 0, fmt.Errorf("in transaction: %w", err)
+	}
+
+	return gs, newVersion, nil
+}
+
 func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*models.GameState, int, error) {
 	var newVersion int
 	var gs *models.GameState
 	if err := c.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		var err error
 		if gs, newVersion, err = c.updateImpl(ctx, tx, func(query *bun.UpdateQuery) *bun.UpdateQuery {
-			var endTime *time.Time
+			if req.GetStartTime() != nil {
+				query = query.Set("start_time = ?", req.GetStartTime().AsTime())
+			}
 			if req.GetEndTime() != nil {
-				endTime = lo.ToPtr(req.GetEndTime().AsTime())
+				if req.GetEndTime().AsTime().IsZero() {
+					query = query.Set("end_time = NULL")
+				} else {
+					query = query.Set("end_time = ?", req.GetEndTime().AsTime())
+				}
 			}
 
-			return query.
-				Set("start_time = ?", req.GetStartTime().AsTime()).
-				Set("end_time = ?", endTime).
-				Set("total_rounds = ?", req.GetTotalRounds()).
-				Set("paused = ?", req.GetPaused()).
-				Set("flag_lifetime_rounds = ?", req.GetFlagLifetimeRounds()).
-				Set("round_duration = ?", req.GetRoundDuration().AsDuration()).
-				Set("hardness = ?", req.GetHardness()).
-				Set("inflation = ?", req.GetInflation())
+			if req.TotalRounds != nil {
+				if req.GetTotalRounds() > 0 {
+					query = query.Set("total_rounds = ?", req.GetTotalRounds())
+				} else {
+					query = query.Set("total_rounds = NULL")
+				}
+			}
+
+			if req.Paused != nil {
+				query = query.Set("paused = ?", req.GetPaused())
+			}
+
+			if req.GetFlagLifetimeRounds() > 0 {
+				query = query.Set("flag_lifetime_rounds = ?", req.GetFlagLifetimeRounds())
+			}
+
+			if req.GetRoundDuration().AsDuration() > 0 {
+				query = query.Set("round_duration = ?", req.GetRoundDuration().AsDuration())
+			}
+
+			if req.Hardness != nil {
+				query = query.Set("hardness = ?", req.GetHardness())
+			}
+
+			if req.Inflation != nil {
+				query = query.Set("inflation = ?", req.GetInflation())
+			}
+
+			return query
 		}); err != nil {
 			return fmt.Errorf("updating game state: %w", err)
 		}

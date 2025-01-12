@@ -1,0 +1,44 @@
+{
+    servers :80 {
+        protocols h1 h2 h2c
+    }
+}
+
+:80 {
+    log {
+    	output stderr
+    	level DEBUG
+    	format console
+    }
+
+    handle /temporal* {
+        reverse_proxy temporal-ui:8080
+    }
+
+    handle /api/* {
+        reverse_proxy app:8080
+    }
+
+    handle /centrifuge/* {
+        reverse_proxy app:8080
+    }
+
+    handle /healthcheck {
+        reverse_proxy app:8080
+    }
+
+    handle /flags {
+        reverse_proxy app:8080
+    }
+
+    handle /data.* {
+       reverse_proxy h2c://app:8004
+    }
+
+    handle {
+        encode gzip
+        root * /front
+        try_files {path} /index.html
+        file_server
+    }
+}

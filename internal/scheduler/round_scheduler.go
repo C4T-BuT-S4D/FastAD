@@ -85,8 +85,16 @@ func (s *RoundScheduler) Run(ctx context.Context) error {
 
 			if s.gameState.GetPaused() {
 				s.logger.Info("game is paused, skipping round update")
-				if err := s.updateStateOnPause(ctx); err != nil {
-					s.logger.Error("updating scheduler state on pause", zap.Error(err))
+				if err := s.skipRun(ctx); err != nil {
+					s.logger.Error("skipping scheduler run", zap.Error(err))
+				}
+				continue
+			}
+
+			if s.gameState.GetStartTime().AsTime().After(time.Now()) {
+				s.logger.Info("game has not started yet, skipping round update")
+				if err := s.skipRun(ctx); err != nil {
+					s.logger.Error("skipping scheduler run", zap.Error(err))
 				}
 				continue
 			}
@@ -207,7 +215,7 @@ func (s *RoundScheduler) TryRunRound(ctx context.Context) error {
 	return nil
 }
 
-func (s *RoundScheduler) updateStateOnPause(ctx context.Context) error {
+func (s *RoundScheduler) skipRun(ctx context.Context) error {
 	if _, err := s.db.
 		NewInsert().
 		Model(&models.SchedulerState{

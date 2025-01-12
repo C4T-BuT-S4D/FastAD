@@ -5,3 +5,6 @@
 mise.local.toml
 __pycache__
 .sccignore
+.generated
+.env
+/compose.yml

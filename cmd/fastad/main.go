@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
-	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/setup"
+	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/run"
 	"github.com/c4t-but-s4d/fastad/pkg/logging"
 )
 
@@ -26,7 +26,7 @@ func main() {
 	cc := &common.CommandContext{}
 
 	app.Commands = []*cli.Command{
-		setup.NewSetupCommand(cc),
+		run.NewRunCommand(cc),
 	}
 
 	if err := app.RunContext(runCtx, os.Args); err != nil {

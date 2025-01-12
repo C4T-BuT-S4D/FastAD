@@ -38,6 +38,14 @@ func (c *Client) Get(ctx context.Context) (*gspb.GameState, error) {
 	return c.cache.GetState(), nil
 }
 
+func (c *Client) Create(ctx context.Context, req *gspb.CreateRequest) (*gspb.GameState, error) {
+	resp, err := c.c.Create(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("creating state: %w", err)
+	}
+	return resp.GetGameState(), nil
+}
+
 func (c *Client) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.GameState, error) {
 	resp, err := c.c.Update(ctx, req)
 	if err != nil {

@@ -12,39 +12,6 @@ import { Version } from "../version/version";
 
 export const protobufPackage = "data.game_state";
 
-export const GameMode = { GAME_MODE_UNSPECIFIED: 0, GAME_MODE_CLASSIC: 1 } as const;
-
-export type GameMode = typeof GameMode[keyof typeof GameMode];
-
-export namespace GameMode {
-  export type GAME_MODE_UNSPECIFIED = typeof GameMode.GAME_MODE_UNSPECIFIED;
-  export type GAME_MODE_CLASSIC = typeof GameMode.GAME_MODE_CLASSIC;
-}
-
-export function gameModeFromJSON(object: any): GameMode {
-  switch (object) {
-    case 0:
-    case "GAME_MODE_UNSPECIFIED":
-      return GameMode.GAME_MODE_UNSPECIFIED;
-    case 1:
-    case "GAME_MODE_CLASSIC":
-      return GameMode.GAME_MODE_CLASSIC;
-    default:
-      throw new globalThis.Error("Unrecognized enum value " + object + " for enum GameMode");
-  }
-}
-
-export function gameModeToJSON(object: GameMode): string {
-  switch (object) {
-    case GameMode.GAME_MODE_UNSPECIFIED:
-      return "GAME_MODE_UNSPECIFIED";
-    case GameMode.GAME_MODE_CLASSIC:
-      return "GAME_MODE_CLASSIC";
-    default:
-      throw new globalThis.Error("Unrecognized enum value " + object + " for enum GameMode");
-  }
-}
-
 export interface GameState {
   startTime: Date | undefined;
   endTime: Date | undefined;
@@ -53,7 +20,6 @@ export interface GameState {
   finished: boolean;
   flagLifetimeRounds: string;
   roundDuration: Duration | undefined;
-  mode: GameMode;
   runningRound: string;
   runningRoundStart: Date | undefined;
   hardness: number;
@@ -70,15 +36,17 @@ export interface GetResponse {
 }
 
 export interface UpdateRequest {
-  startTime: Date | undefined;
+  startTime:
+    | Date
+    | undefined;
+  /** Zero time means no end time. */
   endTime: Date | undefined;
-  totalRounds: string;
-  paused: boolean;
-  flagLifetimeRounds: string;
+  totalRounds?: string | undefined;
+  paused?: boolean | undefined;
+  flagLifetimeRounds?: string | undefined;
   roundDuration: Duration | undefined;
-  mode: GameMode;
-  hardness: number;
-  inflation: boolean;
+  hardness?: number | undefined;
+  inflation?: boolean | undefined;
 }
 
 export interface UpdateResponse {
@@ -104,6 +72,15 @@ export interface FinishGameResponse {
   version: Version | undefined;
 }
 
+export interface CreateRequest {
+  gameState: GameState | undefined;
+}
+
+export interface CreateResponse {
+  gameState: GameState | undefined;
+  version: Version | undefined;
+}
+
 function createBaseGameState(): GameState {
   return {
     startTime: undefined,
@@ -113,7 +90,6 @@ function createBaseGameState(): GameState {
     finished: false,
     flagLifetimeRounds: "0",
     roundDuration: undefined,
-    mode: 0,
     runningRound: "0",
     runningRoundStart: undefined,
     hardness: 0,
@@ -136,16 +112,13 @@ export const GameState: MessageFns<GameState> = {
       writer.uint32(32).bool(message.paused);
     }
     if (message.finished !== false) {
-      writer.uint32(96).bool(message.finished);
+      writer.uint32(40).bool(message.finished);
     }
     if (message.flagLifetimeRounds !== "0") {
-      writer.uint32(40).uint64(message.flagLifetimeRounds);
+      writer.uint32(48).uint64(message.flagLifetimeRounds);
     }
     if (message.roundDuration !== undefined) {
-      Duration.encode(message.roundDuration, writer.uint32(50).fork()).join();
-    }
-    if (message.mode !== 0) {
-      writer.uint32(56).int32(message.mode);
+      Duration.encode(message.roundDuration, writer.uint32(58).fork()).join();
     }
     if (message.runningRound !== "0") {
       writer.uint32(64).uint64(message.runningRound);
@@ -201,36 +174,28 @@ export const GameState: MessageFns<GameState> = {
           message.paused = reader.bool();
           continue;
         }
-        case 12: {
-          if (tag !== 96) {
+        case 5: {
+          if (tag !== 40) {
             break;
           }
 
           message.finished = reader.bool();
           continue;
         }
-        case 5: {
-          if (tag !== 40) {
+        case 6: {
+          if (tag !== 48) {
             break;
           }
 
           message.flagLifetimeRounds = reader.uint64().toString();
           continue;
         }
-        case 6: {
-          if (tag !== 50) {
+        case 7: {
+          if (tag !== 58) {
             break;
           }
 
           message.roundDuration = Duration.decode(reader, reader.uint32());
-          continue;
-        }
-        case 7: {
-          if (tag !== 56) {
-            break;
-          }
-
-          message.mode = reader.int32() as any;
           continue;
         }
         case 8: {
@@ -315,7 +280,6 @@ export const GameState: MessageFns<GameState> = {
       finished: isSet(object.finished) ? globalThis.Boolean(object.finished) : false,
       flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? globalThis.String(object.flagLifetimeRounds) : "0",
       roundDuration: isSet(object.roundDuration) ? Duration.fromJSON(object.roundDuration) : undefined,
-      mode: isSet(object.mode) ? gameModeFromJSON(object.mode) : 0,
       runningRound: isSet(object.runningRound) ? globalThis.String(object.runningRound) : "0",
       runningRoundStart: isSet(object.runningRoundStart) ? fromJsonTimestamp(object.runningRoundStart) : undefined,
       hardness: isSet(object.hardness) ? globalThis.Number(object.hardness) : 0,
@@ -346,9 +310,6 @@ export const GameState: MessageFns<GameState> = {
     if (message.roundDuration !== undefined) {
       obj.roundDuration = Duration.toJSON(message.roundDuration);
     }
-    if (message.mode !== 0) {
-      obj.mode = gameModeToJSON(message.mode);
-    }
     if (message.runningRound !== "0") {
       obj.runningRound = message.runningRound;
     }
@@ -378,7 +339,6 @@ export const GameState: MessageFns<GameState> = {
     message.roundDuration = (object.roundDuration !== undefined && object.roundDuration !== null)
       ? Duration.fromPartial(object.roundDuration)
       : undefined;
-    message.mode = object.mode ?? 0;
     message.runningRound = object.runningRound ?? "0";
     message.runningRoundStart = object.runningRoundStart ?? undefined;
     message.hardness = object.hardness ?? 0;
@@ -595,13 +555,12 @@ function createBaseUpdateRequest(): UpdateRequest {
   return {
     startTime: undefined,
     endTime: undefined,
-    totalRounds: "0",
-    paused: false,
-    flagLifetimeRounds: "0",
+    totalRounds: undefined,
+    paused: undefined,
+    flagLifetimeRounds: undefined,
     roundDuration: undefined,
-    mode: 0,
-    hardness: 0,
-    inflation: false,
+    hardness: undefined,
+    inflation: undefined,
   };
 }
 
@@ -613,25 +572,22 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     if (message.endTime !== undefined) {
       Timestamp.encode(toTimestamp(message.endTime), writer.uint32(18).fork()).join();
     }
-    if (message.totalRounds !== "0") {
+    if (message.totalRounds !== undefined) {
       writer.uint32(24).uint64(message.totalRounds);
     }
-    if (message.paused !== false) {
+    if (message.paused !== undefined) {
       writer.uint32(32).bool(message.paused);
     }
-    if (message.flagLifetimeRounds !== "0") {
+    if (message.flagLifetimeRounds !== undefined) {
       writer.uint32(40).uint64(message.flagLifetimeRounds);
     }
     if (message.roundDuration !== undefined) {
       Duration.encode(message.roundDuration, writer.uint32(50).fork()).join();
     }
-    if (message.mode !== 0) {
-      writer.uint32(56).int32(message.mode);
-    }
-    if (message.hardness !== 0) {
+    if (message.hardness !== undefined) {
       writer.uint32(65).double(message.hardness);
     }
-    if (message.inflation !== false) {
+    if (message.inflation !== undefined) {
       writer.uint32(72).bool(message.inflation);
     }
     return writer;
@@ -690,14 +646,6 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
           }
 
           message.roundDuration = Duration.decode(reader, reader.uint32());
-          continue;
-        }
-        case 7: {
-          if (tag !== 56) {
-            break;
-          }
-
-          message.mode = reader.int32() as any;
           continue;
         }
         case 8: {
@@ -761,13 +709,12 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     return {
       startTime: isSet(object.startTime) ? fromJsonTimestamp(object.startTime) : undefined,
       endTime: isSet(object.endTime) ? fromJsonTimestamp(object.endTime) : undefined,
-      totalRounds: isSet(object.totalRounds) ? globalThis.String(object.totalRounds) : "0",
-      paused: isSet(object.paused) ? globalThis.Boolean(object.paused) : false,
-      flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? globalThis.String(object.flagLifetimeRounds) : "0",
+      totalRounds: isSet(object.totalRounds) ? globalThis.String(object.totalRounds) : undefined,
+      paused: isSet(object.paused) ? globalThis.Boolean(object.paused) : undefined,
+      flagLifetimeRounds: isSet(object.flagLifetimeRounds) ? globalThis.String(object.flagLifetimeRounds) : undefined,
       roundDuration: isSet(object.roundDuration) ? Duration.fromJSON(object.roundDuration) : undefined,
-      mode: isSet(object.mode) ? gameModeFromJSON(object.mode) : 0,
-      hardness: isSet(object.hardness) ? globalThis.Number(object.hardness) : 0,
-      inflation: isSet(object.inflation) ? globalThis.Boolean(object.inflation) : false,
+      hardness: isSet(object.hardness) ? globalThis.Number(object.hardness) : undefined,
+      inflation: isSet(object.inflation) ? globalThis.Boolean(object.inflation) : undefined,
     };
   },
 
@@ -779,25 +726,22 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     if (message.endTime !== undefined) {
       obj.endTime = message.endTime.toISOString();
     }
-    if (message.totalRounds !== "0") {
+    if (message.totalRounds !== undefined) {
       obj.totalRounds = message.totalRounds;
     }
-    if (message.paused !== false) {
+    if (message.paused !== undefined) {
       obj.paused = message.paused;
     }
-    if (message.flagLifetimeRounds !== "0") {
+    if (message.flagLifetimeRounds !== undefined) {
       obj.flagLifetimeRounds = message.flagLifetimeRounds;
     }
     if (message.roundDuration !== undefined) {
       obj.roundDuration = Duration.toJSON(message.roundDuration);
     }
-    if (message.mode !== 0) {
-      obj.mode = gameModeToJSON(message.mode);
-    }
-    if (message.hardness !== 0) {
+    if (message.hardness !== undefined) {
       obj.hardness = message.hardness;
     }
-    if (message.inflation !== false) {
+    if (message.inflation !== undefined) {
       obj.inflation = message.inflation;
     }
     return obj;
@@ -810,15 +754,14 @@ export const UpdateRequest: MessageFns<UpdateRequest> = {
     const message = createBaseUpdateRequest();
     message.startTime = object.startTime ?? undefined;
     message.endTime = object.endTime ?? undefined;
-    message.totalRounds = object.totalRounds ?? "0";
-    message.paused = object.paused ?? false;
-    message.flagLifetimeRounds = object.flagLifetimeRounds ?? "0";
+    message.totalRounds = object.totalRounds ?? undefined;
+    message.paused = object.paused ?? undefined;
+    message.flagLifetimeRounds = object.flagLifetimeRounds ?? undefined;
     message.roundDuration = (object.roundDuration !== undefined && object.roundDuration !== null)
       ? Duration.fromPartial(object.roundDuration)
       : undefined;
-    message.mode = object.mode ?? 0;
-    message.hardness = object.hardness ?? 0;
-    message.inflation = object.inflation ?? false;
+    message.hardness = object.hardness ?? undefined;
+    message.inflation = object.inflation ?? undefined;
     return message;
   },
 };
@@ -1338,6 +1281,210 @@ export const FinishGameResponse: MessageFns<FinishGameResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<FinishGameResponse>, I>>(object: I): FinishGameResponse {
     const message = createBaseFinishGameResponse();
+    message.gameState = (object.gameState !== undefined && object.gameState !== null)
+      ? GameState.fromPartial(object.gameState)
+      : undefined;
+    message.version = (object.version !== undefined && object.version !== null)
+      ? Version.fromPartial(object.version)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseCreateRequest(): CreateRequest {
+  return { gameState: undefined };
+}
+
+export const CreateRequest: MessageFns<CreateRequest> = {
+  encode(message: CreateRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.gameState !== undefined) {
+      GameState.encode(message.gameState, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.gameState = GameState.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<CreateRequest, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<CreateRequest | CreateRequest[]> | Iterable<CreateRequest | CreateRequest[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [CreateRequest.encode(p).finish()];
+        }
+      } else {
+        yield* [CreateRequest.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, CreateRequest>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<CreateRequest> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [CreateRequest.decode(p)];
+        }
+      } else {
+        yield* [CreateRequest.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): CreateRequest {
+    return { gameState: isSet(object.gameState) ? GameState.fromJSON(object.gameState) : undefined };
+  },
+
+  toJSON(message: CreateRequest): unknown {
+    const obj: any = {};
+    if (message.gameState !== undefined) {
+      obj.gameState = GameState.toJSON(message.gameState);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateRequest>, I>>(base?: I): CreateRequest {
+    return CreateRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateRequest>, I>>(object: I): CreateRequest {
+    const message = createBaseCreateRequest();
+    message.gameState = (object.gameState !== undefined && object.gameState !== null)
+      ? GameState.fromPartial(object.gameState)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseCreateResponse(): CreateResponse {
+  return { gameState: undefined, version: undefined };
+}
+
+export const CreateResponse: MessageFns<CreateResponse> = {
+  encode(message: CreateResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.gameState !== undefined) {
+      GameState.encode(message.gameState, writer.uint32(10).fork()).join();
+    }
+    if (message.version !== undefined) {
+      Version.encode(message.version, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): CreateResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.gameState = GameState.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.version = Version.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<CreateResponse, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<CreateResponse | CreateResponse[]> | Iterable<CreateResponse | CreateResponse[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [CreateResponse.encode(p).finish()];
+        }
+      } else {
+        yield* [CreateResponse.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, CreateResponse>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<CreateResponse> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [CreateResponse.decode(p)];
+        }
+      } else {
+        yield* [CreateResponse.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): CreateResponse {
+    return {
+      gameState: isSet(object.gameState) ? GameState.fromJSON(object.gameState) : undefined,
+      version: isSet(object.version) ? Version.fromJSON(object.version) : undefined,
+    };
+  },
+
+  toJSON(message: CreateResponse): unknown {
+    const obj: any = {};
+    if (message.gameState !== undefined) {
+      obj.gameState = GameState.toJSON(message.gameState);
+    }
+    if (message.version !== undefined) {
+      obj.version = Version.toJSON(message.version);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateResponse>, I>>(base?: I): CreateResponse {
+    return CreateResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateResponse>, I>>(object: I): CreateResponse {
+    const message = createBaseCreateResponse();
     message.gameState = (object.gameState !== undefined && object.gameState !== null)
       ? GameState.fromPartial(object.gameState)
       : undefined;

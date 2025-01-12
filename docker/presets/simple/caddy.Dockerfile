@@ -11,6 +11,6 @@ FROM front-base AS front-build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build
 
-FROM caddy:2.4.5-alpine
+FROM caddy:2.9.1-alpine
 
 COPY --from=front-build /app/dist /front

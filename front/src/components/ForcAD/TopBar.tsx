@@ -32,8 +32,14 @@ export default function TopBar() {
       <Toolbar>
         <Typography
           variant="h6"
-          component="div"
-          sx={{ flexGrow: 0, fontFamily: 'Roboto Mono' }}
+          component={Link}
+          to="/"
+          sx={{
+            textDecoration: 'none',
+            color: 'inherit',
+            flexGrow: 0,
+            fontFamily: 'Roboto Mono',
+          }}
         >
           FastAD
         </Typography>

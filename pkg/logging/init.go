@@ -29,7 +29,7 @@ func (c checkedCloserImpl) Close() {
 func Init() CheckedCloser {
 	initOnce.Do(func() {
 		cfg := baseconfig.MustSetupAll(&Config{}, baseconfig.WithEnvPrefix("FASTAD_LOG"))
-		level := parseLogLevel(cfg.Level, zap.DebugLevel)
+		level := parseLogLevel(cfg.Level, zap.InfoLevel)
 
 		devEncoder := zap.NewDevelopmentEncoderConfig()
 		devEncoder.EncodeTime = zapcore.ISO8601TimeEncoder

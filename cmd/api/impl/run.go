@@ -140,7 +140,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 			UnsafeWildcardOriginWithAllowCredentials: true,
 		}),
 	)
-	e.GET("/health", httpext.HealthHandler())
+	e.GET("/healthcheck", httpext.HealthHandler())
 
 	e.HTTPErrorHandler = httpext.ErrorHandler()
 	apiService.RegisterRoutes(e)

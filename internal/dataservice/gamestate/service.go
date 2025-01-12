@@ -49,6 +49,24 @@ func (s *Service) Get(ctx context.Context, req *gspb.GetRequest) (*gspb.GetRespo
 	}, nil
 }
 
+func (s *Service) Create(ctx context.Context, req *gspb.CreateRequest) (*gspb.CreateResponse, error) {
+	zap.L().Debug("GameStateService/Create", zap.Any("request", req))
+
+	if err := s.validateCreateRequest(req); err != nil {
+		return nil, fmt.Errorf("validating request: %w", err)
+	}
+
+	gs, newVersion, err := s.controller.Create(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("creating game state: %w", err)
+	}
+
+	return &gspb.CreateResponse{
+		GameState: gs.ToProto(),
+		Version:   version.NewVersionProto(newVersion),
+	}, nil
+}
+
 func (s *Service) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.UpdateResponse, error) {
 	zap.L().Debug("GameStateService/Update", zap.Any("request", req))
 

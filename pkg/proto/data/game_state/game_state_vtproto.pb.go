@@ -32,7 +32,6 @@ func (m *GameState) CloneVT() *GameState {
 	r.Finished = m.Finished
 	r.FlagLifetimeRounds = m.FlagLifetimeRounds
 	r.RoundDuration = (*durationpb.Duration)((*durationpb1.Duration)(m.RoundDuration).CloneVT())
-	r.Mode = m.Mode
 	r.RunningRound = m.RunningRound
 	r.RunningRoundStart = (*timestamppb.Timestamp)((*timestamppb1.Timestamp)(m.RunningRoundStart).CloneVT())
 	r.Hardness = m.Hardness
@@ -90,13 +89,27 @@ func (m *UpdateRequest) CloneVT() *UpdateRequest {
 	r := new(UpdateRequest)
 	r.StartTime = (*timestamppb.Timestamp)((*timestamppb1.Timestamp)(m.StartTime).CloneVT())
 	r.EndTime = (*timestamppb.Timestamp)((*timestamppb1.Timestamp)(m.EndTime).CloneVT())
-	r.TotalRounds = m.TotalRounds
-	r.Paused = m.Paused
-	r.FlagLifetimeRounds = m.FlagLifetimeRounds
 	r.RoundDuration = (*durationpb.Duration)((*durationpb1.Duration)(m.RoundDuration).CloneVT())
-	r.Mode = m.Mode
-	r.Hardness = m.Hardness
-	r.Inflation = m.Inflation
+	if rhs := m.TotalRounds; rhs != nil {
+		tmpVal := *rhs
+		r.TotalRounds = &tmpVal
+	}
+	if rhs := m.Paused; rhs != nil {
+		tmpVal := *rhs
+		r.Paused = &tmpVal
+	}
+	if rhs := m.FlagLifetimeRounds; rhs != nil {
+		tmpVal := *rhs
+		r.FlagLifetimeRounds = &tmpVal
+	}
+	if rhs := m.Hardness; rhs != nil {
+		tmpVal := *rhs
+		r.Hardness = &tmpVal
+	}
+	if rhs := m.Inflation; rhs != nil {
+		tmpVal := *rhs
+		r.Inflation = &tmpVal
+	}
 	if len(m.unknownFields) > 0 {
 		r.unknownFields = make([]byte, len(m.unknownFields))
 		copy(r.unknownFields, m.unknownFields)
@@ -196,6 +209,41 @@ func (m *FinishGameResponse) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
 
+func (m *CreateRequest) CloneVT() *CreateRequest {
+	if m == nil {
+		return (*CreateRequest)(nil)
+	}
+	r := new(CreateRequest)
+	r.GameState = m.GameState.CloneVT()
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *CreateRequest) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *CreateResponse) CloneVT() *CreateResponse {
+	if m == nil {
+		return (*CreateResponse)(nil)
+	}
+	r := new(CreateResponse)
+	r.GameState = m.GameState.CloneVT()
+	r.Version = m.Version.CloneVT()
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *CreateResponse) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
 func (this *GameState) EqualVT(that *GameState) bool {
 	if this == that {
 		return true
@@ -214,13 +262,13 @@ func (this *GameState) EqualVT(that *GameState) bool {
 	if this.Paused != that.Paused {
 		return false
 	}
+	if this.Finished != that.Finished {
+		return false
+	}
 	if this.FlagLifetimeRounds != that.FlagLifetimeRounds {
 		return false
 	}
 	if !(*durationpb1.Duration)(this.RoundDuration).EqualVT((*durationpb1.Duration)(that.RoundDuration)) {
-		return false
-	}
-	if this.Mode != that.Mode {
 		return false
 	}
 	if this.RunningRound != that.RunningRound {
@@ -233,9 +281,6 @@ func (this *GameState) EqualVT(that *GameState) bool {
 		return false
 	}
 	if this.Inflation != that.Inflation {
-		return false
-	}
-	if this.Finished != that.Finished {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -301,25 +346,22 @@ func (this *UpdateRequest) EqualVT(that *UpdateRequest) bool {
 	if !(*timestamppb1.Timestamp)(this.EndTime).EqualVT((*timestamppb1.Timestamp)(that.EndTime)) {
 		return false
 	}
-	if this.TotalRounds != that.TotalRounds {
+	if p, q := this.TotalRounds, that.TotalRounds; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
 		return false
 	}
-	if this.Paused != that.Paused {
+	if p, q := this.Paused, that.Paused; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
 		return false
 	}
-	if this.FlagLifetimeRounds != that.FlagLifetimeRounds {
+	if p, q := this.FlagLifetimeRounds, that.FlagLifetimeRounds; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
 		return false
 	}
 	if !(*durationpb1.Duration)(this.RoundDuration).EqualVT((*durationpb1.Duration)(that.RoundDuration)) {
 		return false
 	}
-	if this.Mode != that.Mode {
+	if p, q := this.Hardness, that.Hardness; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
 		return false
 	}
-	if this.Hardness != that.Hardness {
-		return false
-	}
-	if this.Inflation != that.Inflation {
+	if p, q := this.Inflation, that.Inflation; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
 		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
@@ -431,6 +473,47 @@ func (this *FinishGameResponse) EqualVT(that *FinishGameResponse) bool {
 
 func (this *FinishGameResponse) EqualMessageVT(thatMsg proto.Message) bool {
 	that, ok := thatMsg.(*FinishGameResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *CreateRequest) EqualVT(that *CreateRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.GameState.EqualVT(that.GameState) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *CreateRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*CreateRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *CreateResponse) EqualVT(that *CreateResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.GameState.EqualVT(that.GameState) {
+		return false
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *CreateResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*CreateResponse)
 	if !ok {
 		return false
 	}

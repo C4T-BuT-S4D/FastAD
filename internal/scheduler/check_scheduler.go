@@ -118,6 +118,14 @@ func (s *CheckScheduler) Run(ctx context.Context) {
 				continue
 			}
 
+			if gs.GetStartTime().AsTime().After(time.Now()) {
+				s.logger.Debug("game has not started yet, skipping check")
+				if err := s.skipRun(ctx); err != nil {
+					s.logger.Error("skipping scheduler run", zap.Error(err))
+				}
+				continue
+			}
+
 			if s.Action == checkerpb.Action_ACTION_GET && gs.GetRunningRound() <= 1 {
 				s.logger.Debug("skipping GET check on the first round")
 				if err := s.skipRun(ctx); err != nil {

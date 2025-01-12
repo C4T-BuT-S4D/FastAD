@@ -1,8 +1,9 @@
-package setup
+package run
 
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/samber/lo"
 	"github.com/urfave/cli/v2"
@@ -10,6 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
+	"github.com/c4t-but-s4d/fastad/pkg/apiwait"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
@@ -19,26 +21,40 @@ import (
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
-func NewSetupCommand(_ *common.CommandContext) *cli.Command {
+func NewRunCommand(_ *common.CommandContext) *cli.Command {
 	return &cli.Command{
-		Name: "setup",
+		Name:  "run",
+		Usage: "Setup & run the game",
 		Flags: []cli.Flag{
 			&cli.PathFlag{
 				Name:    "game-config",
 				Aliases: []string{"c"},
-				Usage:   "path to game config yaml file",
-				Value:   "game.yml",
+				Usage:   "path to game config yaml file (defaults to fastad.yaml in fastad root)",
 			},
 			&cli.StringFlag{
-				Name:  "api-address",
-				Usage: "fastad api address",
-				Value: "127.0.0.1:8004",
+				Name:  "preset",
+				Usage: "preset to use (only 'simple' is supported)",
+				Value: "simple",
+			},
+			&cli.BoolFlag{
+				Name:  "only-init",
+				Usage: "only initialize the game state for an already running game",
 			},
 		},
 		Action: func(c *cli.Context) error {
-			zap.S().Infof("reading game config from %s", c.Path("game-config"))
+			root, err := common.GetFastADRoot()
+			if err != nil {
+				return fmt.Errorf("getting fastad root: %w", err)
+			}
 
-			content, err := os.ReadFile(c.Path("game-config"))
+			configPath := c.Path("game-config")
+			if configPath == "" {
+				configPath = filepath.Join(root, "fastad.yaml")
+			}
+
+			zap.S().Infof("reading game config from %s", configPath)
+
+			content, err := os.ReadFile(configPath)
 			if err != nil {
 				return fmt.Errorf("reading game config: %w", err)
 			}
@@ -56,7 +72,35 @@ func NewSetupCommand(_ *common.CommandContext) *cli.Command {
 
 			zap.S().Info("game config validated")
 
-			apiConn, err := grpcext.Dial(c.String("api-address"), "fastad-setup")
+			if !c.Bool("only-init") {
+				switch c.String("preset") {
+				case "simple":
+					zap.L().Info("starting simple preset")
+					if err := StartPresetSimple(c.Context, root, cfg); err != nil {
+						return fmt.Errorf("starting simple preset: %w", err)
+					}
+					zap.L().Info("simple preset started")
+				default:
+					return fmt.Errorf("unsupported preset: %s", c.String("preset"))
+				}
+			} else {
+				zap.L().Info("skipping starting the services")
+			}
+
+			zap.L().Info("waiting for services to start")
+			httpAddr := fmt.Sprintf("127.0.0.1:%d", cfg.FastAD.ListenPort)
+			if err := apiwait.HTTP(c.Context, httpAddr); err != nil {
+				return fmt.Errorf("waiting for API service: %w", err)
+			}
+
+			apiAddress := fmt.Sprintf("127.0.0.1:%d", cfg.FastAD.ListenPort)
+			zap.L().Info("initializing game", zap.String("api_address", apiAddress))
+
+			apiConn, err := grpcext.Dial(
+				apiAddress,
+				"fastad-setup",
+				grpcext.AuthDialOptions(cfg.FastAD.IntercomToken)...,
+			)
 			if err != nil {
 				return fmt.Errorf("dialing data service: %w", err)
 			}
@@ -85,7 +129,7 @@ func NewSetupCommand(_ *common.CommandContext) *cli.Command {
 			}
 			zap.S().Infof("created services: %v", createdServices)
 
-			createdGameService, err := gameStateClient.Update(c.Context, cfg.Game.ToUpdateRequestProto())
+			createdGameService, err := gameStateClient.Create(c.Context, cfg.Game.ToCreateRequestProto())
 			if err != nil {
 				return fmt.Errorf("updating game state: %w", err)
 			}
