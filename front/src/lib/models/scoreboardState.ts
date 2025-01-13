@@ -1,6 +1,9 @@
 import { Service } from '@/proto/data/services/services';
 import { Team } from '@/proto/data/teams/teams';
-import { Scoreboard, Scoreboard_TeamServiceState } from '@/proto/scoreboard/scoreboard';
+import {
+  Scoreboard,
+  Scoreboard_TeamServiceState,
+} from '@/proto/scoreboard/scoreboard';
 
 export class ScoreboardState {
   private teamServiceState: Map<

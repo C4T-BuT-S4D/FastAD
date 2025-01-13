@@ -81,9 +81,9 @@ export default function ScoreboardTable() {
           <col style={{ width: `${SCORE_COL_WIDTH}px` }} />
 
           {/* Each service column divides leftover space equally */}
-          {services.map((service, i) => (
+          {services.map((service) => (
             <col
-              key={`service-col-${service.id}-${i}`}
+              key={`service-col-${service.id}`}
               style={{ width: `${SERVICE_COL_MIN_WIDTH}px` }}
             />
           ))}
@@ -94,8 +94,8 @@ export default function ScoreboardTable() {
             <HeaderCell align="center"> #</HeaderCell>
             <HeaderCell align="center">Team</HeaderCell>
             <HeaderCell align="center">Score</HeaderCell>
-            {services.map((s, i) => (
-              <HeaderCell key={`service-header-${s.id}-${i}`} align="center">
+            {services.map((s) => (
+              <HeaderCell key={`service-header-${s.id}`} align="center">
                 {s.name}
               </HeaderCell>
             ))}
@@ -106,7 +106,7 @@ export default function ScoreboardTable() {
           {teams.map((team, i) => {
             const rank = i + 1;
             return (
-              <TableRow key={'team:' + team.id + '-' + rank}>
+              <TableRow key={`team-row-${team.id}`}>
                 <MonoFontCell align="center">{rank}</MonoFontCell>
                 <MonoFontCell align="center">
                   <Stack
@@ -118,15 +118,26 @@ export default function ScoreboardTable() {
                       minWidth: 0,
                     }}
                   >
-                    <Avatar
-                      variant="square"
-                      sx={{
-                        width: 64,
-                        height: 64,
-                      }}
-                    >
-                      {team.name[0].toUpperCase()}
-                    </Avatar>
+                    {team.avatarUrl ? (
+                      <Avatar
+                        variant="square"
+                        src={team.avatarUrl}
+                        sx={{
+                          width: 64,
+                          height: 64,
+                        }}
+                      />
+                    ) : (
+                      <Avatar
+                        variant="square"
+                        sx={{
+                          width: 64,
+                          height: 64,
+                        }}
+                      >
+                        {team.name[0].toUpperCase()}
+                      </Avatar>
+                    )}
 
                     <Box
                       sx={{
@@ -169,7 +180,7 @@ export default function ScoreboardTable() {
                 <MonoFontCell align="center">
                   {scoreboard.getTeamScore(team.id).toFixed(2)}
                 </MonoFontCell>
-                {services.map((service, j) => {
+                {services.map((service) => {
                   const tss = scoreboard.getTeamServiceState(
                     team.id,
                     service.id,
@@ -188,7 +199,7 @@ export default function ScoreboardTable() {
 
                   return (
                     <TeamServiceCell
-                      key={`service-${service.id}-team-${team.id}-${rank}-${j}`}
+                      key={`ts-cell-${team.id}-${service.id}`}
                       sx={(theme: Theme) => ({
                         backgroundColor: statusColor(theme, st).main,
                         color: '#000000',

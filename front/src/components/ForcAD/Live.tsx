@@ -27,6 +27,8 @@ const Highlight = styled('span')({
   color: '#ffff00',
 });
 
+const MAX_EVENTS = 5000;
+
 export default function Live() {
   const [events, setEvents] = useState<Event[]>([]);
   const teams = useTeams();
@@ -47,31 +49,6 @@ export default function Live() {
       return;
     }
 
-    setEvents(
-      Array.from({ length: 1000 }, () => ({
-        victimName:
-          teamMap.get(
-            Array.from(teamMap.keys())[
-              Math.floor(Math.random() * teamMap.size)
-            ],
-          )?.name ?? 'Unknown',
-        attackerName:
-          teamMap.get(
-            Array.from(teamMap.keys())[
-              Math.floor(Math.random() * teamMap.size)
-            ],
-          )?.name ?? 'Unknown',
-        serviceName:
-          serviceMap.get(
-            Array.from(serviceMap.keys())[
-              Math.floor(Math.random() * serviceMap.size)
-            ],
-          )?.name ?? 'Unknown',
-        attackerDelta: Math.floor(Math.random() * 100),
-        victimDelta: Math.floor(Math.random() * 100),
-      })),
-    );
-
     const centrifuge = new Centrifuge(centrifugeWSURL);
 
     const sub = centrifuge.newSubscription('attacks');
@@ -87,7 +64,7 @@ export default function Live() {
         victimDelta: attack.victimDelta,
       }));
 
-      setEvents((prev) => [...newEvents, ...prev].slice(0, 50));
+      setEvents((prev) => [...newEvents, ...prev].slice(0, MAX_EVENTS));
     });
 
     sub.subscribe();
