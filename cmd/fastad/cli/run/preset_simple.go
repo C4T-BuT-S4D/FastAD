@@ -14,6 +14,8 @@ import (
 
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
+
+	"github.com/c4t-but-s4d/fastad/cmd/fastad/cli/common"
 )
 
 type simpleEnvTemplateContext struct {
@@ -53,7 +55,7 @@ CADDY_PORT={{ .PublicPort }}
 
 var simpleEnvTemplate = template.Must(template.New("simpleEnv").Parse(simpleEnvTemplateData))
 
-func StartPresetSimple(ctx context.Context, root string, config *GameConfig) error {
+func StartPresetSimple(ctx context.Context, root string, config *common.GameConfig) error {
 	envPath := filepath.Join(root, ".env")
 	envContext := simpleEnvTemplateContext{
 		LogLevel:      config.FastAD.LogLevel,

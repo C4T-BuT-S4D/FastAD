@@ -21,7 +21,7 @@ import (
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
-func NewRunCommand(_ *common.CommandContext) *cli.Command {
+func NewCommand(_ *common.CommandContext) *cli.Command {
 	return &cli.Command{
 		Name:  "run",
 		Usage: "Setup & run the game",
@@ -59,7 +59,7 @@ func NewRunCommand(_ *common.CommandContext) *cli.Command {
 				return fmt.Errorf("reading game config: %w", err)
 			}
 
-			var cfg *GameConfig
+			var cfg *common.GameConfig
 			if err := yaml.Unmarshal(content, &cfg); err != nil {
 				return fmt.Errorf("unmarshalling game config: %w", err)
 			}
@@ -82,6 +82,19 @@ func NewRunCommand(_ *common.CommandContext) *cli.Command {
 					zap.L().Info("simple preset started")
 				default:
 					return fmt.Errorf("unsupported preset: %s", c.String("preset"))
+				}
+
+				generatedDir := filepath.Join(root, common.GeneratedDir)
+				if err := os.MkdirAll(generatedDir, 0755); err != nil {
+					return fmt.Errorf("creating generated dir: %w", err)
+				}
+				configContent, err := yaml.Marshal(cfg)
+				if err != nil {
+					return fmt.Errorf("marshalling game config: %w", err)
+				}
+				generatedConfigPath := filepath.Join(generatedDir, common.GeneratedGameConfig)
+				if err := os.WriteFile(generatedConfigPath, configContent, 0644); err != nil {
+					return fmt.Errorf("writing generated game config: %w", err)
 				}
 			} else {
 				zap.L().Info("skipping starting the services")
@@ -109,11 +122,11 @@ func NewRunCommand(_ *common.CommandContext) *cli.Command {
 			servicesClient := services.NewClient(servicespb.NewServicesServiceClient(apiConn))
 			gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(apiConn))
 
-			teamsToCreate := lo.Map(cfg.Teams, func(t *Team, _ int) *teamspb.Team {
+			teamsToCreate := lo.Map(cfg.Teams, func(t *common.Team, _ int) *teamspb.Team {
 				return t.ToProto()
 			})
 
-			servicesToCreate := lo.Map(cfg.Services, func(s *Service, _ int) *servicespb.Service {
+			servicesToCreate := lo.Map(cfg.Services, func(s *common.Service, _ int) *servicespb.Service {
 				return s.ToProto()
 			})
 

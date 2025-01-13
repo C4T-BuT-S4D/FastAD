@@ -1,4 +1,4 @@
-package run
+package common
 
 import (
 	"fmt"
@@ -11,6 +11,7 @@ import (
 
 type CheckerAction checkerpb.Action
 
+//goland:noinspection GoMixedReceiverTypes
 func (a *CheckerAction) UnmarshalYAML(value *yaml.Node) error {
 	var s string
 	if err := value.Decode(&s); err != nil {
@@ -25,4 +26,14 @@ func (a *CheckerAction) UnmarshalYAML(value *yaml.Node) error {
 
 	*a = CheckerAction(enumValue)
 	return nil
+}
+
+//goland:noinspection GoMixedReceiverTypes
+func (a CheckerAction) MarshalYAML() (interface{}, error) {
+	enumName, ok := checkerpb.Action_name[int32(a)]
+	if !ok {
+		return nil, fmt.Errorf("unknown checker action: %d", a)
+	}
+
+	return strings.ToLower(strings.TrimPrefix(enumName, "ACTION_")), nil
 }

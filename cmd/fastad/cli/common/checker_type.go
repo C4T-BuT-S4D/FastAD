@@ -1,4 +1,4 @@
-package run
+package common
 
 import (
 	"fmt"
@@ -11,6 +11,7 @@ import (
 
 type CheckerType checkerpb.Type
 
+//goland:noinspection GoMixedReceiverTypes
 func (t *CheckerType) UnmarshalYAML(value *yaml.Node) error {
 	var s string
 	if err := value.Decode(&s); err != nil {
@@ -30,4 +31,14 @@ func (t *CheckerType) UnmarshalYAML(value *yaml.Node) error {
 
 	*t = CheckerType(enumValue)
 	return nil
+}
+
+//goland:noinspection GoMixedReceiverTypes
+func (t CheckerType) MarshalYAML() (any, error) {
+	enumName, ok := checkerpb.Type_name[int32(t)]
+	if !ok {
+		return nil, fmt.Errorf("unknown checker type: %d", t)
+	}
+
+	return strings.ToLower(strings.TrimPrefix(enumName, "TYPE_")), nil
 }

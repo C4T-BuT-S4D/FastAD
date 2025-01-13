@@ -1,8 +1,11 @@
-package run
+package common
 
 import (
 	"errors"
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -11,6 +14,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"gopkg.in/yaml.v3"
 
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
@@ -261,4 +265,30 @@ func (c *GameConfig) Validate() error {
 		}
 	}
 	return nil
+}
+
+func ReadGeneratedConfig() (*GameConfig, error) {
+	root, err := GetFastADRoot()
+	if err != nil {
+		return nil, fmt.Errorf("getting fastad root: %w", err)
+	}
+
+	gameConfig := filepath.Join(root, GeneratedDir, GeneratedGameConfig)
+	configContent, err := os.ReadFile(gameConfig)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, fmt.Errorf(
+			"game was not initialized, run 'fastad run' first (config at %s missing)",
+			gameConfig,
+		)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("reading game config: %w", err)
+	}
+
+	var cfg GameConfig
+	if err := yaml.Unmarshal(configContent, &cfg); err != nil {
+		return nil, fmt.Errorf("unmarshaling game config: %w", err)
+	}
+
+	return &cfg, nil
 }

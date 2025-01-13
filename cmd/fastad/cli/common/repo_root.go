@@ -7,6 +7,11 @@ import (
 	"path/filepath"
 )
 
+const (
+	GeneratedDir        = ".generated"
+	GeneratedGameConfig = "game.yaml"
+)
+
 func GetFastADRoot() (string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
