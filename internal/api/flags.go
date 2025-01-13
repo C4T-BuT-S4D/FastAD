@@ -30,7 +30,7 @@ func (s *Service) HandleSubmitFlags() echo.HandlerFunc {
 			ctx,
 			&receiverpb.SubmitFlagsRequest{
 				Flags:     req.Flags,
-				TeamToken: c.Request().Header.Get("X-Team-Token"),
+				TeamToken: TeamTokenHeader,
 			},
 		)
 		if err != nil {

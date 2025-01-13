@@ -56,6 +56,19 @@ func (c *Client) CreateBatch(ctx context.Context, teams []*teamspb.Team) ([]*tea
 	return resp.GetTeams(), nil
 }
 
+func (c *Client) Update(ctx context.Context, req *teamspb.UpdateRequest) (*teamspb.Team, error) {
+	resp, err := c.c.Update(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("making api request: %w", err)
+	}
+
+	if err := c.refresh(ctx); err != nil {
+		return nil, fmt.Errorf("refreshing: %w", err)
+	}
+
+	return resp.GetTeam(), nil
+}
+
 func (c *Client) refresh(ctx context.Context) error {
 	c.refreshMu.Lock()
 	defer c.refreshMu.Unlock()

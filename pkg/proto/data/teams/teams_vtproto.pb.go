@@ -48,6 +48,7 @@ func (m *Team) CloneVT() *Team {
 	r.Name = m.Name
 	r.Address = m.Address
 	r.Token = m.Token
+	r.AvatarUrl = m.AvatarUrl
 	if rhs := m.Labels; rhs != nil {
 		tmpContainer := make(map[string]string, len(rhs))
 		for k, v := range rhs {
@@ -153,6 +154,45 @@ func (m *CreateBatchResponse) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
 
+func (m *UpdateRequest) CloneVT() *UpdateRequest {
+	if m == nil {
+		return (*UpdateRequest)(nil)
+	}
+	r := new(UpdateRequest)
+	r.Id = m.Id
+	r.Name = m.Name
+	r.Address = m.Address
+	r.Token = m.Token
+	r.AvatarUrl = m.AvatarUrl
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *UpdateRequest) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *UpdateResponse) CloneVT() *UpdateResponse {
+	if m == nil {
+		return (*UpdateResponse)(nil)
+	}
+	r := new(UpdateResponse)
+	r.Team = m.Team.CloneVT()
+	r.Version = m.Version.CloneVT()
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *UpdateResponse) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
 func (this *Team_Batch) EqualVT(that *Team_Batch) bool {
 	if this == that {
 		return true
@@ -215,6 +255,9 @@ func (this *Team) EqualVT(that *Team) bool {
 		if vx != vy {
 			return false
 		}
+	}
+	if this.AvatarUrl != that.AvatarUrl {
+		return false
 	}
 	return string(this.unknownFields) == string(that.unknownFields)
 }
@@ -342,6 +385,59 @@ func (this *CreateBatchResponse) EqualVT(that *CreateBatchResponse) bool {
 
 func (this *CreateBatchResponse) EqualMessageVT(thatMsg proto.Message) bool {
 	that, ok := thatMsg.(*CreateBatchResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *UpdateRequest) EqualVT(that *UpdateRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Id != that.Id {
+		return false
+	}
+	if this.Name != that.Name {
+		return false
+	}
+	if this.Address != that.Address {
+		return false
+	}
+	if this.Token != that.Token {
+		return false
+	}
+	if this.AvatarUrl != that.AvatarUrl {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UpdateRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*UpdateRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *UpdateResponse) EqualVT(that *UpdateResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.Team.EqualVT(that.Team) {
+		return false
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UpdateResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*UpdateResponse)
 	if !ok {
 		return false
 	}

@@ -10,6 +10,8 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/httpext"
 )
 
+const TeamTokenHeader = "X-Team-Token"
+
 func ProtoJSON(c echo.Context, code int, msg proto.Message) error {
 	raw, err := protojson.MarshalOptions{EmitUnpopulated: true}.Marshal(msg)
 	if err != nil {

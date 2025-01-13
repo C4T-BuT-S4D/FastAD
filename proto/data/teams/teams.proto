@@ -14,6 +14,7 @@ message Team {
   string address = 3;
   string token = 4;
   map<string, string> labels = 5;
+  string avatar_url = 6;
 }
 
 message ListRequest {
@@ -31,4 +32,17 @@ message CreateBatchRequest {
 
 message CreateBatchResponse {
   repeated Team teams = 1;
+}
+
+message UpdateRequest {
+  int64 id = 1;
+  string name = 2;
+  string address = 3;
+  string token = 4;
+  string avatar_url = 5;
+}
+
+message UpdateResponse {
+  Team team = 1;
+  data.version.Version version = 2;
 }

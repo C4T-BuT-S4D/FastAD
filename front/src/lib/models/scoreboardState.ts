@@ -1,8 +1,6 @@
 import { Service } from '@/proto/data/services/services';
 import { Team } from '@/proto/data/teams/teams';
-import { Scoreboard } from '@/proto/scoreboard/scoreboard';
-
-import { Scoreboard_TeamServiceState } from '@/proto/scoreboard/scoreboard';
+import { Scoreboard, Scoreboard_TeamServiceState } from '@/proto/scoreboard/scoreboard';
 
 export class ScoreboardState {
   private teamServiceState: Map<
@@ -44,14 +42,13 @@ export class ScoreboardState {
         const scoreB = this.teamScore.get(b.id) ?? 0;
         return scoreB - scoreA;
       });
-    return Array(50).fill(sortedTeams).flat();
+    return sortedTeams;
   }
 
   public prepareServices(services: Service[]) {
-    const sortedServices = [...services].sort((a, b) => {
+    return [...services].sort((a, b) => {
       return parseInt(a.id) - parseInt(b.id);
     });
-    return Array(1).fill(sortedServices).flat();
   }
 
   public getTeamScore(teamId: string) {

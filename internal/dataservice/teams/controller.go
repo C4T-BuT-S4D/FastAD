@@ -9,6 +9,7 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/internal/version"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 )
 
 const VersionKey = "teams"
@@ -67,9 +68,45 @@ func (c *Controller) CreateBatch(ctx context.Context, teams []*models.Team) erro
 	return nil
 }
 
-func (c *Controller) Migrate(ctx context.Context) error {
-	if _, err := c.db.NewCreateTable().IfNotExists().Model(&models.Team{}).Exec(ctx); err != nil {
-		return fmt.Errorf("creating teams table: %w", err)
+func (c *Controller) Update(ctx context.Context, req *teamspb.UpdateRequest) (*models.Team, int, error) {
+	var team models.Team
+	var newVersion int
+	if err := c.db.RunInTx(
+		ctx,
+		&sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+			query := c.db.NewUpdate().
+				Model(&models.Team{}).
+				Where("id = ?", req.GetId()).
+				Returning("*")
+
+			if req.GetName() != "" {
+				query.Set("name = ?", req.GetName())
+			}
+			if req.GetAddress() != "" {
+				query.Set("address = ?", req.GetAddress())
+			}
+			if req.GetToken() != "" {
+				query.Set("token = ?", req.GetToken())
+			}
+			if req.GetAvatarUrl() != "" {
+				query.Set("avatar_url = ?", req.GetAvatarUrl())
+			}
+
+			if err := query.Model(&team).Scan(ctx); err != nil {
+				return fmt.Errorf("updating team: %w", err)
+			}
+
+			var err error
+			if newVersion, err = c.Versions.Increment(ctx, tx, VersionKey); err != nil {
+				return fmt.Errorf("incrementing version: %w", err)
+			}
+
+			return nil
+		},
+	); err != nil {
+		return nil, 0, fmt.Errorf("in transaction: %w", err)
 	}
-	return nil
+
+	return &team, newVersion, nil
 }

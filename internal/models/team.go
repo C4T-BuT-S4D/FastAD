@@ -11,11 +11,12 @@ import (
 type Team struct {
 	bun.BaseModel `bun:"teams,alias:t"`
 
-	ID      int               `bun:"id,pk,autoincrement"`
-	Name    string            `bun:"name,notnull,unique"`
-	Address string            `bun:"address,notnull"`
-	Token   string            `bun:"token,notnull"`
-	Labels  map[string]string `bun:"labels,type:jsonb,notnull"`
+	ID        int               `bun:"id,pk,autoincrement"`
+	Name      string            `bun:"name,notnull,unique"`
+	Address   string            `bun:"address,notnull"`
+	Token     string            `bun:"token,notnull"`
+	Labels    map[string]string `bun:"labels,type:jsonb,notnull"`
+	AvatarURL string            `bun:"avatar_url"`
 }
 
 func (t *Team) String() string {
@@ -24,20 +25,22 @@ func (t *Team) String() string {
 
 func (t *Team) ToProto() *teamspb.Team {
 	return &teamspb.Team{
-		Id:      int64(t.ID),
-		Name:    t.Name,
-		Address: t.Address,
-		Token:   t.Token,
-		Labels:  t.Labels,
+		Id:        int64(t.ID),
+		Name:      t.Name,
+		Address:   t.Address,
+		Token:     t.Token,
+		Labels:    t.Labels,
+		AvatarUrl: t.AvatarURL,
 	}
 }
 
 func NewTeamFromProto(team *teamspb.Team) *Team {
 	return &Team{
-		ID:      int(team.GetId()),
-		Name:    team.GetName(),
-		Address: team.GetAddress(),
-		Token:   team.GetToken(),
-		Labels:  team.GetLabels(),
+		ID:        int(team.GetId()),
+		Name:      team.GetName(),
+		Address:   team.GetAddress(),
+		Token:     team.GetToken(),
+		Labels:    team.GetLabels(),
+		AvatarURL: team.GetAvatarUrl(),
 	}
 }

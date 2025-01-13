@@ -16,6 +16,7 @@ export interface Team {
   address: string;
   token: string;
   labels: { [key: string]: string };
+  avatarUrl: string;
 }
 
 export interface Team_Batch {
@@ -44,8 +45,21 @@ export interface CreateBatchResponse {
   teams: Team[];
 }
 
+export interface UpdateRequest {
+  id: string;
+  name: string;
+  address: string;
+  token: string;
+  avatarUrl: string;
+}
+
+export interface UpdateResponse {
+  team: Team | undefined;
+  version: Version | undefined;
+}
+
 function createBaseTeam(): Team {
-  return { id: "0", name: "", address: "", token: "", labels: {} };
+  return { id: "0", name: "", address: "", token: "", labels: {}, avatarUrl: "" };
 }
 
 export const Team: MessageFns<Team> = {
@@ -65,6 +79,9 @@ export const Team: MessageFns<Team> = {
     Object.entries(message.labels).forEach(([key, value]) => {
       Team_LabelsEntry.encode({ key: key as any, value }, writer.uint32(42).fork()).join();
     });
+    if (message.avatarUrl !== "") {
+      writer.uint32(50).string(message.avatarUrl);
+    }
     return writer;
   },
 
@@ -118,6 +135,14 @@ export const Team: MessageFns<Team> = {
           }
           continue;
         }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.avatarUrl = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -169,6 +194,7 @@ export const Team: MessageFns<Team> = {
           return acc;
         }, {})
         : {},
+      avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
     };
   },
 
@@ -195,6 +221,9 @@ export const Team: MessageFns<Team> = {
         });
       }
     }
+    if (message.avatarUrl !== "") {
+      obj.avatarUrl = message.avatarUrl;
+    }
     return obj;
   },
 
@@ -213,6 +242,7 @@ export const Team: MessageFns<Team> = {
       }
       return acc;
     }, {});
+    message.avatarUrl = object.avatarUrl ?? "";
     return message;
   },
 };
@@ -797,6 +827,272 @@ export const CreateBatchResponse: MessageFns<CreateBatchResponse> = {
   fromPartial<I extends Exact<DeepPartial<CreateBatchResponse>, I>>(object: I): CreateBatchResponse {
     const message = createBaseCreateBatchResponse();
     message.teams = object.teams?.map((e) => Team.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseUpdateRequest(): UpdateRequest {
+  return { id: "0", name: "", address: "", token: "", avatarUrl: "" };
+}
+
+export const UpdateRequest: MessageFns<UpdateRequest> = {
+  encode(message: UpdateRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "0") {
+      writer.uint32(8).int64(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.address !== "") {
+      writer.uint32(26).string(message.address);
+    }
+    if (message.token !== "") {
+      writer.uint32(34).string(message.token);
+    }
+    if (message.avatarUrl !== "") {
+      writer.uint32(42).string(message.avatarUrl);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = reader.int64().toString();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.address = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.token = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.avatarUrl = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<UpdateRequest, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<UpdateRequest | UpdateRequest[]> | Iterable<UpdateRequest | UpdateRequest[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [UpdateRequest.encode(p).finish()];
+        }
+      } else {
+        yield* [UpdateRequest.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, UpdateRequest>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<UpdateRequest> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [UpdateRequest.decode(p)];
+        }
+      } else {
+        yield* [UpdateRequest.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): UpdateRequest {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "0",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      address: isSet(object.address) ? globalThis.String(object.address) : "",
+      token: isSet(object.token) ? globalThis.String(object.token) : "",
+      avatarUrl: isSet(object.avatarUrl) ? globalThis.String(object.avatarUrl) : "",
+    };
+  },
+
+  toJSON(message: UpdateRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "0") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.address !== "") {
+      obj.address = message.address;
+    }
+    if (message.token !== "") {
+      obj.token = message.token;
+    }
+    if (message.avatarUrl !== "") {
+      obj.avatarUrl = message.avatarUrl;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateRequest>, I>>(base?: I): UpdateRequest {
+    return UpdateRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateRequest>, I>>(object: I): UpdateRequest {
+    const message = createBaseUpdateRequest();
+    message.id = object.id ?? "0";
+    message.name = object.name ?? "";
+    message.address = object.address ?? "";
+    message.token = object.token ?? "";
+    message.avatarUrl = object.avatarUrl ?? "";
+    return message;
+  },
+};
+
+function createBaseUpdateResponse(): UpdateResponse {
+  return { team: undefined, version: undefined };
+}
+
+export const UpdateResponse: MessageFns<UpdateResponse> = {
+  encode(message: UpdateResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.team !== undefined) {
+      Team.encode(message.team, writer.uint32(10).fork()).join();
+    }
+    if (message.version !== undefined) {
+      Version.encode(message.version, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.team = Team.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.version = Version.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  // encodeTransform encodes a source of message objects.
+  // Transform<UpdateResponse, Uint8Array>
+  async *encodeTransform(
+    source: AsyncIterable<UpdateResponse | UpdateResponse[]> | Iterable<UpdateResponse | UpdateResponse[]>,
+  ): AsyncIterable<Uint8Array> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [UpdateResponse.encode(p).finish()];
+        }
+      } else {
+        yield* [UpdateResponse.encode(pkt as any).finish()];
+      }
+    }
+  },
+
+  // decodeTransform decodes a source of encoded messages.
+  // Transform<Uint8Array, UpdateResponse>
+  async *decodeTransform(
+    source: AsyncIterable<Uint8Array | Uint8Array[]> | Iterable<Uint8Array | Uint8Array[]>,
+  ): AsyncIterable<UpdateResponse> {
+    for await (const pkt of source) {
+      if (globalThis.Array.isArray(pkt)) {
+        for (const p of (pkt as any)) {
+          yield* [UpdateResponse.decode(p)];
+        }
+      } else {
+        yield* [UpdateResponse.decode(pkt as any)];
+      }
+    }
+  },
+
+  fromJSON(object: any): UpdateResponse {
+    return {
+      team: isSet(object.team) ? Team.fromJSON(object.team) : undefined,
+      version: isSet(object.version) ? Version.fromJSON(object.version) : undefined,
+    };
+  },
+
+  toJSON(message: UpdateResponse): unknown {
+    const obj: any = {};
+    if (message.team !== undefined) {
+      obj.team = Team.toJSON(message.team);
+    }
+    if (message.version !== undefined) {
+      obj.version = Version.toJSON(message.version);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateResponse>, I>>(base?: I): UpdateResponse {
+    return UpdateResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateResponse>, I>>(object: I): UpdateResponse {
+    const message = createBaseUpdateResponse();
+    message.team = (object.team !== undefined && object.team !== null) ? Team.fromPartial(object.team) : undefined;
+    message.version = (object.version !== undefined && object.version !== null)
+      ? Version.fromPartial(object.version)
+      : undefined;
     return message;
   },
 };

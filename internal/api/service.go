@@ -60,6 +60,8 @@ func NewService(
 func (s *Service) RegisterRoutes(e *echo.Echo) {
 	apiGroup := e.Group("/api")
 	apiGroup.GET("/teams", s.HandleTeamsList())
+	// Team is determined by header, not path param.
+	apiGroup.PUT("/teams", s.HandleTeamUpdate())
 	apiGroup.GET("/teams/:team_id/history", s.HandleTeamHistory())
 	apiGroup.GET("/services", s.HandleServicesList())
 	apiGroup.GET("/scoreboard", s.HandleGetScoreboard())

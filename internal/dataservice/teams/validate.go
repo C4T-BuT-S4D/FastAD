@@ -21,3 +21,10 @@ func (s *Service) validateCreateBatchRequest(req *teamspb.CreateBatchRequest) er
 	}
 	return nil
 }
+
+func (s *Service) validateUpdateRequest(req *teamspb.UpdateRequest) error {
+	if req.GetId() == 0 {
+		return status.Error(codes.InvalidArgument, "id required")
+	}
+	return nil
+}

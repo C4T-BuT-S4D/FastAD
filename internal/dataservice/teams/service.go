@@ -81,3 +81,21 @@ func (s *Service) CreateBatch(ctx context.Context, req *teamspb.CreateBatchReque
 		Teams: result,
 	}, nil
 }
+
+func (s *Service) Update(ctx context.Context, req *teamspb.UpdateRequest) (*teamspb.UpdateResponse, error) {
+	zap.L().Debug("TeamsService/Update", zap.Any("request", req))
+
+	if err := s.validateUpdateRequest(req); err != nil {
+		return nil, fmt.Errorf("validating request: %w", err)
+	}
+
+	team, newVersion, err := s.controller.Update(ctx, req)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "updating team: %v", err)
+	}
+
+	return &teamspb.UpdateResponse{
+		Team:    team.ToProto(),
+		Version: version.NewVersionProto(newVersion),
+	}, nil
+}

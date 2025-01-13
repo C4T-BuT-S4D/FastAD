@@ -101,3 +101,37 @@ func (s *Service) HandleTeamHistory() echo.HandlerFunc {
 		return ProtoJSON(c, http.StatusOK, resp)
 	}
 }
+
+func (s *Service) HandleTeamUpdate() echo.HandlerFunc {
+	type request struct {
+		AvatarURL *string `json:"avatar_url"`
+	}
+
+	return func(c echo.Context) error {
+		ctx := httpext.ContextFromEcho(c)
+
+		req := new(request)
+		if err := c.Bind(req); err != nil {
+			return httpext.NewErrorf(http.StatusBadRequest, "binding request: %v", err)
+		}
+
+		teamToken := c.Request().Header.Get(TeamTokenHeader)
+		currentTeam, err := s.teamsClient.GetByToken(ctx, teamToken)
+		if err != nil {
+			return httpext.NewErrorFromStatus(err, "getting current team")
+		}
+
+		updateReq := &teamspb.UpdateRequest{Id: currentTeam.GetId()}
+		if req.AvatarURL != nil {
+			updateReq.AvatarUrl = *req.AvatarURL
+		}
+		team, err := s.teamsClient.Update(ctx, updateReq)
+		if err != nil {
+			return httpext.NewErrorFromStatus(err, "updating team")
+		}
+
+		team.Token = ""
+
+		return ProtoJSON(c, http.StatusOK, team)
+	}
+}

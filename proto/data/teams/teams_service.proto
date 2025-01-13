@@ -8,4 +8,6 @@ service TeamsService {
     rpc List(data.teams.ListRequest) returns (data.teams.ListResponse);
 
     rpc CreateBatch(data.teams.CreateBatchRequest) returns (data.teams.CreateBatchResponse);
+
+    rpc Update(data.teams.UpdateRequest) returns (data.teams.UpdateResponse);
 }
