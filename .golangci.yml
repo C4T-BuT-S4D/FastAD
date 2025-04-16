@@ -135,19 +135,26 @@ linters:
       - linters:
           - goconst
         path: (.+)_test\.go
-    paths:
-      - third_party$
-      - builtin$
-      - examples$
 formatters:
   enable:
     - gofmt
     - gofumpt
+    - gci
   settings:
     gofmt:
-      simplify: false
+      simplify: true
       rewrite-rules:
-        - pattern: interface{}
-          replacement: any
+        - pattern: 'interface{}'
+          replacement: 'any'
+    gofumpt:
+      extra-rules: true
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/c4t-but-s4d/fastad)
+        - blank
+        - localmodule
+      custom-order: true
   exclusions:
     generated: lax

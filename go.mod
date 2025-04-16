@@ -1,6 +1,6 @@
 module github.com/c4t-but-s4d/fastad
 
-go 1.23
+go 1.24.2
 
 require (
 	github.com/creasty/defaults v1.8.0
