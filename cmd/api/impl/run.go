@@ -113,9 +113,10 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 			LogRoutePath: true,
 			LogValuesFunc: func(_ echo.Context, v middleware.RequestLoggerValues) error {
 				logFunc := zap.L().Debug
-				if v.Status/100 == 5 {
+				switch v.Status / 100 {
+				case 5:
 					logFunc = zap.L().Error
-				} else if v.Status/100 == 4 {
+				case 4:
 					logFunc = zap.L().Warn
 				}
 

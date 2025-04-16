@@ -30,6 +30,7 @@ type simpleEnvTemplateContext struct {
 	TemporalPostgresHost     string
 	TemporalPostgresPort     string
 	TemporalPostgresTLS      string
+	TemporalSkipDBCreate     string
 }
 
 const simpleEnvTemplateData = `# FastAD simple preset environment file
@@ -48,6 +49,7 @@ TEMPORAL_POSTGRES_DATABASE={{ .TemporalPostgresDatabase }}
 TEMPORAL_POSTGRES_HOST={{ .TemporalPostgresHost }}
 TEMPORAL_POSTGRES_PORT={{ .TemporalPostgresPort }}
 TEMPORAL_POSTGRES_TLS={{ .TemporalPostgresTLS }}
+TEMPORAL_SKIP_DB_CREATE={{ .TemporalSkipDBCreate }}
 
 # caddy
 CADDY_PORT={{ .PublicPort }}
@@ -89,6 +91,7 @@ func StartPresetSimple(ctx context.Context, root string, config *common.GameConf
 
 		envContext.TemporalPostgresHost = parsedDSN.Hostname()
 		envContext.TemporalPostgresPort = parsedDSN.Port()
+		envContext.TemporalSkipDBCreate = "true"
 	} else {
 		startTemporalPostgres = true
 		envContext.TemporalPostgresHost = "temporal-postgres"
@@ -98,6 +101,7 @@ func StartPresetSimple(ctx context.Context, root string, config *common.GameConf
 		envContext.TemporalPostgresPassword = "temporal"
 		envContext.TemporalPostgresDatabase = "temporal"
 		envContext.TemporalPostgresTLS = "false"
+		envContext.TemporalSkipDBCreate = "false"
 	}
 
 	var envContent bytes.Buffer
@@ -145,7 +149,10 @@ func StartPresetSimple(ctx context.Context, root string, config *common.GameConf
 		delete(parsedCompose.Volumes, "temporal-db")
 
 		if app, ok := parsedCompose.Services["app"].(map[string]any); ok {
-			app["depends_on"] = nil
+			delete(app, "depends_on")
+		}
+		if temporal, ok := parsedCompose.Services["temporal"].(map[string]any); ok {
+			delete(temporal, "depends_on")
 		}
 	}
 

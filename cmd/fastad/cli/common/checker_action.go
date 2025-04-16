@@ -29,7 +29,7 @@ func (a *CheckerAction) UnmarshalYAML(value *yaml.Node) error {
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (a CheckerAction) MarshalYAML() (interface{}, error) {
+func (a CheckerAction) MarshalYAML() (any, error) {
 	enumName, ok := checkerpb.Action_name[int32(a)]
 	if !ok {
 		return nil, fmt.Errorf("unknown checker action: %d", a)

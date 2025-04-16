@@ -1,12 +1,6 @@
 import { createProtoJSONTransform } from '@/lib/clients/common';
 import statusColor from '@/lib/styles/statusColor';
-import {
-  actionToJSON,
-  Execution,
-  Execution_Batch,
-  Status,
-  statusToJSON,
-} from '@/proto/checker/checker';
+import { actionToJSON, Execution, Execution_Batch, Status, statusToJSON } from '@/proto/checker/checker';
 import { Service, Service_Batch } from '@/proto/data/services/services';
 import Timeline from '@mui/lab/Timeline';
 import TimelineConnector from '@mui/lab/TimelineConnector';
@@ -35,7 +29,7 @@ export default function TeamHistoryTimeline(props: Props) {
         {
           transformResponse: createProtoJSONTransform(Execution_Batch),
           params: {
-            serviceId: props.serviceID,
+            service_id: props.serviceID,
           },
         },
       );

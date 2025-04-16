@@ -1,0 +1,36 @@
+database:
+  external_dsn: postgres://fastad:12345678@rc1a-eeas1g58rojn2hpe.mdb.yandexcloud.net:6432/fastad
+  temporal_external_dsn: postgres://fastad:12345678@rc1a-eeas1g58rojn2hpe.mdb.yandexcloud.net:6432/temporal
+game:
+  end_time: '2026-11-30T15:30:00+03:00'
+  flag_lifetime_rounds: 10
+  hardness: 15
+  mode: classic
+  round_duration: 30s
+  start_time: '2021-11-30T15:30:00+03:00'
+services:
+  - checker:
+      default_timeout: 10s
+      path: ./mole_vault/checker.py
+    default_score: 3000
+    name: mole_vault
+  - checker:
+      default_timeout: 10s
+      path: ./numbpy/checker.py
+    default_score: 3000
+    name: numbpy
+  - checker:
+      default_timeout: 10s
+      path: ./qrsas/checker.py
+    default_score: 3000
+    name: qrsas
+  - checker:
+      default_timeout: 10s
+      path: ./simple/checker.py
+    default_score: 3000
+    name: simple
+teams:
+  - address: 10.80.0.2
+    name: NPC
+  - address: missing
+    name: team2

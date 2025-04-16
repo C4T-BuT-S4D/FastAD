@@ -85,7 +85,7 @@ func NewCommand(_ *common.CommandContext) *cli.Command {
 				}
 
 				generatedDir := filepath.Join(root, common.GeneratedDir)
-				if err := os.MkdirAll(generatedDir, 0755); err != nil {
+				if err := os.MkdirAll(generatedDir, 0o755); err != nil {
 					return fmt.Errorf("creating generated dir: %w", err)
 				}
 				configContent, err := yaml.Marshal(cfg)
@@ -93,7 +93,7 @@ func NewCommand(_ *common.CommandContext) *cli.Command {
 					return fmt.Errorf("marshalling game config: %w", err)
 				}
 				generatedConfigPath := filepath.Join(generatedDir, common.GeneratedGameConfig)
-				if err := os.WriteFile(generatedConfigPath, configContent, 0644); err != nil {
+				if err := os.WriteFile(generatedConfigPath, configContent, 0o644); err != nil {
 					return fmt.Errorf("writing generated game config: %w", err)
 				}
 			} else {
