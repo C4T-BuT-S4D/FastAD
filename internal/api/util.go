@@ -17,7 +17,7 @@ func ProtoJSON(c echo.Context, code int, msg proto.Message) error {
 	if err != nil {
 		return httpext.NewErrorf(
 			http.StatusInternalServerError,
-			"marshaling teams: %v",
+			"marshaling proto json: %v",
 			err,
 		)
 	}
