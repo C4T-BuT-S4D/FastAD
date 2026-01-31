@@ -7,7 +7,9 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
+	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/migrate"
 	"github.com/urfave/cli/v2"
 	"go.uber.org/zap"
@@ -17,6 +19,56 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/config"
 	"github.com/c4t-but-s4d/fastad/pkg/logging"
 )
+
+const (
+	maxRetries     = 10
+	initialBackoff = 1 * time.Second
+	maxBackoff     = 30 * time.Second
+)
+
+func connectWithRetry(ctx context.Context, pgCfg *config.Postgres) (*bun.DB, error) {
+	var db *bun.DB
+	backoff := initialBackoff
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		db = pgCfg.BunDB()
+
+		if err := db.PingContext(ctx); err != nil {
+			zap.L().Warn(
+				"failed to connect to postgres, retrying",
+				zap.Int("attempt", attempt),
+				zap.Int("max_retries", maxRetries),
+				zap.Duration("backoff", backoff),
+				zap.Error(err),
+			)
+
+			if err := db.Close(); err != nil {
+				zap.L().Warn("failed to close db connection", zap.Error(err))
+			}
+
+			if attempt == maxRetries {
+				return nil, fmt.Errorf("failed to connect to postgres after %d attempts: %w", maxRetries, err)
+			}
+
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(backoff):
+			}
+
+			backoff *= 2
+			if backoff > maxBackoff {
+				backoff = maxBackoff
+			}
+			continue
+		}
+
+		zap.L().Info("connected to postgres", zap.Int("attempt", attempt))
+		return db, nil
+	}
+
+	return nil, fmt.Errorf("failed to connect to postgres after %d attempts", maxRetries)
+}
 
 type Config struct {
 	Postgres config.Postgres `mapstructure:"postgres"`
@@ -29,12 +81,18 @@ func main() {
 
 	var cfg *Config
 	var migrator *migrate.Migrator
-	app.Before = func(_ *cli.Context) error {
+	app.Before = func(c *cli.Context) error {
 		var err error
 		if cfg, err = baseconfig.SetupAll(&Config{}, baseconfig.WithEnvPrefix("FASTAD_MIGRATOR")); err != nil {
 			return fmt.Errorf("setting up config: %w", err)
 		}
-		migrator = migrate.NewMigrator(cfg.Postgres.BunDB(), migrations.Migrations)
+
+		db, err := connectWithRetry(c.Context, &cfg.Postgres)
+		if err != nil {
+			return fmt.Errorf("connecting to postgres: %w", err)
+		}
+
+		migrator = migrate.NewMigrator(db, migrations.Migrations)
 		return nil
 	}
 

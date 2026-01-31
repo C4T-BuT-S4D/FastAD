@@ -12,7 +12,7 @@ import (
 // HTTP waits for an HTTP server to become available at the given address.
 // It polls /health until it gets a 200 OK response.
 func HTTP(ctx context.Context, address string) error {
-	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
 	url := fmt.Sprintf("http://%s/healthcheck", address)

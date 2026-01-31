@@ -45,7 +45,7 @@ func Init() CheckedCloser {
 
 	return checkedCloserImpl(func() {
 		if err := zap.L().Sync(); err != nil && !errors.Is(err, syscall.ENOTTY) {
-			fmt.Printf("failed to sync logger: %v\n", err)
+			fmt.Fprintf(os.Stderr, "failed to sync logger: %v\n", err)
 		}
 	})
 }

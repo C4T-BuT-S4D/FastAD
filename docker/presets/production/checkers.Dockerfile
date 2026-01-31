@@ -16,20 +16,12 @@ RUN --mount=type=cache,target=/go/pkg/mod \
         go build \
             -trimpath \
             -ldflags="-w -s" \
-            -o "/allinone" \
-            "./cmd/allinone/main.go"
-
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-        go build \
-            -trimpath \
-            -ldflags="-w -s" \
-            -o "/migrator" \
-            "./cmd/migrator/main.go"
+            -o "/checkers" \
+            "./cmd/checkers/main.go"
 
 ARG COMPRESS_BINARIES="false"
 ENV COMPRESS_BINARIES=$COMPRESS_BINARIES
-RUN if [ "${COMPRESS_BINARIES}" = "true" ]; then upx --lzma -9 "/allinone" && upx --lzma -9 "/migrator"; fi
+RUN if [ "${COMPRESS_BINARIES}" = "true" ]; then upx --lzma -9 "/checkers"; fi
 
 FROM python:3.12-bookworm
 
@@ -40,13 +32,12 @@ ENV PIP_BREAK_SYSTEM_PACKAGES=true
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/
 
 ARG CHECKERS_DIR
-COPY ${CHECKERS_DIR} /checkers
+COPY ${CHECKERS_DIR} /checkers-scripts
 RUN --mount=type=cache,target=/root/.cache/uv \
-    find /checkers -name "requirements.txt" | while read -r file; do \
+    find /checkers-scripts -name "requirements.txt" | while read -r file; do \
       echo "Installing requirements from ${file}"; uv pip install --system -r "$file"; \
     done
 
-COPY --from=builder /allinone /allinone
-COPY --from=builder /migrator /migrator
+COPY --from=builder /checkers /checkers
 
-CMD ["/bin/sh", "-c", "/migrator init && /migrator migrate && /allinone"]
+ENTRYPOINT ["/checkers"]

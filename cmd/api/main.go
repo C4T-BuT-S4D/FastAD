@@ -4,7 +4,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/c4t-but-s4d/fastad/cmd/api/impl"
-	"github.com/c4t-but-s4d/fastad/internal/api"
+	"github.com/c4t-but-s4d/fastad/internal/handlers"
 	"github.com/c4t-but-s4d/fastad/pkg/baseconfig"
 	"github.com/c4t-but-s4d/fastad/pkg/logging"
 	"github.com/c4t-but-s4d/fastad/pkg/stop"
@@ -13,7 +13,7 @@ import (
 func main() {
 	defer logging.Init().Close()
 
-	cfg := baseconfig.MustSetupAll(&api.Config{}, baseconfig.WithEnvPrefix("FASTAD_API"))
+	cfg := baseconfig.MustSetupAll(&handlers.Config{}, baseconfig.WithEnvPrefix("FASTAD_API"))
 
 	runCtx, shutdownCtx, cancel := stop.SetupCtx()
 	defer cancel()

@@ -1,0 +1,81 @@
+# FastAD Game Configuration
+# Copy this file to fastad.yaml and modify as needed.
+
+# Platform settings (optional - defaults are sensible)
+fastad:
+  listen_port: 8080          # port for the web interface
+  log_level: info            # debug, info, warn, error
+  intercom_token: ""         # leave empty to auto-generate, or set for reproducible deploys
+
+# Admin credentials for the management interface
+# If omitted, random credentials will be generated and logged on startup
+admin:
+  username: admin
+  password: changeme123      # please change this!
+
+# Database connection (optional)
+# If omitted, FastAD will start its own PostgreSQL containers
+# Useful when you want to use an external managed database
+database:
+  external_dsn: ""                  # postgres://user:pass@host:5432/fastad?sslmode=disable
+  temporal_external_dsn: ""         # postgres://user:pass@host:5432/temporal?sslmode=disable
+
+# Game timing and scoring parameters
+game:
+  start_time: "2025-02-01T10:00:00Z"   # ISO 8601 format, when the game begins
+  end_time: "2025-02-01T18:00:00Z"     # optional, game ends when this time is reached
+  total_rounds: 0                       # or specify fixed number of rounds (0 = unlimited)
+
+  round_duration: 60s          # how long each round lasts (60s = 1 minute)
+  flag_lifetime_rounds: 5      # flags expire after this many rounds
+  hardness: 10.0               # scoring parameter, higher = more points per stolen flag
+  inflation: false             # if true, later rounds are worth more points
+
+  checkers_base_path: checkers # directory containing checker scripts (relative to fastad root)
+
+# Teams participating in the CTF
+teams:
+  - name: Team Alpha
+    address: 10.60.1.1         # vulnbox IP or hostname
+    labels:                    # optional metadata for filtering/display
+      country: US
+      university: MIT
+
+  - name: Team Beta
+    address: 10.60.1.2
+    labels:
+      country: DE
+
+  - name: Team Gamma
+    address: 10.60.1.3
+    # labels are optional
+
+# Services to be checked during the game
+services:
+  - name: example_service
+    default_score: 2500.0      # starting score for this service
+
+    checker:
+      type: legacy             # legacy (forcad-compatible), or leave empty for default
+      path: example/checker.py # relative to checkers_base_path
+      default_timeout: 30s     # max time for any checker action
+
+      # Per-action configuration (optional)
+      # Allows fine-tuning how many times each action runs and custom timeouts
+      actions:
+        check:
+          count: 1             # how many times to run CHECK per round
+          timeout: 15s         # override default_timeout for this action
+        put:
+          count: 1             # how many flags to PUT per round
+          timeout: 30s
+        get:
+          count: 3             # run GET multiple times (retrieves older flags)
+          timeout: 30s
+
+  - name: another_service
+    default_score: 2500.0
+    checker:
+      path: another/checker.py
+      default_timeout: 20s
+      # uses default action counts if not specified

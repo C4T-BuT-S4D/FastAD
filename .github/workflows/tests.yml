@@ -24,6 +24,27 @@ jobs:
       - name: Run tests
         run: make test
 
+  e2e-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [simple, production]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Create .fastad_root marker
+        run: touch .fastad_root
+
+      - name: Run E2E tests (${{ matrix.preset }} preset)
+        run: go test -tags "e2e e2e_${{ matrix.preset }}" -v ./tests/e2e/... -timeout 15m
+
   lint-go:
     runs-on: ubuntu-latest
     steps:

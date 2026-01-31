@@ -12,10 +12,16 @@ services:
       FASTAD_ALLINONE_API_LISTEN_ADDRESS: ":8080"
       FASTAD_LOG_LEVEL: ${FASTAD_LOG_LEVEL}
     depends_on:
-      temporal:
-        condition: service_healthy
+      temporal-create-namespace:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:8080/healthcheck || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   caddy:
     build:
@@ -28,29 +34,64 @@ services:
       - ./docker/presets/simple/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+
+  temporal-admin-tools:
+    image: temporalio/admin-tools:1.26.2
+    restart: on-failure:6
+    depends_on:
+      temporal-postgres:
+        condition: service_healthy
+    environment:
+      DB: postgres12
+      DB_PORT: ${TEMPORAL_POSTGRES_PORT}
+      POSTGRES_USER: ${TEMPORAL_POSTGRES_USER}
+      POSTGRES_PWD: ${TEMPORAL_POSTGRES_PASSWORD}
+      POSTGRES_SEEDS: ${TEMPORAL_POSTGRES_HOST}
+      SQL_PASSWORD: ${TEMPORAL_POSTGRES_PASSWORD}
+    volumes:
+      - ./docker/presets/simple/temporal-scripts:/scripts:ro
+    entrypoint: ["/bin/sh"]
+    command: /scripts/setup-postgres.sh
 
   temporal:
-    image: temporalio/auto-setup:1.26.2
+    image: temporalio/server:1.26.2
     restart: unless-stopped
     environment:
       DB: postgres12
       DB_PORT: ${TEMPORAL_POSTGRES_PORT}
-      DBNAME: ${TEMPORAL_POSTGRES_DATABASE}
-      VISIBILITY_DBNAME: ${TEMPORAL_POSTGRES_DATABASE}
       POSTGRES_USER: ${TEMPORAL_POSTGRES_USER}
       POSTGRES_PWD: ${TEMPORAL_POSTGRES_PASSWORD}
       POSTGRES_SEEDS: ${TEMPORAL_POSTGRES_HOST}
-      POSTGRES_TLS_ENABLED: ${TEMPORAL_POSTGRES_TLS}
-      SKIP_DB_CREATE: ${TEMPORAL_SKIP_DB_CREATE}
+      BIND_ON_IP: "0.0.0.0"
+      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
     depends_on:
-      temporal-postgres:
-        condition: service_healthy
+      temporal-admin-tools:
+        condition: service_completed_successfully
+    volumes:
+      - ./docker/presets/simple/temporal-dynamicconfig:/etc/temporal/config/dynamicconfig:ro
     healthcheck:
-      test: [ 'CMD-SHELL', 'tctl --address temporal:7233 workflow list' ]
+      test: ['CMD', 'nc', '-z', 'localhost', '7233']
       interval: 5s
-      timeout: 5s
-      retries: 10
-      start_period: 1m
+      timeout: 3s
+      retries: 60
+      start_period: 30s
+
+  temporal-create-namespace:
+    image: temporalio/admin-tools:1.26.2
+    restart: on-failure:5
+    depends_on:
+      temporal:
+        condition: service_healthy
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      DEFAULT_NAMESPACE: default
+    volumes:
+      - ./docker/presets/simple/temporal-scripts:/scripts:ro
+    entrypoint: ["/bin/sh"]
+    command: /scripts/create-namespace.sh
 
   temporal-ui:
     image: temporalio/ui:2.33.0
@@ -61,17 +102,19 @@ services:
       - TEMPORAL_UI_PUBLIC_PATH=/temporal
     depends_on:
       temporal:
-        condition: service_started
+        condition: service_healthy
 
   postgres:
     image: postgres:17.2-alpine
     restart: unless-stopped
+    ports:
+      - "${FASTAD_POSTGRES_EXTERNAL_PORT:-5433}:5432"
     environment:
       POSTGRES_USER: fastad
       POSTGRES_PASSWORD: fastad
       POSTGRES_DB: fastad
     volumes:
-      - fastad-db:/var/lib/postgresql/data
+      - ${FASTAD_DATA_DIR:-./data}/fastad-db:/var/lib/postgresql/data
     healthcheck:
       test: pg_isready -U fastad -d fastad
       interval: 5s
@@ -87,7 +130,7 @@ services:
       POSTGRES_PASSWORD: ${TEMPORAL_POSTGRES_PASSWORD}
       POSTGRES_DB: ${TEMPORAL_POSTGRES_DATABASE}
     volumes:
-      - temporal-db:/var/lib/postgresql/data
+      - ${FASTAD_DATA_DIR:-./data}/temporal-db:/var/lib/postgresql/data
     healthcheck:
       test: pg_isready -U temporal -d temporal
       interval: 5s
@@ -96,7 +139,5 @@ services:
       start_period: 30s
 
 volumes:
-  fastad-db:
-  temporal-db:
   caddy-data:
   caddy-config:

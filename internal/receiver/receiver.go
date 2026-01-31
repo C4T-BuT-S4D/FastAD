@@ -158,13 +158,12 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 				continue
 			}
 
-			// TODO: check flag lifetime (skipped for now for easier manual tests).
-			// if gameState.RunningRound-flag.Round > gameState.FlagLifetimeRounds {
-			// 	baseResponse.Verdict = receiverpb.FlagResponse_VERDICT_OLD
-			// 	baseResponse.Message = oldFlagMessage
-			// 	resp.Responses = append(resp.Responses, baseResponse)
-			// 	continue
-			// }
+			if gameState.GetRunningRound()-flag.Round > gameState.GetFlagLifetimeRounds() {
+				baseResponse.Verdict = receiverpb.FlagResponse_VERDICT_OLD
+				baseResponse.Message = oldFlagMessage
+				resp.Responses = append(resp.Responses, baseResponse)
+				continue
+			}
 
 			// Allow players to resubmit the flag later when the put is finished.
 			if !flag.PutFinished {

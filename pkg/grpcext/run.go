@@ -14,7 +14,8 @@ import (
 func RunServer(runCtx, shutdownCtx context.Context, server *grpc.Server, addr string) error {
 	logger := zap.L().With(zap.String("address", addr))
 
-	lis, err := net.Listen("tcp", addr)
+	var lc net.ListenConfig
+	lis, err := lc.Listen(runCtx, "tcp", addr)
 	if err != nil {
 		return fmt.Errorf("listening: %w", err)
 	}

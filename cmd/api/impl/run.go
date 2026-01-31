@@ -12,8 +12,8 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/c4t-but-s4d/fastad/internal/api"
 	"github.com/c4t-but-s4d/fastad/internal/centutil"
+	"github.com/c4t-but-s4d/fastad/internal/handlers"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
@@ -27,7 +27,7 @@ import (
 	slacpb "github.com/c4t-but-s4d/fastad/pkg/proto/slac"
 )
 
-func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
+func Run(runCtx, shutdownCtx context.Context, cfg *handlers.Config) error {
 	dataServiceConn, err := grpcext.Dial(
 		cfg.DataService.Address,
 		cfg.Installation,
@@ -79,7 +79,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 
 	producer := centutil.NewNodeProducer(node, cfg.ScoreboardChannel)
 
-	boardBuilder := api.NewBoardBuilder(
+	boardBuilder := handlers.NewBoardBuilder(
 		teamsClient,
 		servicesClient,
 		receiverClient,
@@ -89,7 +89,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *api.Config) error {
 
 	db := cfg.Postgres.BunDB()
 
-	apiService := api.NewService(
+	apiService := handlers.NewService(
 		cfg,
 		db,
 		node,

@@ -13,9 +13,9 @@ import (
 	receiverImpl "github.com/c4t-but-s4d/fastad/cmd/receiver/impl"
 	schedulerImpl "github.com/c4t-but-s4d/fastad/cmd/scheduler/impl"
 	slacImpl "github.com/c4t-but-s4d/fastad/cmd/slac/impl"
-	"github.com/c4t-but-s4d/fastad/internal/api"
 	"github.com/c4t-but-s4d/fastad/internal/checkers"
 	"github.com/c4t-but-s4d/fastad/internal/dataservice"
+	"github.com/c4t-but-s4d/fastad/internal/handlers"
 	"github.com/c4t-but-s4d/fastad/internal/receiver"
 	"github.com/c4t-but-s4d/fastad/internal/scheduler"
 	"github.com/c4t-but-s4d/fastad/internal/slac"
@@ -38,7 +38,7 @@ type Config struct {
 	DataService dataservice.Config `mapstructure:"data_service"`
 	Scheduler   scheduler.Config   `mapstructure:"scheduler"`
 	Slac        slac.Config        `mapstructure:"slac"`
-	API         api.Config         `mapstructure:"api"`
+	API         handlers.Config    `mapstructure:"api"`
 	Checkers    checkers.Config    `mapstructure:"checkers"`
 	Receiver    receiver.Config    `mapstructure:"receiver"`
 }
@@ -69,7 +69,18 @@ func main() {
 		return nil
 	})
 
-	// Receiver depends on API, start it first.
+	if err := apiwait.GRPC(gctx, cfg.DataService.ListenAddress); err != nil {
+		zap.L().Error("waiting for DataService", zap.Error(err))
+		cancel()
+		return
+	}
+
+	if err := apiwait.GRPC(gctx, cfg.Slac.ListenAddress); err != nil {
+		zap.L().Error("waiting for SLAC", zap.Error(err))
+		cancel()
+		return
+	}
+
 	cfg.API.DataService.Address = cfg.DataService.ListenAddress
 	cfg.API.SlacAddress = cfg.Slac.ListenAddress
 	cfg.API.ReceiverAddress = cfg.Receiver.ListenAddress
@@ -83,6 +94,7 @@ func main() {
 	if err := apiwait.HTTP(gctx, cfg.API.ListenAddress); err != nil {
 		zap.L().Error("waiting for API", zap.Error(err))
 		cancel()
+		return
 	}
 
 	cfg.Receiver.DataService.Address = cfg.DataService.ListenAddress
