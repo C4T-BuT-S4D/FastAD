@@ -624,8 +624,9 @@
                 .append('rect')
                 .attr('x', d => d.x * cellWidth)
                 .attr('y', d => height - (d.y + 1) * cellHeight)
-                .attr('width', cellWidth)
-                .attr('height', cellHeight)
+                .attr('width', cellWidth + 0.5)
+                .attr('height', cellHeight + 0.5)
+                .attr('shape-rendering', 'crispEdges')
                 .style('stroke', 'none')
                 .style('cursor', 'crosshair');
 
@@ -634,8 +635,8 @@
                 .duration(300)
                 .attr('x', d => d.x * cellWidth)
                 .attr('y', d => height - (d.y + 1) * cellHeight)
-                .attr('width', cellWidth)
-                .attr('height', cellHeight)
+                .attr('width', cellWidth + 0.5)
+                .attr('height', cellHeight + 0.5)
                 .attr('fill', d => colorScale(d.delta));
 
             // Update hover events
