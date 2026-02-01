@@ -7,7 +7,7 @@ __pycache__
 .generated
 .env
 /compose.yml
-/game.yml
+/fastad.yaml
 .sisyphus
 /fastad
 /data

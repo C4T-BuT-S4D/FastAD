@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -9,10 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/compose-spec/compose-go/v2/dotenv"
-	"github.com/compose-spec/compose-go/v2/loader"
-	"github.com/compose-spec/compose-go/v2/types"
 	"go.uber.org/zap"
+	"gopkg.in/yaml.v3"
 )
 
 type TemporalPostgresConfig struct {
@@ -59,185 +56,103 @@ func ParseTemporalDSN(dsn string) (TemporalPostgresConfig, error) {
 	return cfg, nil
 }
 
-// ComposeManipulator wraps a compose-go Project for manipulation.
+// ComposeFile represents a docker-compose.yml file.
+type ComposeFile struct {
+	Services map[string]any `yaml:"services,omitempty"`
+	Volumes  map[string]any `yaml:"volumes,omitempty"`
+	Networks map[string]any `yaml:"networks,omitempty"`
+}
+
+// ComposeManipulator provides simple compose file manipulation.
 type ComposeManipulator struct {
-	project *types.Project
+	data *ComposeFile
 }
 
 func LoadCompose(path string) (*ComposeManipulator, error) {
-	return LoadComposeWithEnv(path, nil)
-}
-
-func LoadComposeWithEnv(path string, env map[string]string) (*ComposeManipulator, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("reading compose file: %w", err)
 	}
 
-	workingDir := filepath.Dir(path)
-
-	environment := make(map[string]string)
-	for _, e := range os.Environ() {
-		if k, v, ok := strings.Cut(e, "="); ok {
-			environment[k] = v
-		}
+	var data ComposeFile
+	if err := yaml.Unmarshal(content, &data); err != nil {
+		return nil, fmt.Errorf("parsing compose file: %w", err)
 	}
 
-	envFile := filepath.Join(workingDir, ".env")
-	if envFromFile, err := dotenv.Read(envFile); err == nil {
-		for k, v := range envFromFile {
-			environment[k] = v
-		}
+	if data.Services == nil {
+		data.Services = make(map[string]any)
+	}
+	if data.Volumes == nil {
+		data.Volumes = make(map[string]any)
 	}
 
-	for k, v := range env {
-		environment[k] = v
-	}
-
-	configDetails := types.ConfigDetails{
-		WorkingDir: workingDir,
-		ConfigFiles: []types.ConfigFile{
-			{
-				Filename: path,
-				Content:  content,
-			},
-		},
-		Environment: environment,
-	}
-
-	project, err := loader.LoadWithContext(context.Background(), configDetails, func(opts *loader.Options) {
-		opts.SkipValidation = true
-		opts.SkipNormalization = true
-		opts.ResolvePaths = false
-	})
-	if err != nil {
-		return nil, fmt.Errorf("loading compose file: %w", err)
-	}
-
-	return &ComposeManipulator{project: project}, nil
+	return &ComposeManipulator{data: &data}, nil
 }
 
-// Services returns the services map for compatibility with existing tests.
-func (c *ComposeManipulator) Services() types.Services {
-	return c.project.Services
+func (c *ComposeManipulator) Services() map[string]any {
+	return c.data.Services
 }
 
-// Volumes returns the volumes map for compatibility with existing tests.
-func (c *ComposeManipulator) Volumes() types.Volumes {
-	return c.project.Volumes
+func (c *ComposeManipulator) Volumes() map[string]any {
+	return c.data.Volumes
 }
 
 func (c *ComposeManipulator) RemoveService(name string) {
-	delete(c.project.Services, name)
+	delete(c.data.Services, name)
 }
 
 func (c *ComposeManipulator) RemoveVolume(name string) {
-	delete(c.project.Volumes, name)
+	delete(c.data.Volumes, name)
+}
+
+func (c *ComposeManipulator) getService(name string) map[string]any {
+	svc, ok := c.data.Services[name]
+	if !ok {
+		return nil
+	}
+	svcMap, ok := svc.(map[string]any)
+	if !ok {
+		return nil
+	}
+	return svcMap
 }
 
 func (c *ComposeManipulator) RemoveDependsOn(serviceName string) {
-	if svc, exists := c.project.Services[serviceName]; exists {
-		svc.DependsOn = nil
-		c.project.Services[serviceName] = svc
+	svc := c.getService(serviceName)
+	if svc == nil {
+		return
 	}
+	delete(svc, "depends_on")
 }
 
 func (c *ComposeManipulator) SetDependsOn(serviceName string, deps map[string]any) {
-	svc, exists := c.project.Services[serviceName]
-	if !exists {
+	svc := c.getService(serviceName)
+	if svc == nil {
 		return
 	}
-
-	dependsOn := make(types.DependsOnConfig)
-	for depName, depValue := range deps {
-		switch v := depValue.(type) {
-		case map[string]any:
-			condition := ""
-			if cond, ok := v["condition"].(string); ok {
-				condition = cond
-			}
-			dependsOn[depName] = types.ServiceDependency{
-				Condition: condition,
-				Required:  true,
-			}
-		case string:
-			dependsOn[depName] = types.ServiceDependency{
-				Condition: v,
-				Required:  true,
-			}
-		default:
-			dependsOn[depName] = types.ServiceDependency{
-				Condition: types.ServiceConditionStarted,
-				Required:  true,
-			}
-		}
-	}
-
-	svc.DependsOn = dependsOn
-	c.project.Services[serviceName] = svc
+	svc["depends_on"] = deps
 }
 
 func (c *ComposeManipulator) SetVolumes(serviceName string, volumes []string) {
-	svc, exists := c.project.Services[serviceName]
-	if !exists {
+	svc := c.getService(serviceName)
+	if svc == nil {
 		return
 	}
-
-	volumeConfigs := make([]types.ServiceVolumeConfig, 0, len(volumes))
-	for _, vol := range volumes {
-		parts := strings.SplitN(vol, ":", 3)
-		source := parts[0]
-
-		volType := types.VolumeTypeBind
-		if !strings.HasPrefix(source, "/") && !strings.HasPrefix(source, ".") {
-			volType = types.VolumeTypeVolume
-		}
-
-		volumeConfig := types.ServiceVolumeConfig{
-			Type:   volType,
-			Source: source,
-		}
-		if len(parts) > 1 {
-			volumeConfig.Target = parts[1]
-		}
-		if len(parts) > 2 && parts[2] == "ro" {
-			volumeConfig.ReadOnly = true
-		}
-		volumeConfigs = append(volumeConfigs, volumeConfig)
-	}
-
-	svc.Volumes = volumeConfigs
-	c.project.Services[serviceName] = svc
+	svc["volumes"] = volumes
 }
 
 func (c *ComposeManipulator) Write(path string) error {
-	c.cleanupBindMounts()
-
-	raw, err := c.project.MarshalYAML()
+	content, err := yaml.Marshal(c.data)
 	if err != nil {
 		return fmt.Errorf("marshalling compose file: %w", err)
 	}
 
-	if err := os.WriteFile(path, raw, 0o644); err != nil {
+	if err := os.WriteFile(path, content, 0o644); err != nil {
 		return fmt.Errorf("writing compose file: %w", err)
 	}
 
 	zap.L().Info("wrote compose file", zap.String("path", path))
 	return nil
-}
-
-func (c *ComposeManipulator) cleanupBindMounts() {
-	for name, svc := range c.project.Services {
-		for i := range svc.Volumes {
-			vol := &svc.Volumes[i]
-			if vol.Type == types.VolumeTypeBind {
-				if vol.Bind == nil || (vol.Bind.SELinux == "" && vol.Bind.Propagation == "" && vol.Bind.Recursive == "") {
-					vol.Bind = nil
-				}
-			}
-		}
-		c.project.Services[name] = svc
-	}
 }
 
 func WriteEnvFile(path string, content []byte) error {

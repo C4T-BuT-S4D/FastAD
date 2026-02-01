@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"path/filepath"
-	"strconv"
 	"text/template"
 
 	"github.com/c4t-but-s4d/fastad/internal/gameconfig"
@@ -80,22 +79,7 @@ func PresetSimple(root string, config *gameconfig.GameConfig) error {
 		return err
 	}
 
-	env := map[string]string{
-		"FASTAD_LOG_LEVEL":              envContext.LogLevel,
-		"FASTAD_POSTGRES_DSN":           envContext.DatabaseDSN,
-		"FASTAD_INTERCOM_TOKEN":         envContext.IntercomToken,
-		"TEMPORAL_POSTGRES_USER":        envContext.Temporal.User,
-		"TEMPORAL_POSTGRES_PASSWORD":    envContext.Temporal.Password,
-		"TEMPORAL_POSTGRES_DATABASE":    envContext.Temporal.Database,
-		"TEMPORAL_POSTGRES_HOST":        envContext.Temporal.Host,
-		"TEMPORAL_POSTGRES_PORT":        envContext.Temporal.Port,
-		"TEMPORAL_POSTGRES_TLS":         envContext.Temporal.TLS,
-		"TEMPORAL_SKIP_DB_CREATE":       envContext.Temporal.SkipDBCreate,
-		"CADDY_PORT":                    strconv.Itoa(envContext.PublicPort),
-		"FASTAD_POSTGRES_EXTERNAL_PORT": "5433",
-	}
-
-	compose, err := LoadComposeWithEnv(PresetComposePath(root, "simple"), env)
+	compose, err := LoadCompose(PresetComposePath(root, "simple"))
 	if err != nil {
 		return err
 	}

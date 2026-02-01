@@ -151,9 +151,9 @@ volumes:
 		require.NoError(t, err)
 
 		compose.RemoveDependsOn("app")
-		appService, exists := compose.Services()["app"]
-		require.True(t, exists, "app service should exist")
-		assert.Nil(t, appService.DependsOn)
+		appService := compose.Services()["app"].(map[string]any)
+		_, hasDeps := appService["depends_on"]
+		assert.False(t, hasDeps)
 	})
 
 	t.Run("SetDependsOn", func(t *testing.T) {
@@ -165,12 +165,10 @@ volumes:
 		}
 		compose.SetDependsOn("app", newDeps)
 
-		appService, exists := compose.Services()["app"]
-		require.True(t, exists, "app service should exist")
-		require.NotNil(t, appService.DependsOn)
-		dep, hasDep := appService.DependsOn["redis"]
-		assert.True(t, hasDep)
-		assert.Equal(t, "service_started", dep.Condition)
+		appService := compose.Services()["app"].(map[string]any)
+		deps := appService["depends_on"].(map[string]any)
+		redisDep := deps["redis"].(map[string]any)
+		assert.Equal(t, "service_started", redisDep["condition"])
 	})
 
 	t.Run("SetVolumes", func(t *testing.T) {
@@ -179,11 +177,10 @@ volumes:
 
 		compose.SetVolumes("app", []string{"/new/path:/container/path"})
 
-		appService, exists := compose.Services()["app"]
-		require.True(t, exists, "app service should exist")
-		require.Len(t, appService.Volumes, 1)
-		assert.Equal(t, "/new/path", appService.Volumes[0].Source)
-		assert.Equal(t, "/container/path", appService.Volumes[0].Target)
+		appService := compose.Services()["app"].(map[string]any)
+		volumes := appService["volumes"].([]string)
+		require.Len(t, volumes, 1)
+		assert.Equal(t, "/new/path:/container/path", volumes[0])
 	})
 
 	t.Run("Write", func(t *testing.T) {
