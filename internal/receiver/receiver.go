@@ -223,7 +223,13 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 			return fmt.Errorf("inserting attacks: %w", err)
 		}
 
-		insertedAttackFlagIDs := lo.Map(attacksToAdd, func(attack *models.Attack, _ int) int {
+		// Filter to only keep actually inserted attacks (have valid DB ID).
+		// Attacks that hit ON CONFLICT DO NOTHING keep ID=0.
+		insertedAttacks := lo.Filter(attacksToAdd, func(a *models.Attack, _ int) bool {
+			return a.ID > 0
+		})
+
+		insertedAttackFlagIDs := lo.Map(insertedAttacks, func(attack *models.Attack, _ int) int {
 			return attack.FlagID
 		})
 
@@ -239,6 +245,11 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 			})
 		}
 
+		// Early return if no attacks were actually inserted (all were duplicates).
+		if len(insertedAttacks) == 0 {
+			return nil
+		}
+
 		s.stateMu.Lock()
 		defer s.stateMu.Unlock()
 
@@ -250,7 +261,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 			}
 		}()
 
-		for i, attack := range attacksToAdd {
+		for i, attack := range insertedAttacks {
 			if err := s.state.ProcessAttack(gameState, serviceByID[attack.ServiceID], attack); err != nil {
 				return fmt.Errorf("applying attack #%d: %w", i, err)
 			}
@@ -272,7 +283,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 
 		if _, err := tx.
 			NewUpdate().
-			Model(&attacksToAdd).
+			Model(&insertedAttacks).
 			Column("attacker_delta", "victim_delta").
 			Bulk().
 			Exec(ctx); err != nil {
@@ -282,7 +293,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 		// Intentionally ignoring the potential issue of a missing state rollback in
 		// the improbable case all queries in tx finish but the tx is reverted afterward.
 		shouldRollbackState = false
-		addedAttacks = attacksToAdd
+		addedAttacks = insertedAttacks
 
 		return nil
 	}); err != nil {

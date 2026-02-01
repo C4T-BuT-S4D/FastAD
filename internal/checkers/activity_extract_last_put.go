@@ -2,6 +2,7 @@ package checkers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
@@ -38,6 +39,9 @@ func (a *GetLastExecutionActivity) ActivityDefinition(
 		params.ServiceID,
 		params.Action,
 	)
+	if errors.Is(err, ErrExecutionNotFound) {
+		return &GetLastExecutionActivityResult{Execution: nil}, nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("getting last execution: %w", err)
 	}

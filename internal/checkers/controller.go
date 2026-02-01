@@ -14,6 +14,11 @@ import (
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 )
 
+var (
+	ErrFlagNotFound      = errors.New("flag not found")
+	ErrExecutionNotFound = errors.New("execution not found")
+)
+
 type Controller struct {
 	db      *bun.DB
 	metrics *Metrics
@@ -211,8 +216,7 @@ func (c *Controller) PickFlag(
 		OrderExpr("RANDOM()").
 		Scan(ctx); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			//nolint:nilnil // Easier to handle in the caller.
-			return nil, nil
+			return nil, ErrFlagNotFound
 		}
 		return nil, fmt.Errorf("picking flag: %w", err)
 	}
@@ -238,8 +242,7 @@ func (c *Controller) GetLastExecution(
 		OrderExpr("created_at DESC").
 		Scan(ctx); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			//nolint:nilnil // Easier to handle in the caller.
-			return nil, nil
+			return nil, ErrExecutionNotFound
 		}
 		return nil, fmt.Errorf("getting last put execution: %w", err)
 	}

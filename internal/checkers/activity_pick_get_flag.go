@@ -2,6 +2,7 @@ package checkers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"go.temporal.io/sdk/activity"
@@ -51,6 +52,10 @@ func (a *PickGetFlagActivity) ActivityDefinition(
 		params.RunningRound,
 		params.FlagLifetimeRounds,
 	)
+	if errors.Is(err, ErrFlagNotFound) {
+		logger.Info("no flag available")
+		return &PickGetFlagActivityResult{Flag: nil}, nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("picking flag: %w", err)
 	}
