@@ -1,6 +1,6 @@
 import TopBarRoundProgress from '@/components/ForcAD/TopBarRoundProgress';
 import { createProtoTransform } from '@/lib/clients/common';
-import { GameState } from '@/proto/data/game_state/game_state';
+import { GameState, GameStatus } from '@/proto/data/game_state/game_state';
 import { AppBar, Box, Toolbar, Typography } from '@mui/material';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
@@ -76,9 +76,17 @@ export default function TopBar() {
 
         <Box sx={{ flexGrow: 1 }} />
 
-        {gameState?.finished ? (
+        {gameState?.status === GameStatus.GAME_STATUS_FINISHED ? (
           <Typography variant="body1" sx={{ fontFamily: 'Roboto Mono' }}>
             Game Over
+          </Typography>
+        ) : gameState?.status === GameStatus.GAME_STATUS_PAUSED ? (
+          <Typography variant="body1" sx={{ fontFamily: 'Roboto Mono' }}>
+            Game Paused
+          </Typography>
+        ) : gameState?.status === GameStatus.GAME_STATUS_NOT_STARTED ? (
+          <Typography variant="body1" sx={{ fontFamily: 'Roboto Mono' }}>
+            Game Not Started
           </Typography>
         ) : (
           gameState?.runningRoundStart &&

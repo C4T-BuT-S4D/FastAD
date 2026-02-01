@@ -1,26 +1,38 @@
 package metrics
 
 import (
+	"sync"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
-// CacheMetrics tracks cache hit/miss for a specific client.
-// The client name is set as a const label, simplifying usage.
 type CacheMetrics struct {
 	hits   prometheus.Counter
 	misses prometheus.Counter
 }
 
-// NewCacheMetrics creates a CacheMetrics instance for a specific client.
-// The client name and installation are set as const labels.
+var (
+	metricsCache = make(map[string]*CacheMetrics)
+	metricsMu    sync.Mutex
+)
+
 func NewCacheMetrics(installation, client string) *CacheMetrics {
+	key := installation + "/" + client
+
+	metricsMu.Lock()
+	defer metricsMu.Unlock()
+
+	if existing, ok := metricsCache[key]; ok {
+		return existing
+	}
+
 	constLabels := prometheus.Labels{"client": client}
 	if installation != "" {
 		constLabels["installation"] = installation
 	}
 
-	return &CacheMetrics{
+	m := &CacheMetrics{
 		hits: promauto.NewCounter(
 			prometheus.CounterOpts{
 				Name:        "fastad_client_cache_hits_total",
@@ -36,6 +48,9 @@ func NewCacheMetrics(installation, client string) *CacheMetrics {
 			},
 		),
 	}
+
+	metricsCache[key] = m
+	return m
 }
 
 // Hit records a cache hit.

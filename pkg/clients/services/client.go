@@ -49,3 +49,17 @@ func (c *Client) CreateBatch(ctx context.Context, services []*servicespb.Service
 
 	return resp.GetServices(), nil
 }
+
+func (c *Client) Update(ctx context.Context, req *servicespb.UpdateRequest) (*servicespb.Service, error) {
+	resp, err := c.grpc.Update(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("making api request: %w", err)
+	}
+
+	// Force cache refresh after write
+	if _, err := c.cache.Get(ctx); err != nil {
+		return nil, fmt.Errorf("refreshing cache: %w", err)
+	}
+
+	return resp.GetService(), nil
+}

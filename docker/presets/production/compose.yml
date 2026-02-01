@@ -52,7 +52,7 @@ services:
       FASTAD_API_RECEIVER_ADDRESS: "receiver:8001"
       FASTAD_API_SLAC_ADDRESS: "slac:8002"
       FASTAD_API_INSTALLATION: "fastad-prod"
-      FASTAD_API_SCOREBOARD_CHANNEL: "board"
+      FASTAD_API_SCOREBOARD_CHANNEL: "scoreboard"
     depends_on:
       dataservice:
         condition: service_healthy
@@ -240,6 +240,8 @@ services:
   postgres:
     image: postgres:17.2-alpine
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FASTAD_POSTGRES_EXTERNAL_PORT:-5433}:5432"
     environment:
       POSTGRES_USER: fastad
       POSTGRES_PASSWORD: fastad
@@ -280,7 +282,7 @@ services:
       - ${FASTAD_DATA_DIR:-./data}/victoriametrics:/storage
       - ./docker/presets/production/victoriametrics:/etc/victoriametrics:ro
     healthcheck:
-      test: ['CMD', 'wget', '-qO-', 'http://localhost:8428/-/healthy']
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8428/-/healthy']
       interval: 5s
       timeout: 3s
       retries: 10
@@ -290,7 +292,7 @@ services:
     image: grafana/grafana:11.4.0
     restart: unless-stopped
     ports:
-      - "${GRAFANA_PORT:-3000}:3000"
+      - "${GRAFANA_PORT:-3030}:3000"
     environment:
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-fastad}

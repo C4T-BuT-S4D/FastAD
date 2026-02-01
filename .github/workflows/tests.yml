@@ -62,10 +62,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          version: latest
+          go-version-file: 'go.mod'
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.8.0
 
   lint-proto:
     runs-on: ubuntu-latest

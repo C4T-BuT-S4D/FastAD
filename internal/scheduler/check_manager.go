@@ -197,20 +197,8 @@ func (m *CheckManager) refreshData(ctx context.Context) error {
 	}
 	m.gameState.Store(gs)
 
-	if gs.GetFinished() {
-		m.logger.Info("game is finished")
-		if len(m.activeSchedulers) > 0 {
-			m.logger.Info("stopping all check schedulers")
-			for key, cancel := range m.cancellers {
-				cancel()
-				delete(m.cancellers, key)
-			}
-			for key := range m.activeSchedulers {
-				<-m.dones[key]
-				delete(m.dones, key)
-			}
-			clear(m.activeSchedulers)
-		}
+	if gs.GetStatus() != gspb.GameStatus_GAME_STATUS_RUNNING {
+		m.logger.Info("game is not running, skipping scheduler sync", zap.String("status", gs.GetStatus().String()))
 		return nil
 	}
 

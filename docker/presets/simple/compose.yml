@@ -108,7 +108,7 @@ services:
     image: postgres:17.2-alpine
     restart: unless-stopped
     ports:
-      - "${FASTAD_POSTGRES_EXTERNAL_PORT:-5433}:5432"
+      - "127.0.0.1:${FASTAD_POSTGRES_EXTERNAL_PORT:-5433}:5432"
     environment:
       POSTGRES_USER: fastad
       POSTGRES_PASSWORD: fastad

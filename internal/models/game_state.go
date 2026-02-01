@@ -20,8 +20,7 @@ type GameState struct {
 	EndTime     *time.Time `bun:"end_time"`
 	TotalRounds uint64     `bun:"total_rounds"`
 
-	Paused   bool `bun:"paused"`
-	Finished bool `bun:"finished"`
+	Status gspb.GameStatus `bun:"status,notnull,default:1"`
 
 	FlagLifetimeRounds uint64        `bun:"flag_lifetime_rounds,notnull"`
 	RoundDuration      time.Duration `bun:"round_duration,notnull"`
@@ -38,8 +37,7 @@ func NewGameStateFromProto(gs *gspb.GameState) *GameState {
 		StartTime:   gs.GetStartTime().AsTime(),
 		TotalRounds: gs.GetTotalRounds(),
 
-		Paused:   gs.GetPaused(),
-		Finished: gs.GetFinished(),
+		Status: gs.GetStatus(),
 
 		FlagLifetimeRounds: gs.GetFlagLifetimeRounds(),
 		RoundDuration:      gs.GetRoundDuration().AsDuration(),
@@ -61,8 +59,7 @@ func (gs *GameState) ToProto() *gspb.GameState {
 		StartTime:   timestamppb.New(gs.StartTime),
 		TotalRounds: gs.TotalRounds,
 
-		Paused:   gs.Paused,
-		Finished: gs.Finished,
+		Status: gs.Status,
 
 		FlagLifetimeRounds: gs.FlagLifetimeRounds,
 		RoundDuration:      durationpb.New(gs.RoundDuration),

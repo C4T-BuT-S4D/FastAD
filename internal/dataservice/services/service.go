@@ -78,3 +78,21 @@ func (s *Service) CreateBatch(ctx context.Context, req *servicespb.CreateBatchRe
 		Services: result,
 	}, nil
 }
+
+func (s *Service) Update(ctx context.Context, req *servicespb.UpdateRequest) (*servicespb.UpdateResponse, error) {
+	zap.L().Debug("ServicesService/Update", zap.Any("request", req))
+
+	if err := s.validateUpdateRequest(req); err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "validating request: %v", err)
+	}
+
+	service, newVersion, err := s.controller.Update(ctx, req)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "updating service: %v", err)
+	}
+
+	return &servicespb.UpdateResponse{
+		Service: service.ToProto(),
+		Version: version.NewVersionProto(newVersion),
+	}, nil
+}

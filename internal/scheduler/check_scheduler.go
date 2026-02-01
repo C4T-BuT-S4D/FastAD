@@ -105,13 +105,8 @@ func (s *CheckScheduler) Run(ctx context.Context) {
 		case <-t.C:
 			gs := s.gameState.Load()
 
-			if gs.GetFinished() {
-				s.logger.Info("game is finished, stopping scheduler")
-				return
-			}
-
-			if gs.GetPaused() {
-				s.logger.Debug("game is paused, skipping check")
+			if gs.GetStatus() != gspb.GameStatus_GAME_STATUS_RUNNING {
+				s.logger.Debug("game is not running, skipping check", zap.String("status", gs.GetStatus().String()))
 				if err := s.skipRun(ctx); err != nil {
 					s.logger.Error("skipping scheduler run", zap.Error(err))
 				}

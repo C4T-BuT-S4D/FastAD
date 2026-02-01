@@ -28,8 +28,7 @@ func (m *GameState) CloneVT() *GameState {
 	r.StartTime = (*timestamppb.Timestamp)((*timestamppb1.Timestamp)(m.StartTime).CloneVT())
 	r.EndTime = (*timestamppb.Timestamp)((*timestamppb1.Timestamp)(m.EndTime).CloneVT())
 	r.TotalRounds = m.TotalRounds
-	r.Paused = m.Paused
-	r.Finished = m.Finished
+	r.Status = m.Status
 	r.FlagLifetimeRounds = m.FlagLifetimeRounds
 	r.RoundDuration = (*durationpb.Duration)((*durationpb1.Duration)(m.RoundDuration).CloneVT())
 	r.RunningRound = m.RunningRound
@@ -89,14 +88,11 @@ func (m *UpdateRequest) CloneVT() *UpdateRequest {
 	r := new(UpdateRequest)
 	r.StartTime = (*timestamppb.Timestamp)((*timestamppb1.Timestamp)(m.StartTime).CloneVT())
 	r.EndTime = (*timestamppb.Timestamp)((*timestamppb1.Timestamp)(m.EndTime).CloneVT())
+	r.Status = m.Status
 	r.RoundDuration = (*durationpb.Duration)((*durationpb1.Duration)(m.RoundDuration).CloneVT())
 	if rhs := m.TotalRounds; rhs != nil {
 		tmpVal := *rhs
 		r.TotalRounds = &tmpVal
-	}
-	if rhs := m.Paused; rhs != nil {
-		tmpVal := *rhs
-		r.Paused = &tmpVal
 	}
 	if rhs := m.FlagLifetimeRounds; rhs != nil {
 		tmpVal := *rhs
@@ -259,10 +255,7 @@ func (this *GameState) EqualVT(that *GameState) bool {
 	if this.TotalRounds != that.TotalRounds {
 		return false
 	}
-	if this.Paused != that.Paused {
-		return false
-	}
-	if this.Finished != that.Finished {
+	if this.Status != that.Status {
 		return false
 	}
 	if this.FlagLifetimeRounds != that.FlagLifetimeRounds {
@@ -349,7 +342,7 @@ func (this *UpdateRequest) EqualVT(that *UpdateRequest) bool {
 	if p, q := this.TotalRounds, that.TotalRounds; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
 		return false
 	}
-	if p, q := this.Paused, that.Paused; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
+	if this.Status != that.Status {
 		return false
 	}
 	if p, q := this.FlagLifetimeRounds, that.FlagLifetimeRounds; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {

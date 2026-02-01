@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,9 +23,15 @@ import (
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
 	"github.com/uptrace/bun/driver/pgdriver"
+	"google.golang.org/grpc"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 
+	"github.com/c4t-but-s4d/fastad/internal/gameconfig"
 	"github.com/c4t-but-s4d/fastad/internal/models"
+	gamestateClient "github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
+	servicesClient "github.com/c4t-but-s4d/fastad/pkg/clients/services"
+	"github.com/c4t-but-s4d/fastad/pkg/grpcext"
 	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
@@ -35,6 +42,7 @@ import (
 
 const (
 	baseURL      = "http://localhost:8080"
+	grpcAddress  = "localhost:8080" // gRPC is served on same port as HTTP (multiplexed via h2c)
 	testTimeout  = 5 * time.Minute
 	pollInterval = 2 * time.Second
 	dbDSN        = "postgres://fastad:fastad@localhost:5433/fastad?sslmode=disable"
@@ -46,33 +54,49 @@ type teamToken struct {
 	Token string `json:"token"`
 }
 
-type BaseSuite struct {
-	suite.Suite
+type SharedTestState struct {
+	t          *testing.T
 	rootDir    string
 	preset     string
 	db         *bun.DB
+	grpcConn   *grpc.ClientConn
+	gsClient   *gamestateClient.Client
+	svcClient  *servicesClient.Client
 	teams      []*teamspb.Team
 	teamTokens []teamToken
 	services   []*servicespb.Service
 }
 
-func (s *BaseSuite) SetupSuite() {
+func NewSharedTestState(t *testing.T, preset string) *SharedTestState {
+	s := &SharedTestState{
+		t:      t,
+		preset: preset,
+	}
 	s.rootDir = s.findRootDir()
 	s.initGame()
 	s.startGame()
 	s.waitForHealthy()
+	s.waitForGameRunning()
 	s.connectDB()
+	s.connectGRPC()
 	s.loadTeams()
 	s.loadTeamTokens()
 	s.loadServices()
+	return s
 }
 
-func (s *BaseSuite) TearDownSuite() {
-	s.T().Log("Tearing down test environment...")
+func (s *SharedTestState) TearDown() {
+	s.t.Log("Tearing down test environment...")
+
+	if s.grpcConn != nil {
+		if err := s.grpcConn.Close(); err != nil {
+			s.t.Logf("Warning: failed to close gRPC connection: %v", err)
+		}
+	}
 
 	if s.db != nil {
 		if err := s.db.Close(); err != nil {
-			s.T().Logf("Warning: failed to close DB: %v", err)
+			s.t.Logf("Warning: failed to close DB: %v", err)
 		}
 	}
 
@@ -80,13 +104,13 @@ func (s *BaseSuite) TearDownSuite() {
 	cmd.Dir = s.rootDir
 
 	if output, err := cmd.CombinedOutput(); err != nil {
-		s.T().Logf("Warning: failed to tear down: %v\nOutput: %s", err, output)
+		s.t.Logf("Warning: failed to tear down: %v\nOutput: %s", err, output)
 	}
 }
 
-func (s *BaseSuite) findRootDir() string {
+func (s *SharedTestState) findRootDir() string {
 	dir, err := os.Getwd()
-	s.Require().NoError(err)
+	require.NoError(s.t, err)
 
 	for {
 		if _, err := os.Stat(filepath.Join(dir, ".fastad_root")); err == nil {
@@ -94,14 +118,14 @@ func (s *BaseSuite) findRootDir() string {
 		}
 		parent := filepath.Dir(dir)
 		if parent == dir {
-			s.T().Fatal("Could not find FastAD root directory")
+			s.t.Fatal("Could not find FastAD root directory")
 		}
 		dir = parent
 	}
 }
 
-func (s *BaseSuite) initGame() {
-	s.T().Log("Initializing game with preset:", s.preset)
+func (s *SharedTestState) initGame() {
+	s.t.Log("Initializing game with preset:", s.preset)
 
 	testConfigPath := filepath.Join(s.rootDir, "tests", "e2e", "fastad_test.yaml")
 
@@ -117,31 +141,30 @@ func (s *BaseSuite) initGame() {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		s.T().Fatalf("Failed to initialize game: %v\nOutput: %s", err, output)
+		s.t.Fatalf("Failed to initialize game: %v\nOutput: %s", err, output)
 	}
-	s.T().Log("Game initialized successfully")
+	s.t.Log("Game initialized successfully")
 }
 
-func (s *BaseSuite) startGame() {
-	s.T().Log("Starting game services...")
+func (s *SharedTestState) startGame() {
+	s.t.Log("Starting game services...")
 
 	cmd := exec.Command(
 		"go", "run", "./cmd/fastad",
 		"run",
-		"--no-build",
 	)
 	cmd.Dir = s.rootDir
 	cmd.Env = append(os.Environ(), "FASTAD_LOG_LEVEL=debug")
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		s.T().Fatalf("Failed to start game: %v\nOutput: %s", err, output)
+		s.t.Fatalf("Failed to start game: %v\nOutput: %s", err, output)
 	}
-	s.T().Log("Game started successfully")
+	s.t.Log("Game started successfully")
 }
 
-func (s *BaseSuite) waitForHealthy() {
-	s.T().Log("Waiting for services to become healthy...")
+func (s *SharedTestState) waitForHealthy() {
+	s.t.Log("Waiting for services to become healthy...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
 	defer cancel()
@@ -149,14 +172,14 @@ func (s *BaseSuite) waitForHealthy() {
 	for {
 		select {
 		case <-ctx.Done():
-			s.T().Fatal("Timeout waiting for services to become healthy")
+			s.t.Fatal("Timeout waiting for services to become healthy")
 		default:
 		}
 
 		resp, err := http.Get(baseURL + "/healthcheck")
 		if err == nil && resp.StatusCode == http.StatusOK {
 			resp.Body.Close()
-			s.T().Log("Services are healthy")
+			s.t.Log("Services are healthy")
 			return
 		}
 		if resp != nil {
@@ -167,8 +190,43 @@ func (s *BaseSuite) waitForHealthy() {
 	}
 }
 
-func (s *BaseSuite) connectDB() {
-	s.T().Log("Connecting to database...")
+func (s *SharedTestState) waitForGameRunning() {
+	s.t.Log("Waiting for game to transition to RUNNING...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), testTimeout)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			s.t.Fatal("Timeout waiting for game to become RUNNING")
+		default:
+		}
+
+		resp, err := http.Get(baseURL + "/api/game")
+		if err == nil && resp.StatusCode == http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			resp.Body.Close()
+
+			var gs gspb.GameState
+			if err := protojson.Unmarshal(body, &gs); err == nil {
+				if gs.GetStatus() == gspb.GameStatus_GAME_STATUS_RUNNING {
+					s.t.Log("Game is RUNNING")
+					return
+				}
+				s.t.Logf("Game status is %s, waiting...", gs.GetStatus())
+			}
+		}
+		if resp != nil {
+			resp.Body.Close()
+		}
+
+		time.Sleep(pollInterval)
+	}
+}
+
+func (s *SharedTestState) connectDB() {
+	s.t.Log("Connecting to database...")
 
 	sqlDB := sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dbDSN)))
 	s.db = bun.NewDB(sqlDB, pgdialect.New())
@@ -177,34 +235,58 @@ func (s *BaseSuite) connectDB() {
 	defer cancel()
 
 	if err := s.db.PingContext(ctx); err != nil {
-		s.T().Fatalf("Failed to connect to database: %v", err)
+		s.t.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	s.T().Log("Database connected successfully")
+	s.t.Log("Database connected successfully")
 }
 
-func (s *BaseSuite) loadTeams() {
-	s.T().Log("Loading teams...")
+func (s *SharedTestState) connectGRPC() {
+	s.t.Log("Connecting to gRPC...")
+
+	cfg, err := gameconfig.ReadGeneratedConfig()
+	if err != nil {
+		s.t.Fatalf("Failed to read generated config: %v", err)
+	}
+
+	conn, err := grpcext.Dial(
+		grpcAddress,
+		"e2e-tests",
+		grpcext.AuthDialOptions(cfg.FastAD.IntercomToken)...,
+	)
+	if err != nil {
+		s.t.Fatalf("Failed to connect to gRPC: %v", err)
+	}
+	s.grpcConn = conn
+
+	s.gsClient = gamestateClient.NewClient(gspb.NewGameStateServiceClient(conn), "e2e-tests")
+	s.svcClient = servicesClient.NewClient(servicespb.NewServicesServiceClient(conn), "e2e-tests")
+
+	s.t.Log("gRPC connected successfully")
+}
+
+func (s *SharedTestState) loadTeams() {
+	s.t.Log("Loading teams...")
 
 	resp, err := http.Get(baseURL + "/api/teams")
-	s.Require().NoError(err)
+	require.NoError(s.t, err)
 	defer resp.Body.Close()
 
-	s.Require().Equal(http.StatusOK, resp.StatusCode)
+	require.Equal(s.t, http.StatusOK, resp.StatusCode)
 
 	body, err := io.ReadAll(resp.Body)
-	s.Require().NoError(err)
+	require.NoError(s.t, err)
 
 	var teamsResp teamspb.Team_Batch
 	err = protojson.Unmarshal(body, &teamsResp)
-	s.Require().NoError(err)
+	require.NoError(s.t, err)
 
 	s.teams = teamsResp.GetTeams()
-	s.T().Logf("Loaded %d teams", len(s.teams))
+	s.t.Logf("Loaded %d teams", len(s.teams))
 }
 
-func (s *BaseSuite) loadTeamTokens() {
-	s.T().Log("Loading team tokens...")
+func (s *SharedTestState) loadTeamTokens() {
+	s.t.Log("Loading team tokens...")
 
 	cmd := exec.Command("go", "run", "./cmd/fastad", "tokens", "--format", "json")
 	cmd.Dir = s.rootDir
@@ -214,34 +296,76 @@ func (s *BaseSuite) loadTeamTokens() {
 	cmd.Stderr = &stderr
 
 	if err := cmd.Run(); err != nil {
-		s.T().Logf("Warning: Failed to get team tokens: %v\nStderr: %s", err, stderr.String())
+		s.t.Logf("Warning: Failed to get team tokens: %v\nStderr: %s", err, stderr.String())
 		return
 	}
 
 	if err := json.Unmarshal(stdout.Bytes(), &s.teamTokens); err != nil {
-		s.T().Logf("Warning: Failed to parse tokens: %v\nStdout: %s", err, stdout.String())
+		s.t.Logf("Warning: Failed to parse tokens: %v\nStdout: %s", err, stdout.String())
 		return
 	}
 
-	s.T().Logf("Loaded %d team tokens", len(s.teamTokens))
+	s.t.Logf("Loaded %d team tokens", len(s.teamTokens))
 }
 
-func (s *BaseSuite) loadServices() {
-	s.T().Log("Loading services...")
+func (s *SharedTestState) loadServices() {
+	s.t.Log("Loading services...")
 
 	resp, err := http.Get(baseURL + "/api/services")
-	s.Require().NoError(err)
+	require.NoError(s.t, err)
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
-	s.Require().NoError(err)
+	require.NoError(s.t, err)
 
 	var servicesResp servicespb.Service_Batch
 	err = protojson.Unmarshal(body, &servicesResp)
-	s.Require().NoError(err)
+	require.NoError(s.t, err)
 
 	s.services = servicesResp.GetServices()
-	s.T().Logf("Loaded %d services", len(s.services))
+	s.t.Logf("Loaded %d services", len(s.services))
+}
+
+type BaseSuite struct {
+	suite.Suite
+	sharedState *SharedTestState
+}
+
+func (s *BaseSuite) SetupSuite() {
+	if s.sharedState == nil {
+		s.T().Fatal("sharedState must be set before running suite")
+	}
+}
+
+func (s *BaseSuite) TearDownSuite() {
+}
+
+func (s *BaseSuite) rootDir() string {
+	return s.sharedState.rootDir
+}
+
+func (s *BaseSuite) db() *bun.DB {
+	return s.sharedState.db
+}
+
+func (s *BaseSuite) gsClient() *gamestateClient.Client {
+	return s.sharedState.gsClient
+}
+
+func (s *BaseSuite) svcClient() *servicesClient.Client {
+	return s.sharedState.svcClient
+}
+
+func (s *BaseSuite) teams() []*teamspb.Team {
+	return s.sharedState.teams
+}
+
+func (s *BaseSuite) teamTokens() []teamToken {
+	return s.sharedState.teamTokens
+}
+
+func (s *BaseSuite) services() []*servicespb.Service {
+	return s.sharedState.services
 }
 
 func (s *BaseSuite) GetGameState() *gspb.GameState {
@@ -326,7 +450,7 @@ func (s *BaseSuite) InsertTestFlag(teamID int, serviceID int, round uint64, putF
 		CreatedAt:   time.Now(),
 	}
 
-	_, err := s.db.NewInsert().Model(flag).Exec(ctx)
+	_, err := s.db().NewInsert().Model(flag).Exec(ctx)
 	s.Require().NoError(err, "Failed to insert test flag")
 
 	s.T().Logf("Inserted test flag ID=%d for team %d, round %d: %s", flag.ID, teamID, round, flag.Flag)
@@ -346,7 +470,7 @@ func (s *BaseSuite) InsertCheckerExecution(teamID, serviceID int, action checker
 		CreatedAt:   time.Now(),
 	}
 
-	_, err := s.db.NewInsert().Model(exec).Exec(ctx)
+	_, err := s.db().NewInsert().Model(exec).Exec(ctx)
 	s.Require().NoError(err, "Failed to insert checker execution")
 
 	s.T().Logf("Inserted checker execution ID=%d for team %d, service %d: %s -> %s",
@@ -377,35 +501,21 @@ func (s *BaseSuite) randomString(n int) string {
 	return string(b)
 }
 
-func (s *BaseSuite) SetGamePaused(paused bool) {
+func (s *BaseSuite) SetGameStatus(status gspb.GameStatus) {
 	ctx := context.Background()
-	_, err := s.db.NewUpdate().
-		Table("game_state").
-		Set("paused = ?", paused).
-		Where("id = 1").
-		Exec(ctx)
-	s.Require().NoError(err, "Failed to set game paused=%v", paused)
-	s.T().Logf("Set game paused=%v", paused)
-}
-
-func (s *BaseSuite) SetGameFinished(finished bool) {
-	ctx := context.Background()
-	_, err := s.db.NewUpdate().
-		Table("game_state").
-		Set("finished = ?", finished).
-		Where("id = 1").
-		Exec(ctx)
-	s.Require().NoError(err, "Failed to set game finished=%v", finished)
-	s.T().Logf("Set game finished=%v", finished)
+	_, err := s.gsClient().Update(ctx, &gspb.UpdateRequest{
+		Status: status,
+	})
+	s.Require().NoError(err, "Failed to set game status=%s", status)
+	s.T().Logf("Set game status=%s via API", status)
 }
 
 func (s *BaseSuite) SetServiceDisabled(serviceID int, disabled bool) {
 	ctx := context.Background()
-	_, err := s.db.NewUpdate().
-		Table("services").
-		Set("disabled = ?", disabled).
-		Where("id = ?", serviceID).
-		Exec(ctx)
-	s.Require().NoError(err, "Failed to set service %d disabled=%v", serviceID, disabled)
-	s.T().Logf("Set service %d disabled=%v", serviceID, disabled)
+	_, err := s.svcClient().Update(ctx, &servicespb.UpdateRequest{
+		Id:       int64(serviceID),
+		Disabled: proto.Bool(disabled),
+	})
+	s.Require().NoError(err, "Failed to set service %d disabled=%v via API", serviceID, disabled)
+	s.T().Logf("Set service %d disabled=%v via API", serviceID, disabled)
 }

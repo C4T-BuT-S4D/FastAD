@@ -68,9 +68,9 @@ func (s *CentrifugeSuite) TestScoreboardSubscriptionAndUpdates() {
 }
 
 func (s *CentrifugeSuite) TestAttackNotificationOnFlagSubmission() {
-	s.Require().GreaterOrEqual(len(s.teamTokens), 2, "Need at least 2 team tokens")
-	s.Require().NotEmpty(s.services, "Services required")
-	s.Require().NotNil(s.db, "Database connection required")
+	s.Require().GreaterOrEqual(len(s.teamTokens()), 2, "Need at least 2 team tokens")
+	s.Require().NotEmpty(s.services(), "Services required")
+	s.Require().NotNil(s.db(), "Database connection required")
 
 	client := centrifuge.NewJsonClient(centrifugeURL, centrifuge.Config{})
 
@@ -103,13 +103,13 @@ func (s *CentrifugeSuite) TestAttackNotificationOnFlagSubmission() {
 
 	time.Sleep(500 * time.Millisecond)
 
-	serviceID := int(s.services[0].GetId())
-	victimTeamID := int(s.teamTokens[1].ID)
+	serviceID := int(s.services()[0].GetId())
+	victimTeamID := int(s.teamTokens()[1].ID)
 	currentRound := s.GetCurrentRound()
 
 	flag := s.InsertTestFlag(victimTeamID, serviceID, currentRound, true)
 
-	resp := s.SubmitFlags(s.teamTokens[0].Token, []string{flag.Flag})
+	resp := s.SubmitFlags(s.teamTokens()[0].Token, []string{flag.Flag})
 	s.Require().Len(resp.GetResponses(), 1)
 	s.Require().Equal(receiverpb.FlagResponse_VERDICT_ACCEPTED, resp.GetResponses()[0].GetVerdict(),
 		"Flag should be accepted")
@@ -125,7 +125,7 @@ func (s *CentrifugeSuite) TestAttackNotificationOnFlagSubmission() {
 	s.Assert().NotEmpty(attackBatch.GetAttacks(), "Should have at least one attack notification")
 
 	attack := attackBatch.GetAttacks()[0]
-	s.Assert().Equal(int64(s.teamTokens[0].ID), attack.GetAttackerId(), "Attacker team ID should match")
+	s.Assert().Equal(int64(s.teamTokens()[0].ID), attack.GetAttackerId(), "Attacker team ID should match")
 	s.Assert().Equal(int64(victimTeamID), attack.GetVictimId(), "Victim team ID should match")
 	s.Assert().Equal(int64(serviceID), attack.GetServiceId(), "Service ID should match")
 

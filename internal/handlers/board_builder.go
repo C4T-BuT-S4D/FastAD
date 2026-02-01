@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"cmp"
 	"context"
 	"fmt"
+	"slices"
 	"sync"
 	"time"
 
@@ -174,7 +176,15 @@ func (b *BoardBuilder) buildScoreboard(
 		}
 	}
 
-	return &scoreboardpb.Scoreboard{TeamServiceStates: lo.Values(sbMap)}, nil
+	states := lo.Values(sbMap)
+	slices.SortFunc(states, func(a, b *scoreboardpb.Scoreboard_TeamServiceState) int {
+		return cmp.Or(
+			cmp.Compare(b.GetPoints(), a.GetPoints()),
+			cmp.Compare(a.GetTeamId(), b.GetTeamId()),
+			cmp.Compare(a.GetServiceId(), b.GetServiceId()),
+		)
+	})
+	return &scoreboardpb.Scoreboard{TeamServiceStates: states}, nil
 }
 
 type teamServiceKey struct {

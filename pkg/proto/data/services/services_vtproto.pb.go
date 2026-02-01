@@ -194,6 +194,45 @@ func (m *CreateBatchResponse) CloneMessageVT() proto.Message {
 	return m.CloneVT()
 }
 
+func (m *UpdateRequest) CloneVT() *UpdateRequest {
+	if m == nil {
+		return (*UpdateRequest)(nil)
+	}
+	r := new(UpdateRequest)
+	r.Id = m.Id
+	if rhs := m.Disabled; rhs != nil {
+		tmpVal := *rhs
+		r.Disabled = &tmpVal
+	}
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *UpdateRequest) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
+func (m *UpdateResponse) CloneVT() *UpdateResponse {
+	if m == nil {
+		return (*UpdateResponse)(nil)
+	}
+	r := new(UpdateResponse)
+	r.Service = m.Service.CloneVT()
+	r.Version = m.Version.CloneVT()
+	if len(m.unknownFields) > 0 {
+		r.unknownFields = make([]byte, len(m.unknownFields))
+		copy(r.unknownFields, m.unknownFields)
+	}
+	return r
+}
+
+func (m *UpdateResponse) CloneMessageVT() proto.Message {
+	return m.CloneVT()
+}
+
 func (this *Service_Batch) EqualVT(that *Service_Batch) bool {
 	if this == that {
 		return true
@@ -441,6 +480,50 @@ func (this *CreateBatchResponse) EqualVT(that *CreateBatchResponse) bool {
 
 func (this *CreateBatchResponse) EqualMessageVT(thatMsg proto.Message) bool {
 	that, ok := thatMsg.(*CreateBatchResponse)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *UpdateRequest) EqualVT(that *UpdateRequest) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if this.Id != that.Id {
+		return false
+	}
+	if p, q := this.Disabled, that.Disabled; (p == nil && q != nil) || (p != nil && (q == nil || *p != *q)) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UpdateRequest) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*UpdateRequest)
+	if !ok {
+		return false
+	}
+	return this.EqualVT(that)
+}
+func (this *UpdateResponse) EqualVT(that *UpdateResponse) bool {
+	if this == that {
+		return true
+	} else if this == nil || that == nil {
+		return false
+	}
+	if !this.Service.EqualVT(that.Service) {
+		return false
+	}
+	if !this.Version.EqualVT(that.Version) {
+		return false
+	}
+	return string(this.unknownFields) == string(that.unknownFields)
+}
+
+func (this *UpdateResponse) EqualMessageVT(thatMsg proto.Message) bool {
+	that, ok := thatMsg.(*UpdateResponse)
 	if !ok {
 		return false
 	}

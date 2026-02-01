@@ -23,7 +23,6 @@ func (s *Service) HandleServicesList() echo.HandlerFunc {
 			Services: lo.Map(services, func(service *servicespb.Service, _ int) *servicespb.Service {
 				serviceCloned := service.CloneVT()
 				serviceCloned.Checker = nil
-				serviceCloned.DefaultScore = 0
 				return serviceCloned
 			}),
 		}

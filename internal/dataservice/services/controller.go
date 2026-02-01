@@ -9,6 +9,7 @@ import (
 
 	"github.com/c4t-but-s4d/fastad/internal/models"
 	"github.com/c4t-but-s4d/fastad/internal/version"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 )
 
 const VersionKey = "services"
@@ -66,4 +67,38 @@ func (c *Controller) CreateBatch(ctx context.Context, services []*models.Service
 		return fmt.Errorf("in transaction: %w", err)
 	}
 	return nil
+}
+
+func (c *Controller) Update(ctx context.Context, req *servicespb.UpdateRequest) (*models.Service, int, error) {
+	var service models.Service
+	var newVersion int
+	if err := c.db.RunInTx(
+		ctx,
+		&sql.TxOptions{},
+		func(ctx context.Context, tx bun.Tx) error {
+			query := c.db.NewUpdate().
+				Model(&models.Service{}).
+				Where("id = ?", req.GetId()).
+				Returning("*")
+
+			if req.Disabled != nil {
+				query.Set("disabled = ?", req.GetDisabled())
+			}
+
+			if err := query.Model(&service).Scan(ctx); err != nil {
+				return fmt.Errorf("updating service: %w", err)
+			}
+
+			var err error
+			if newVersion, err = c.Versions.Increment(ctx, tx, VersionKey); err != nil {
+				return fmt.Errorf("incrementing version: %w", err)
+			}
+
+			return nil
+		},
+	); err != nil {
+		return nil, 0, fmt.Errorf("in transaction: %w", err)
+	}
+
+	return &service, newVersion, nil
 }

@@ -49,7 +49,7 @@ func (s *TeamsSuite) TestListTeams() {
 }
 
 func (s *TeamsSuite) TestUpdateTeamAvatar() {
-	s.Require().NotEmpty(s.teamTokens, "Team tokens required")
+	s.Require().NotEmpty(s.teamTokens(), "Team tokens required")
 
 	newAvatarURL := "https://example.com/avatar.png"
 	body := fmt.Sprintf(`{"avatar_url": "%s"}`, newAvatarURL)
@@ -57,7 +57,7 @@ func (s *TeamsSuite) TestUpdateTeamAvatar() {
 	req, err := http.NewRequest(http.MethodPut, baseURL+"/api/teams", bytes.NewReader([]byte(body)))
 	s.Require().NoError(err)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("X-Team-Token", s.teamTokens[0].Token)
+	req.Header.Set("X-Team-Token", s.teamTokens()[0].Token)
 
 	resp, err := http.DefaultClient.Do(req)
 	s.Require().NoError(err)
@@ -86,7 +86,7 @@ func (s *TeamsSuite) TestUpdateTeamAvatarWithoutToken() {
 	s.Require().NoError(err)
 	defer resp.Body.Close()
 
-	s.Assert().Equal(http.StatusBadRequest, resp.StatusCode)
+	s.Assert().Equal(http.StatusNotFound, resp.StatusCode)
 }
 
 func (s *TeamsSuite) TestUpdateTeamAvatarWithInvalidToken() {
@@ -105,11 +105,11 @@ func (s *TeamsSuite) TestUpdateTeamAvatarWithInvalidToken() {
 }
 
 func (s *TeamsSuite) TestGetTeamHistoryShowsCheckerResults() {
-	s.Require().NotEmpty(s.teams, "Teams required")
-	s.Require().NotEmpty(s.services, "Services required")
+	s.Require().NotEmpty(s.teams(), "Teams required")
+	s.Require().NotEmpty(s.services(), "Services required")
 
-	teamID := int(s.teams[0].GetId())
-	serviceID := int(s.services[0].GetId())
+	teamID := int(s.teams()[0].GetId())
+	serviceID := int(s.services()[0].GetId())
 
 	s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_UP, "Test check")
 
@@ -135,11 +135,11 @@ func (s *TeamsSuite) TestGetTeamHistoryShowsCheckerResults() {
 }
 
 func (s *TeamsSuite) TestGetTeamHistoryWithServiceFilter() {
-	s.Require().NotEmpty(s.teams, "Teams required")
-	s.Require().NotEmpty(s.services, "Services required")
+	s.Require().NotEmpty(s.teams(), "Teams required")
+	s.Require().NotEmpty(s.services(), "Services required")
 
-	teamID := int(s.teams[0].GetId())
-	serviceID := int(s.services[0].GetId())
+	teamID := int(s.teams()[0].GetId())
+	serviceID := int(s.services()[0].GetId())
 
 	s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_UP, "Filtered check")
 
@@ -164,11 +164,11 @@ func (s *TeamsSuite) TestGetTeamHistoryWithServiceFilter() {
 }
 
 func (s *TeamsSuite) TestGetTeamHistoryWithLimit() {
-	s.Require().NotEmpty(s.teams, "Teams required")
-	s.Require().NotEmpty(s.services, "Services required")
+	s.Require().NotEmpty(s.teams(), "Teams required")
+	s.Require().NotEmpty(s.services(), "Services required")
 
-	teamID := int(s.teams[0].GetId())
-	serviceID := int(s.services[0].GetId())
+	teamID := int(s.teams()[0].GetId())
+	serviceID := int(s.services()[0].GetId())
 
 	for i := 0; i < 10; i++ {
 		s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_UP, fmt.Sprintf("Check %d", i))

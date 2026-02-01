@@ -20,6 +20,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/gamestate"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
@@ -88,10 +89,16 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 		return nil, fmt.Errorf("fetching game state: %w", err)
 	}
 
-	if gameState.GetPaused() {
+	switch gameState.GetStatus() {
+	case gspb.GameStatus_GAME_STATUS_PAUSED:
 		return nil, status.Error(codes.Unavailable, "game is paused")
+	case gspb.GameStatus_GAME_STATUS_FINISHED:
+		return nil, status.Error(codes.FailedPrecondition, "game is finished")
+	case gspb.GameStatus_GAME_STATUS_NOT_STARTED:
+		return nil, status.Error(codes.FailedPrecondition, "game has not started")
 	}
-	if gameState.GetFinished() || gameState.GetEndTime() != nil && time.Now().After(gameState.GetEndTime().AsTime()) {
+	// Also check end time even if status is RUNNING
+	if gameState.GetEndTime() != nil && time.Now().After(gameState.GetEndTime().AsTime()) {
 		return nil, status.Error(codes.FailedPrecondition, "game is finished")
 	}
 

@@ -32,8 +32,7 @@ func (s *GameStateSuite) TestGetGameStateJSON() {
 
 	s.Assert().Equal(10.0, gs.GetHardness(), "Hardness should match config")
 	s.Assert().False(gs.GetInflation(), "Inflation should match config")
-	s.Assert().False(gs.GetPaused(), "Game should not be paused")
-	s.Assert().False(gs.GetFinished(), "Game should not be finished")
+	s.Assert().Equal(gspb.GameStatus_GAME_STATUS_RUNNING, gs.GetStatus(), "Game should be running")
 	s.Assert().Equal(uint64(5), gs.GetFlagLifetimeRounds(), "Flag lifetime should match config")
 	s.Assert().NotNil(gs.GetStartTime(), "Start time should be set")
 	s.Assert().NotNil(gs.GetRoundDuration(), "Round duration should be set")

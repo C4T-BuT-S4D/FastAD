@@ -87,8 +87,8 @@ func (c *Controller) Update(ctx context.Context, req *gspb.UpdateRequest) (*mode
 				}
 			}
 
-			if req.Paused != nil {
-				query = query.Set("paused = ?", req.GetPaused())
+			if req.GetStatus() != gspb.GameStatus_GAME_STATUS_UNSPECIFIED {
+				query = query.Set("status = ?", req.GetStatus())
 			}
 
 			if req.GetFlagLifetimeRounds() > 0 {
@@ -145,7 +145,7 @@ func (c *Controller) FinishGame(ctx context.Context) (*models.GameState, int, er
 	if err := c.db.RunInTx(ctx, &sql.TxOptions{}, func(ctx context.Context, tx bun.Tx) error {
 		var err error
 		if gs, newVersion, err = c.updateImpl(ctx, tx, func(query *bun.UpdateQuery) *bun.UpdateQuery {
-			return query.Set("finished = true")
+			return query.Set("status = ?", gspb.GameStatus_GAME_STATUS_FINISHED)
 		}); err != nil {
 			return fmt.Errorf("updating game state: %w", err)
 		}

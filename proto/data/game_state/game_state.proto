@@ -7,24 +7,29 @@ import "google/protobuf/duration.proto";
 
 import "data/version/version.proto";
 
+enum GameStatus {
+  GAME_STATUS_UNSPECIFIED = 0;
+  GAME_STATUS_NOT_STARTED = 1;
+  GAME_STATUS_RUNNING = 2;
+  GAME_STATUS_PAUSED = 3;
+  GAME_STATUS_FINISHED = 4;
+}
+
 message GameState {
   google.protobuf.Timestamp start_time = 1;
   google.protobuf.Timestamp end_time = 2;
   uint64 total_rounds = 3;
 
-  bool paused = 4;
-  bool finished = 5;
+  GameStatus status = 4;
 
-  uint64 flag_lifetime_rounds = 6;
-  google.protobuf.Duration round_duration = 7;
+  uint64 flag_lifetime_rounds = 5;
+  google.protobuf.Duration round_duration = 6;
 
-  uint64 running_round = 8;
-  google.protobuf.Timestamp running_round_start = 9;
+  uint64 running_round = 7;
+  google.protobuf.Timestamp running_round_start = 8;
 
-  double hardness = 10;
-  bool inflation = 11;
-
-  reserved 12 to 100;
+  double hardness = 9;
+  bool inflation = 10;
 }
 
 message GetRequest {
@@ -44,13 +49,13 @@ message UpdateRequest {
 
   optional uint64 total_rounds = 3;
 
-  optional bool paused = 4;
+  GameStatus status = 4;
 
   optional uint64 flag_lifetime_rounds = 5;
   google.protobuf.Duration round_duration = 6;
 
-  optional double hardness = 8;
-  optional bool inflation = 9;
+  optional double hardness = 7;
+  optional bool inflation = 8;
 }
 
 message UpdateResponse {

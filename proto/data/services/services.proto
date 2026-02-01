@@ -52,3 +52,13 @@ message CreateBatchRequest {
 message CreateBatchResponse {
   repeated Service services = 1;
 }
+
+message UpdateRequest {
+  int64 id = 1;
+  optional bool disabled = 2;
+}
+
+message UpdateResponse {
+  Service service = 1;
+  data.version.Version version = 2;
+}

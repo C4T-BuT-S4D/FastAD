@@ -67,16 +67,16 @@ func (s *ScoreboardSuite) TestGetCTFTimeScoreboard() {
 }
 
 func (s *ScoreboardSuite) TestScoreboardTeamsAreSortedByScore() {
-	s.Require().GreaterOrEqual(len(s.teamTokens), 2, "Need at least 2 teams")
-	s.Require().NotEmpty(s.services, "Services required")
+	s.Require().GreaterOrEqual(len(s.teamTokens()), 2, "Need at least 2 teams")
+	s.Require().NotEmpty(s.services(), "Services required")
 
-	serviceID := int(s.services[0].GetId())
-	victimTeamID := int(s.teamTokens[1].ID)
+	serviceID := int(s.services()[0].GetId())
+	victimTeamID := int(s.teamTokens()[1].ID)
 	currentRound := s.GetCurrentRound()
 
 	for i := 0; i < 3; i++ {
 		flag := s.InsertTestFlag(victimTeamID, serviceID, currentRound, true)
-		resp := s.SubmitFlags(s.teamTokens[0].Token, []string{flag.Flag})
+		resp := s.SubmitFlags(s.teamTokens()[0].Token, []string{flag.Flag})
 		s.Require().Len(resp.GetResponses(), 1)
 	}
 
@@ -141,11 +141,11 @@ func (s *ScoreboardSuite) TestScoreboardUpdatesOnRoundProgression() {
 }
 
 func (s *ScoreboardSuite) TestSLACalculationWithUpStatus() {
-	s.Require().NotEmpty(s.teams, "Teams required")
-	s.Require().NotEmpty(s.services, "Services required")
+	s.Require().NotEmpty(s.teams(), "Teams required")
+	s.Require().NotEmpty(s.services(), "Services required")
 
-	teamID := int(s.teams[0].GetId())
-	serviceID := int(s.services[0].GetId())
+	teamID := int(s.teams()[0].GetId())
+	serviceID := int(s.services()[0].GetId())
 
 	sbBefore := s.GetScoreboard()
 	stateBefore := s.GetTeamServiceState(sbBefore, int64(teamID), int64(serviceID))
@@ -172,11 +172,11 @@ func (s *ScoreboardSuite) TestSLACalculationWithUpStatus() {
 }
 
 func (s *ScoreboardSuite) TestSLACalculationWithDownStatus() {
-	s.Require().NotEmpty(s.teams, "Teams required")
-	s.Require().NotEmpty(s.services, "Services required")
+	s.Require().NotEmpty(s.teams(), "Teams required")
+	s.Require().NotEmpty(s.services(), "Services required")
 
-	teamID := int(s.teams[0].GetId())
-	serviceID := int(s.services[0].GetId())
+	teamID := int(s.teams()[0].GetId())
+	serviceID := int(s.services()[0].GetId())
 
 	sbBefore := s.GetScoreboard()
 	stateBefore := s.GetTeamServiceState(sbBefore, int64(teamID), int64(serviceID))
@@ -210,11 +210,11 @@ func (s *ScoreboardSuite) TestSLACalculationWithDownStatus() {
 }
 
 func (s *ScoreboardSuite) TestSLADecreasesWithFailedChecks() {
-	s.Require().NotEmpty(s.teams, "Teams required")
-	s.Require().NotEmpty(s.services, "Services required")
+	s.Require().NotEmpty(s.teams(), "Teams required")
+	s.Require().NotEmpty(s.services(), "Services required")
 
-	teamID := int(s.teams[0].GetId())
-	serviceID := int(s.services[0].GetId())
+	teamID := int(s.teams()[0].GetId())
+	serviceID := int(s.services()[0].GetId())
 
 	s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_UP, "Up 1")
 	s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_UP, "Up 2")
@@ -253,8 +253,8 @@ func (s *ScoreboardSuite) TestSLADecreasesWithFailedChecks() {
 }
 
 func (s *ScoreboardSuite) TestCheckStatusHistory() {
-	s.Require().NotEmpty(s.teams, "Teams required")
-	s.Require().NotEmpty(s.services, "Services required")
+	s.Require().NotEmpty(s.teams(), "Teams required")
+	s.Require().NotEmpty(s.services(), "Services required")
 
 	var sb *scoreboardpb.Scoreboard
 	s.WaitForCondition(func() bool {

@@ -37,3 +37,10 @@ func (s *Service) validateCreateBatch(req *servicespb.CreateBatchRequest) error 
 	}
 	return nil
 }
+
+func (s *Service) validateUpdateRequest(req *servicespb.UpdateRequest) error {
+	if req.GetId() == 0 {
+		return status.Error(codes.InvalidArgument, "id required")
+	}
+	return nil
+}

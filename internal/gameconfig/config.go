@@ -61,6 +61,7 @@ func (g *Game) ToCreateRequestProto() *gspb.CreateRequest {
 			RoundDuration:      durationpb.New(g.RoundDuration),
 			Hardness:           g.Hardness,
 			Inflation:          g.Inflation,
+			Status:             gspb.GameStatus_GAME_STATUS_NOT_STARTED,
 		},
 	}
 

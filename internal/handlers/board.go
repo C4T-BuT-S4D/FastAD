@@ -53,9 +53,7 @@ func (s *Service) HandleGetCTFTimeScoreboard() echo.HandlerFunc {
 			teamStates[tss.GetTeamId()].Score += tss.GetPoints() * sla
 		}
 
-		teamStatesList := lo.Filter(lo.Values(teamStates), func(item *ctftimeTeamState, _ int) bool {
-			return item.Score > 0
-		})
+		teamStatesList := lo.Values(teamStates)
 		slices.SortFunc(teamStatesList, func(t1, t2 *ctftimeTeamState) int {
 			return cmp.Compare(t2.Score, t1.Score)
 		})

@@ -2,11 +2,49 @@
 
 package e2e
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+)
 
 func TestE2EProductionPreset(t *testing.T) {
-	tc := setupTest(t, "production")
-	defer tc.teardown()
+	sharedState := NewSharedTestState(t, "production")
+	defer sharedState.TearDown()
 
-	runAllTests(t, tc)
+	t.Run("TeamsSuite", func(t *testing.T) {
+		s := &TeamsSuite{}
+		s.sharedState = sharedState
+		suite.Run(t, s)
+	})
+
+	t.Run("ServicesSuite", func(t *testing.T) {
+		s := &ServicesSuite{}
+		s.sharedState = sharedState
+		suite.Run(t, s)
+	})
+
+	t.Run("GameStateSuite", func(t *testing.T) {
+		s := &GameStateSuite{}
+		s.sharedState = sharedState
+		suite.Run(t, s)
+	})
+
+	t.Run("ScoreboardSuite", func(t *testing.T) {
+		s := &ScoreboardSuite{}
+		s.sharedState = sharedState
+		suite.Run(t, s)
+	})
+
+	t.Run("FlagsSuite", func(t *testing.T) {
+		s := &FlagsSuite{}
+		s.sharedState = sharedState
+		suite.Run(t, s)
+	})
+
+	t.Run("CentrifugeSuite", func(t *testing.T) {
+		s := &CentrifugeSuite{}
+		s.sharedState = sharedState
+		suite.Run(t, s)
+	})
 }

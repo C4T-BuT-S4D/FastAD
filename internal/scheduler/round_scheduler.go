@@ -78,21 +78,42 @@ func (s *RoundScheduler) Run(ctx context.Context) error {
 				continue
 			}
 
-			if s.gameState.GetFinished() {
-				s.logger.Info("game is finished, skipping round update")
+			switch s.gameState.GetStatus() {
+			case gspb.GameStatus_GAME_STATUS_NOT_STARTED:
+				if !s.gameState.GetStartTime().AsTime().After(time.Now()) {
+					s.logger.Info("start_time reached, transitioning game to RUNNING")
+					if err := s.startGame(ctx); err != nil {
+						s.logger.Error("starting game", zap.Error(err))
+					}
+					if err := s.refreshGameState(ctx); err != nil {
+						s.logger.Error("refreshing game state after start", zap.Error(err))
+					}
+				} else {
+					s.logger.Info("game has not started yet, waiting for start_time")
+				}
+				if err := s.skipRun(ctx); err != nil {
+					s.logger.Error("skipping scheduler run", zap.Error(err))
+				}
 				continue
-			}
 
-			if s.gameState.GetPaused() {
+			case gspb.GameStatus_GAME_STATUS_PAUSED:
 				s.logger.Info("game is paused, skipping round update")
 				if err := s.skipRun(ctx); err != nil {
 					s.logger.Error("skipping scheduler run", zap.Error(err))
 				}
 				continue
-			}
 
-			if s.gameState.GetStartTime().AsTime().After(time.Now()) {
-				s.logger.Info("game has not started yet, skipping round update")
+			case gspb.GameStatus_GAME_STATUS_FINISHED:
+				s.logger.Info("game is finished, skipping round update")
+				if err := s.skipRun(ctx); err != nil {
+					s.logger.Error("skipping scheduler run", zap.Error(err))
+				}
+				continue
+
+			case gspb.GameStatus_GAME_STATUS_RUNNING:
+
+			default:
+				s.logger.Warn("unknown game status, skipping round update", zap.String("status", s.gameState.GetStatus().String()))
 				if err := s.skipRun(ctx); err != nil {
 					s.logger.Error("skipping scheduler run", zap.Error(err))
 				}
@@ -246,6 +267,15 @@ func (s *RoundScheduler) refreshGameState(ctx context.Context) error {
 func (s *RoundScheduler) finishGame(ctx context.Context) error {
 	if _, err := s.gameStateClient.FinishGame(ctx); err != nil {
 		return fmt.Errorf("finishing game: %w", err)
+	}
+	return nil
+}
+
+func (s *RoundScheduler) startGame(ctx context.Context) error {
+	if _, err := s.gameStateClient.Update(ctx, &gspb.UpdateRequest{
+		Status: gspb.GameStatus_GAME_STATUS_RUNNING,
+	}); err != nil {
+		return fmt.Errorf("starting game: %w", err)
 	}
 	return nil
 }
