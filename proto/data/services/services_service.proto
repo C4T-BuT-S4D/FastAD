@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package data.services;
+
+import "data/services/services.proto";
+
+service ServicesService {
+    rpc List(data.services.ListRequest) returns (data.services.ListResponse);
+
+    rpc CreateBatch(data.services.CreateBatchRequest) returns (data.services.CreateBatchResponse);
+
+    rpc Update(data.services.UpdateRequest) returns (data.services.UpdateResponse);
+}

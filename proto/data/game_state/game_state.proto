@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package data.game_state;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+import "data/version/version.proto";
+
+enum GameStatus {
+  GAME_STATUS_UNSPECIFIED = 0;
+  GAME_STATUS_NOT_STARTED = 1;
+  GAME_STATUS_RUNNING = 2;
+  GAME_STATUS_PAUSED = 3;
+  GAME_STATUS_FINISHED = 4;
+}
+
+message GameState {
+  google.protobuf.Timestamp start_time = 1;
+  google.protobuf.Timestamp end_time = 2;
+  uint64 total_rounds = 3;
+
+  GameStatus status = 4;
+
+  uint64 flag_lifetime_rounds = 5;
+  google.protobuf.Duration round_duration = 6;
+
+  uint64 running_round = 7;
+  google.protobuf.Timestamp running_round_start = 8;
+
+  double hardness = 9;
+  bool inflation = 10;
+}
+
+message GetRequest {
+  data.version.Version version = 1;
+}
+
+message GetResponse {
+  data.game_state.GameState game_state = 1;
+  data.version.Version version = 2;
+}
+
+message UpdateRequest {
+  google.protobuf.Timestamp start_time = 1;
+
+  // Zero time means no end time.
+  google.protobuf.Timestamp end_time = 2;
+
+  optional uint64 total_rounds = 3;
+
+  GameStatus status = 4;
+
+  optional uint64 flag_lifetime_rounds = 5;
+  google.protobuf.Duration round_duration = 6;
+
+  optional double hardness = 7;
+  optional bool inflation = 8;
+}
+
+message UpdateResponse {
+  data.game_state.GameState game_state = 1;
+  data.version.Version version = 2;
+}
+
+message UpdateRoundRequest {
+  uint64 running_round = 1;
+  google.protobuf.Timestamp running_round_start = 2;
+}
+
+message UpdateRoundResponse {
+  data.game_state.GameState game_state = 1;
+  data.version.Version version = 2;
+}
+
+message FinishGameRequest {
+}
+
+message FinishGameResponse {
+  data.game_state.GameState game_state = 1;
+  data.version.Version version = 2;
+}
+
+message CreateRequest {
+  GameState game_state = 1;
+}
+
+message CreateResponse {
+  data.game_state.GameState game_state = 1;
+  data.version.Version version = 2;
+}

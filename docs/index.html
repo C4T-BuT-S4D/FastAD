@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FastAD Rating Formula Visualizer</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-tertiary: #21262d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --accent-hover: #79c0ff;
+            --border: #30363d;
+            --success: #3fb950;
+            --warning: #d29922;
+            --danger: #f85149;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-title::before {
+            content: '';
+            width: 4px;
+            height: 1.2em;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        #heatmap {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .controls-panel {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            position: sticky;
+            top: 1rem;
+        }
+
+        .controls-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .controls-title::before {
+            content: '';
+            width: 4px;
+            height: 1.2em;
+            background: var(--success);
+            border-radius: 2px;
+        }
+
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .control-label span:first-child {
+            color: var(--text-secondary);
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid var(--bg-secondary);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 0 4px rgba(88, 166, 255, 0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid var(--bg-secondary);
+        }
+
+        input[type="number"] {
+            width: 80px;
+            padding: 0.4rem 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            text-align: right;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.15);
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .formula-section {
+            margin-top: 2rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .formula-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .formula-title::before {
+            content: '';
+            width: 4px;
+            height: 1.2em;
+            background: var(--warning);
+            border-radius: 2px;
+        }
+
+        .formula-code {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+
+        .formula-code .keyword {
+            color: #ff7b72;
+        }
+
+        .formula-code .function {
+            color: #d2a8ff;
+        }
+
+        .formula-code .variable {
+            color: #79c0ff;
+        }
+
+        .formula-code .operator {
+            color: #ff7b72;
+        }
+
+        .formula-code .number {
+            color: #a5d6ff;
+        }
+
+        .formula-code .comment {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .tooltip {
+            position: absolute;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .tooltip-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .tooltip-label {
+            color: var(--text-secondary);
+        }
+
+        .tooltip-value {
+            font-weight: 600;
+            font-family: 'SFMono-Regular', Consolas, monospace;
+        }
+
+        .tooltip-value.positive {
+            color: var(--success);
+        }
+
+        .legend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1rem;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .legend-center {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .legend-gradient {
+            width: 200px;
+            height: 12px;
+            border-radius: 6px;
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 200px;
+            margin-top: 0.35rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .axis-label {
+            font-size: 0.85rem;
+            fill: var(--text-secondary);
+        }
+
+        footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .info-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FastAD Rating Formula Visualizer</h1>
+            <p class="subtitle">Interactive heatmap showing rating delta based on attacker and victim scores</p>
+        </header>
+
+        <div class="main-content">
+            <div class="chart-container">
+                <div class="chart-title">Rating Delta Heatmap</div>
+                <div id="heatmap"></div>
+                <div class="legend">
+                    <span>Low</span>
+                    <div class="legend-center">
+                        <div id="legend-gradient" class="legend-gradient"></div>
+                        <div class="legend-labels" id="legend-labels"></div>
+                    </div>
+                    <span>High</span>
+                </div>
+            </div>
+
+            <div class="controls-panel">
+                <div class="controls-title">Parameters</div>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Hardness</span>
+                        <span class="info-badge">Scoring intensity</span>
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" id="hardness-slider" min="2" max="100" value="15" step="0.5">
+                        <input type="number" id="hardness-input" value="15" min="1.1" step="0.5">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Max Score</span>
+                        <span class="info-badge">Chart range</span>
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" id="maxscore-slider" min="1000" max="50000" value="10000" step="500">
+                        <input type="number" id="maxscore-input" value="10000" min="100" step="100">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Resolution</span>
+                        <span class="info-badge">Grid cells</span>
+                    </div>
+                    <div class="slider-container">
+                        <input type="range" id="resolution-slider" min="20" max="100" value="50" step="5">
+                        <input type="number" id="resolution-input" value="50" min="10" max="150" step="5">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="formula-section">
+            <div class="formula-title">Rating Formula</div>
+            <pre class="formula-code"><span class="comment">// FastAD rating delta calculation</span>
+<span class="keyword">const</span> <span class="variable">scale</span> <span class="operator">=</span> <span class="number">50</span> <span class="operator">*</span> <span class="function">Math.sqrt</span>(<span class="variable">hardness</span>);
+<span class="keyword">const</span> <span class="variable">norm</span> <span class="operator">=</span> <span class="function">Math.log</span>(<span class="function">Math.log</span>(<span class="variable">hardness</span>)) <span class="operator">/</span> <span class="number">12</span>;
+<span class="keyword">const</span> <span class="variable">ratingDelta</span> <span class="operator">=</span> <span class="function">Math.sqrt</span>(<span class="variable">attackerScore</span>) <span class="operator">-</span> <span class="function">Math.sqrt</span>(<span class="variable">victimScore</span>);
+<span class="keyword">const</span> <span class="variable">ratingDeltaNorm</span> <span class="operator">=</span> <span class="variable">ratingDelta</span> <span class="operator">*</span> <span class="variable">norm</span>;
+<span class="keyword">const</span> <span class="variable">attackerDelta</span> <span class="operator">=</span> <span class="variable">scale</span> <span class="operator">/</span> (<span class="number">1</span> <span class="operator">+</span> <span class="function">Math.exp</span>(<span class="variable">ratingDeltaNorm</span>));</pre>
+        </div>
+
+        <footer>
+            <p>Part of <a href="https://github.com/C4T-BuT-S4D/FastAD" target="_blank">FastAD</a> - Blazing fast Attack &amp; Defence CTF platform</p>
+        </footer>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Rating formula implementation
+        function calculateAttackerDelta(attackerScore, victimScore, hardness) {
+            // Ensure hardness is valid for log(log(x))
+            if (hardness <= 1) hardness = 1.1;
+            const scale = 50 * Math.sqrt(hardness);
+            const norm = Math.log(Math.log(hardness)) / 12;
+            const ratingDelta = Math.sqrt(attackerScore) - Math.sqrt(victimScore);
+            const ratingDeltaNorm = ratingDelta * norm;
+            const attackerDelta = scale / (1 + Math.exp(ratingDeltaNorm));
+            return attackerDelta;
+        }
+
+        // Chart configuration
+        const margin = { top: 40, right: 30, bottom: 60, left: 70 };
+        const width = 600 - margin.left - margin.right;
+        const height = 500 - margin.top - margin.bottom;
+
+        // Create SVG
+        const svg = d3.select('#heatmap')
+            .append('svg')
+            .attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+            .attr('preserveAspectRatio', 'xMidYMid meet')
+            .style('max-width', '100%')
+            .style('height', 'auto')
+            .append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+
+        // Tooltip
+        const tooltip = d3.select('#tooltip');
+
+        // Scales
+        let xScale = d3.scaleLinear().range([0, width]);
+        let yScale = d3.scaleLinear().range([height, 0]);
+        let colorScale;
+
+        // Axes
+        const xAxisGroup = svg.append('g')
+            .attr('transform', `translate(0,${height})`)
+            .attr('class', 'x-axis');
+
+        const yAxisGroup = svg.append('g')
+            .attr('class', 'y-axis');
+
+        // Axis labels
+        svg.append('text')
+            .attr('class', 'axis-label')
+            .attr('x', width / 2)
+            .attr('y', height + 45)
+            .attr('text-anchor', 'middle')
+            .text("Victim's Score");
+
+        svg.append('text')
+            .attr('class', 'axis-label')
+            .attr('transform', 'rotate(-90)')
+            .attr('x', -height / 2)
+            .attr('y', -50)
+            .attr('text-anchor', 'middle')
+            .text("Attacker's Score");
+
+        // Create heatmap cells container
+        const cellsGroup = svg.append('g').attr('class', 'cells');
+
+        // Get control elements
+        const hardnessSlider = document.getElementById('hardness-slider');
+        const hardnessInput = document.getElementById('hardness-input');
+        const maxscoreSlider = document.getElementById('maxscore-slider');
+        const maxscoreInput = document.getElementById('maxscore-input');
+        const resolutionSlider = document.getElementById('resolution-slider');
+        const resolutionInput = document.getElementById('resolution-input');
+
+        // Sync slider and input
+        function syncControls(slider, input) {
+            slider.addEventListener('input', () => {
+                input.value = slider.value;
+                updateChart();
+            });
+            input.addEventListener('change', () => {
+                const val = parseFloat(input.value);
+                if (!isNaN(val) && val >= parseFloat(input.min)) {
+                    slider.value = Math.min(Math.max(val, parseFloat(slider.min)), parseFloat(slider.max));
+                    updateChart();
+                }
+            });
+        }
+
+        syncControls(hardnessSlider, hardnessInput);
+        syncControls(maxscoreSlider, maxscoreInput);
+        syncControls(resolutionSlider, resolutionInput);
+
+        // Generate heatmap data
+        function generateData(maxScore, resolution, hardness) {
+            const data = [];
+            const step = maxScore / resolution;
+            
+            for (let i = 0; i < resolution; i++) {
+                for (let j = 0; j < resolution; j++) {
+                    const victimScore = step * (j + 0.5);
+                    const attackerScore = step * (i + 0.5);
+                    const delta = calculateAttackerDelta(attackerScore, victimScore, hardness);
+                    data.push({
+                        x: j,
+                        y: i,
+                        victimScore,
+                        attackerScore,
+                        delta
+                    });
+                }
+            }
+            return data;
+        }
+
+        // Update chart
+        function updateChart() {
+            const hardness = parseFloat(hardnessInput.value) || 15;
+            const maxScore = parseFloat(maxscoreInput.value) || 10000;
+            const resolution = parseInt(resolutionInput.value) || 50;
+
+            const data = generateData(maxScore, resolution, hardness);
+
+            // Update scales
+            xScale.domain([0, maxScore]);
+            yScale.domain([0, maxScore]);
+
+            const deltaExtent = d3.extent(data, d => d.delta);
+            colorScale = d3.scaleSequential()
+                .domain(deltaExtent)
+                .interpolator(d3.interpolateViridis);
+
+            // Update axes with formatted ticks
+            const formatNumber = d3.format(',.0f');
+            xAxisGroup.transition().duration(300)
+                .call(d3.axisBottom(xScale).ticks(6).tickFormat(formatNumber));
+            yAxisGroup.transition().duration(300)
+                .call(d3.axisLeft(yScale).ticks(6).tickFormat(formatNumber));
+
+            // Style axes
+            svg.selectAll('.x-axis text, .y-axis text')
+                .style('fill', '#8b949e')
+                .style('font-size', '11px');
+            svg.selectAll('.x-axis line, .y-axis line, .x-axis path, .y-axis path')
+                .style('stroke', '#30363d');
+
+            // Cell dimensions
+            const cellWidth = width / resolution;
+            const cellHeight = height / resolution;
+
+            // Update cells
+            const cells = cellsGroup.selectAll('rect')
+                .data(data, d => `${d.x}-${d.y}`);
+
+            cells.exit().remove();
+
+            const cellsEnter = cells.enter()
+                .append('rect')
+                .attr('x', d => d.x * cellWidth)
+                .attr('y', d => height - (d.y + 1) * cellHeight)
+                .attr('width', cellWidth + 0.5)
+                .attr('height', cellHeight + 0.5)
+                .attr('shape-rendering', 'crispEdges')
+                .style('stroke', 'none')
+                .style('cursor', 'crosshair');
+
+            cellsEnter.merge(cells)
+                .transition()
+                .duration(300)
+                .attr('x', d => d.x * cellWidth)
+                .attr('y', d => height - (d.y + 1) * cellHeight)
+                .attr('width', cellWidth + 0.5)
+                .attr('height', cellHeight + 0.5)
+                .attr('fill', d => colorScale(d.delta));
+
+            // Update hover events
+            cellsGroup.selectAll('rect')
+                .on('mouseover', function(event, d) {
+                    d3.select(this).style('stroke', '#fff').style('stroke-width', 2);
+                    tooltip.classed('visible', true);
+                    tooltip.html(`
+                        <div class="tooltip-row">
+                            <span class="tooltip-label">Victim Score:</span>
+                            <span class="tooltip-value">${d.victimScore.toFixed(1)}</span>
+                        </div>
+                        <div class="tooltip-row">
+                            <span class="tooltip-label">Attacker Score:</span>
+                            <span class="tooltip-value">${d.attackerScore.toFixed(1)}</span>
+                        </div>
+                        <div class="tooltip-row">
+                            <span class="tooltip-label">Rating Delta:</span>
+                            <span class="tooltip-value positive">+${d.delta.toFixed(2)}</span>
+                        </div>
+                    `);
+                })
+                .on('mousemove', function(event) {
+                    tooltip
+                        .style('left', (event.pageX + 15) + 'px')
+                        .style('top', (event.pageY - 10) + 'px');
+                })
+                .on('mouseout', function() {
+                    d3.select(this).style('stroke', 'none');
+                    tooltip.classed('visible', false);
+                });
+
+            // Update legend
+            updateLegend(deltaExtent);
+        }
+
+        // Update legend gradient
+        function updateLegend(extent) {
+            const gradient = d3.select('#legend-gradient');
+            const numStops = 10;
+            const stops = d3.range(numStops).map(i => {
+                const t = i / (numStops - 1);
+                const value = extent[0] + t * (extent[1] - extent[0]);
+                return colorScale(value);
+            });
+            
+            gradient.style('background', `linear-gradient(to right, ${stops.join(', ')})`);
+            
+            d3.select('#legend-labels').html(`
+                <span>${extent[0].toFixed(1)}</span>
+                <span>${((extent[0] + extent[1]) / 2).toFixed(1)}</span>
+                <span>${extent[1].toFixed(1)}</span>
+            `);
+        }
+
+        // Initial render
+        updateChart();
+    </script>
+</body>
+</html>

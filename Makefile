@@ -1,6 +1,6 @@
 .PHONY: lint-proto
 lint-proto:
-	cd proto && buf lint && buf build
+	cd proto && buf lint
 
 .PHONY: lint-go
 lint-go:
@@ -8,10 +8,15 @@ lint-go:
 
 .PHONY: lint-front
 lint-front:
-	cd front && yarn lint
+	cd front && pnpm lint
+
+.PHONY: goimports
+goimports:
+	gofancyimports fix --local github.com/c4t-but-s4d/fastad -w $(shell find . -type f -name '*.go' -not -path "./pkg/proto/*")
 
 .PHONY: proto
 proto: lint-proto
+	rm -rf pkg/proto front/src/proto
 	cd proto && buf generate
 
 .PHONY: tidy
@@ -27,3 +32,22 @@ test-go:
 
 .PHONY: test
 test: test-go
+
+.PHONY: commit-proto
+commit-proto: proto
+	git add proto
+	git add pkg/proto
+	git add front/src/proto
+	git commit -m "Regenerate proto"
+
+.PHONY: reset-db
+reset-db:
+	docker compose exec postgres psql -U fastad fastad -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+	go run ./cmd/migrator/main.go init
+
+.PHONY: migrate-db
+migrate-db:
+	go run ./cmd/migrator/main.go migrate
+
+.PHONY: db
+db: reset-db migrate-db

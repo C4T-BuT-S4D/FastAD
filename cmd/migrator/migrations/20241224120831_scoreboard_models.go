@@ -1,0 +1,27 @@
+package migrations
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/uptrace/bun"
+
+	"github.com/c4t-but-s4d/fastad/internal/models"
+)
+
+//nolint:gochecknoinits // Migrations should be initialized in init functions.
+func init() {
+	Migrations.MustRegister(func(ctx context.Context, db *bun.DB) error {
+		if _, err := db.NewCreateTable().
+			Model((*models.SlacProcessedItem)(nil)).
+			IfNotExists().
+			// Don't create foreign keys here.
+			Exec(ctx); err != nil {
+			return fmt.Errorf("creating processor_states: %w", err)
+		}
+
+		return nil
+	}, func(context.Context, *bun.DB) error {
+		return nil
+	})
+}

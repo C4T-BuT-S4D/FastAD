@@ -1,3 +1,13 @@
 .idea
 .DS_Store
 .vscode
+mise.local.toml
+__pycache__
+.sccignore
+.generated
+.env
+/compose.yml
+/fastad.yaml
+.sisyphus
+/fastad
+/data

@@ -1,0 +1,49 @@
+package checkers
+
+import (
+	"context"
+
+	"go.temporal.io/sdk/activity"
+	"go.temporal.io/sdk/log"
+
+	"github.com/c4t-but-s4d/fastad/internal/models"
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
+)
+
+const GetActivityName = "Get"
+
+type GetActivity struct{}
+
+func NewGetActivity() *GetActivity {
+	return &GetActivity{}
+}
+
+type GetActivityParameters struct {
+	GameState *gspb.GameState
+	Team      *teamspb.Team
+	Service   *servicespb.Service
+	Flag      *models.Flag
+}
+
+type GetActivityResult struct {
+	Verdict *Verdict
+}
+
+func (*GetActivity) ActivityDefinition(ctx context.Context, params *GetActivityParameters) (*GetActivityResult, error) {
+	logger := log.With(
+		activity.GetLogger(ctx),
+		"team", params.Team.GetId(),
+		"service", params.Service.GetId(),
+		"action", checkerpb.Action_ACTION_GET,
+		"activity", GetActivityName,
+	)
+
+	logger.Info("starting")
+	verdict := RunGetAction(ctx, params)
+	logger.Info("finished", "verdict", verdict)
+
+	return &GetActivityResult{Verdict: verdict}, nil
+}

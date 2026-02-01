@@ -1,0 +1,31 @@
+game:
+  start_time: '2025-01-12T20:50:00+03:00'
+  end_time: '2025-01-12T21:35:00+03:00'
+  round_duration: '10s'
+  flag_lifetime_rounds: 10
+  hardness: 15
+  checkers_base_path: '.'
+
+teams:
+  - name: 'team1'
+    address: '127.0.0.1'
+
+  - name: 'team2'
+    address: '127.0.0.1'
+
+services:
+  - name: 'test service'
+    default_score: 3000
+    checker:
+      default_timeout: 10s
+      path: 'tests/service/checker.py'
+
+  - name: 'test service (no checker)'
+    default_score: 2000
+    checker:
+      default_timeout: 11s
+      path: 'no-checker.py'
+      actions:
+        get:
+          timeout: 12s
+          count: 2

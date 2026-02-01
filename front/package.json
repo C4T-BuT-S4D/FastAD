@@ -1,32 +1,47 @@
 {
-    "name": "fastad",
-    "private": true,
-    "version": "0.0.0",
-    "type": "module",
-    "scripts": {
-        "dev": "vite",
-        "build": "vue-tsc --noEmit && vite build",
-        "preview": "vite preview",
-        "lint": "eslint --ext .js,.vue,.ts --ignore-path .gitignore --fix src"
-    },
-    "dependencies": {
-        "@improbable-eng/grpc-web": "^0.15.0",
-        "google-protobuf": "^3.20.1",
-        "nice-grpc-web": "^1.1.0",
-        "protobufjs": "^7.0.0",
-        "vue": "^3.2.37"
-    },
-    "devDependencies": {
-        "@rushstack/eslint-patch": "^1.1.4",
-        "@types/node": "^18.6.1",
-        "@vitejs/plugin-vue": "^3.0.0",
-        "@vue/eslint-config-prettier": "^7.0.0",
-        "@vue/eslint-config-typescript": "^11.0.0",
-        "eslint": "^8.20.0",
-        "eslint-plugin-vue": "^9.3.0",
-        "prettier": "^2.7.1",
-        "typescript": "^4.6.4",
-        "vite": "^3.0.0",
-        "vue-tsc": "^0.38.4"
-    }
+  "name": "front",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.2.3",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^6.3.0",
+    "@mui/lab": "6.0.0-beta.21",
+    "@mui/material": "^6.3.0",
+    "@types/react-window": "^1.8.8",
+    "@uidotdev/usehooks": "^2.4.1",
+    "axios": "^1.7.9",
+    "centrifuge": "^5.2.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router": "^7.1.1",
+    "react-window": "^1.8.11"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "typescript": "~5.6.2",
+    "typescript-eslint": "^8.18.2",
+    "vite": "^6.0.5"
+  },
+  "packageManager": "pnpm@9.15.2+sha512.93e57b0126f0df74ce6bff29680394c0ba54ec47246b9cf321f0121d8d9bb03f750a705f24edc3c1180853afd7c2c3b94196d0a3d53d3e069d9e2793ef11f321"
 }

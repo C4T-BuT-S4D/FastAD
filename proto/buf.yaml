@@ -1,9 +1,14 @@
-version: v1
+version: v2
+lint:
+  use:
+  - STANDARD
+  except:
+  - FIELD_NOT_REQUIRED
+  - PACKAGE_NO_IMPORT_CYCLE
+  - PACKAGE_VERSION_SUFFIX
+  disallow_comment_ignores: true
 breaking:
   use:
     - WIRE_JSON
-lint:
-  use:
-    - DEFAULT
   except:
-    - PACKAGE_VERSION_SUFFIX
+  - FIELD_SAME_DEFAULT

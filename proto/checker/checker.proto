@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package checker;
+
+import "google/protobuf/timestamp.proto";
+
+enum Action {
+  ACTION_UNSPECIFIED = 0;
+  ACTION_CHECK = 1;
+  ACTION_PUT = 2;
+  ACTION_GET = 3;
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_UP = 1;
+  STATUS_MUMBLE = 2;
+  STATUS_CORRUPT = 3;
+  STATUS_DOWN = 4;
+  STATUS_CHECK_FAILED = 5;
+}
+
+enum Type {
+  TYPE_UNSPECIFIED = 0;
+  TYPE_LEGACY = 1;
+}
+
+message Execution {
+  message Batch {
+    repeated Execution executions = 1;
+  }
+
+  int64 team_id = 1;
+  int64 service_id = 2;
+  Action action = 3;
+  Status status = 4;
+
+  string public = 5;
+  string private = 6;
+  string command = 7;
+
+  google.protobuf.Timestamp created_at = 8;
+}

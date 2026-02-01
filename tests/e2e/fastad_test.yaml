@@ -1,0 +1,48 @@
+fastad:
+  listen_port: 8080
+  log_level: debug
+  intercom_token: "test-intercom-token-12345"
+
+admin:
+  username: admin
+  password: testpassword123
+
+game:
+  start_time: "2020-01-01T00:00:00Z"
+  round_duration: 10s
+  flag_lifetime_rounds: 5
+  hardness: 10.0
+  inflation: false
+  checkers_base_path: tests/service
+
+teams:
+  - name: Team Alpha
+    address: 10.60.1.1
+    labels:
+      country: US
+
+  - name: Team Beta
+    address: 10.60.1.2
+    labels:
+      country: DE
+
+  - name: Team Gamma
+    address: 10.60.1.3
+
+services:
+  - name: test_service
+    default_score: 2500.0
+    checker:
+      type: legacy
+      path: checker.py
+      default_timeout: 30s
+      actions:
+        check:
+          count: 1
+          timeout: 15s
+        put:
+          count: 1
+          timeout: 30s
+        get:
+          count: 1
+          timeout: 30s

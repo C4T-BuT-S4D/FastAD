@@ -1,0 +1,164 @@
+package checkers
+
+import (
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
+	"os/exec"
+	"strings"
+	"syscall"
+	"time"
+
+	"github.com/c4t-but-s4d/fastad/pkg/modelsutil"
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
+)
+
+// TODO: add process reaper to avoid zombies.
+
+const (
+	checkAction = "check"
+	putAction   = "put"
+	getAction   = "get"
+)
+
+const checkerKillDelay = time.Second * 3
+
+func RunCheckAction(
+	ctx context.Context,
+	params *CheckActivityParameters,
+) *Verdict {
+	return RunAction(
+		ctx,
+		params.Service.GetChecker().GetPath(),
+		checkerpb.Action_ACTION_CHECK,
+		[]string{checkAction, params.Team.GetAddress()},
+		modelsutil.ServiceCheckerTimeout(params.Service, checkerpb.Action_ACTION_CHECK),
+	)
+}
+
+func RunPutAction(
+	ctx context.Context,
+	params *PutActivityParameters,
+) *Verdict {
+	return RunAction(
+		ctx,
+		params.FlagInfo.Service.GetChecker().GetPath(),
+		checkerpb.Action_ACTION_PUT,
+		[]string{
+			putAction,
+			params.FlagInfo.Team.GetAddress(),
+			params.FlagInfo.Flag.Private,
+			params.FlagInfo.Flag.Flag,
+			"1", // TODO: vulns.
+		},
+		modelsutil.ServiceCheckerTimeout(params.FlagInfo.Service, checkerpb.Action_ACTION_PUT),
+	)
+}
+
+func RunGetAction(
+	ctx context.Context,
+	params *GetActivityParameters,
+) *Verdict {
+	return RunAction(
+		ctx,
+		params.Service.GetChecker().GetPath(),
+		checkerpb.Action_ACTION_GET,
+		[]string{
+			getAction,
+			params.Team.GetAddress(),
+			params.Flag.Private,
+			params.Flag.Flag,
+			"1", // TODO: vulns.
+		},
+		modelsutil.ServiceCheckerTimeout(params.Service, checkerpb.Action_ACTION_GET),
+	)
+}
+
+func RunAction(
+	ctx context.Context,
+	checkerPath string,
+	action checkerpb.Action,
+	args []string,
+	softTimeout time.Duration,
+) *Verdict {
+	ctx, cancel := context.WithTimeout(ctx, softTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, checkerPath, args...)
+	cmd.Cancel = func() error {
+		if err := cmd.Process.Signal(syscall.SIGTERM); err != nil {
+			return fmt.Errorf("sending SIGTERM to process: %w", err)
+		}
+		return nil
+	}
+	cmd.WaitDelay = checkerKillDelay
+
+	// TODO: limit buffer size.
+	stdout := bytes.Buffer{}
+	stderr := bytes.Buffer{}
+
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	verdict := &Verdict{
+		Action:  action,
+		Command: cmd.String(),
+	}
+
+	err := cmd.Run()
+	var procErr *exec.ExitError
+	switch {
+	case errors.Is(err, context.DeadlineExceeded):
+		verdict.Status = checkerpb.Status_STATUS_DOWN
+		verdict.Public = "timeout"
+		// TODO: truncate.
+		verdict.Private = fmt.Sprintf("err: %v\nstdout: %s\nstderr: %s", err, stdout.String(), stderr.String())
+
+	case errors.As(err, &procErr):
+		switch procErr.ExitCode() {
+		case 101:
+			verdict.Status = checkerpb.Status_STATUS_UP
+			verdict.Public = stdout.String()
+			verdict.Private = stderr.String()
+		case 102:
+			verdict.Status = checkerpb.Status_STATUS_CORRUPT
+			verdict.Public = stdout.String()
+			verdict.Private = stderr.String()
+		case 103:
+			verdict.Status = checkerpb.Status_STATUS_MUMBLE
+			verdict.Public = stdout.String()
+			verdict.Private = stderr.String()
+		case 104:
+			verdict.Status = checkerpb.Status_STATUS_DOWN
+			verdict.Public = stdout.String()
+			verdict.Private = stderr.String()
+		default:
+			verdict.Status = checkerpb.Status_STATUS_CHECK_FAILED
+			verdict.Public = "checker misbehaving"
+			verdict.Private = fmt.Sprintf(
+				"err: %v, code: %v\nstdout: %s\nstderr: %s",
+				err,
+				procErr.ExitCode(),
+				stdout.String(),
+				stderr.String(),
+			)
+		}
+
+	default:
+		verdict.Status = checkerpb.Status_STATUS_CHECK_FAILED
+		verdict.Public = "checker misbehaving"
+		// TODO: truncate.
+		verdict.Private = fmt.Sprintf(
+			"err: %v\nstdout: %s\nstderr: %s",
+			err,
+			stdout.String(),
+			stderr.String(),
+		)
+	}
+
+	verdict.Public = strings.TrimRight(verdict.Public, "\n\r")
+	verdict.Private = strings.TrimRight(verdict.Private, "\n\r")
+
+	return verdict
+}

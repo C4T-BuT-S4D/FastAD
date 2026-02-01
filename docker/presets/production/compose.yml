@@ -1,0 +1,312 @@
+services:
+  migrator:
+    build:
+      context: .
+      dockerfile: ./docker/presets/production/service.Dockerfile
+      args:
+        SERVICE_NAME: migrator
+    restart: on-failure:5
+    environment:
+      FASTAD_MIGRATOR_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["sh", "-c", "/service init && /service migrate"]
+
+  dataservice:
+    build:
+      context: .
+      dockerfile: ./docker/presets/production/service.Dockerfile
+      args:
+        SERVICE_NAME: dataservice
+    restart: unless-stopped
+    environment:
+      FASTAD_DATA_SERVICE_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
+      FASTAD_DATA_SERVICE_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
+      FASTAD_DATA_SERVICE_LISTEN_ADDRESS: ":8003"
+      FASTAD_DATA_SERVICE_METRICS_ADDRESS: ":3004"
+      FASTAD_DATA_SERVICE_INSTALLATION: "fastad-prod"
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ['CMD-SHELL', 'nc -z localhost 8003 || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/presets/production/service.Dockerfile
+      args:
+        SERVICE_NAME: api
+    restart: unless-stopped
+    environment:
+      FASTAD_API_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
+      FASTAD_API_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
+      FASTAD_API_LISTEN_ADDRESS: ":8080"
+      FASTAD_API_METRICS_ADDRESS: ":3001"
+      FASTAD_API_DATA_SERVICE_ADDRESS: "dataservice:8003"
+      FASTAD_API_RECEIVER_ADDRESS: "receiver:8001"
+      FASTAD_API_SLAC_ADDRESS: "slac:8002"
+      FASTAD_API_INSTALLATION: "fastad-prod"
+      FASTAD_API_SCOREBOARD_CHANNEL: "scoreboard"
+    depends_on:
+      dataservice:
+        condition: service_healthy
+      slac:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:8080/healthcheck || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  receiver:
+    build:
+      context: .
+      dockerfile: ./docker/presets/production/service.Dockerfile
+      args:
+        SERVICE_NAME: receiver
+    restart: unless-stopped
+    environment:
+      FASTAD_RECEIVER_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
+      FASTAD_RECEIVER_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
+      FASTAD_RECEIVER_LISTEN_ADDRESS: ":8001"
+      FASTAD_RECEIVER_METRICS_ADDRESS: ":3002"
+      FASTAD_RECEIVER_DATA_SERVICE_ADDRESS: "dataservice:8003"
+      FASTAD_RECEIVER_CENTRIFUGE_CLIENT_ADDRESS: "ws://api:8080/centrifuge/websocket"
+      FASTAD_RECEIVER_INSTALLATION: "fastad-prod"
+    depends_on:
+      dataservice:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'nc -z localhost 8001 || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  slac:
+    build:
+      context: .
+      dockerfile: ./docker/presets/production/service.Dockerfile
+      args:
+        SERVICE_NAME: slac
+    restart: unless-stopped
+    environment:
+      FASTAD_SLAC_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
+      FASTAD_SLAC_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
+      FASTAD_SLAC_LISTEN_ADDRESS: ":8002"
+      FASTAD_SLAC_METRICS_ADDRESS: ":3003"
+      FASTAD_SLAC_DATA_SERVICE_ADDRESS: "dataservice:8003"
+      FASTAD_SLAC_INSTALLATION: "fastad-prod"
+    depends_on:
+      dataservice:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'nc -z localhost 8002 || exit 1']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: ./docker/presets/production/service.Dockerfile
+      args:
+        SERVICE_NAME: scheduler
+    restart: unless-stopped
+    environment:
+      FASTAD_SCHEDULER_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
+      FASTAD_SCHEDULER_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
+      FASTAD_SCHEDULER_METRICS_ADDRESS: ":3005"
+      FASTAD_SCHEDULER_DATA_SERVICE_ADDRESS: "dataservice:8003"
+      FASTAD_SCHEDULER_TEMPORAL_ADDRESS: "temporal:7233"
+      FASTAD_SCHEDULER_INSTALLATION: "fastad-prod"
+    depends_on:
+      temporal-create-namespace:
+        condition: service_completed_successfully
+      dataservice:
+        condition: service_healthy
+
+  checkers:
+    build:
+      context: .
+      dockerfile: ./docker/presets/production/checkers.Dockerfile
+      args:
+        CHECKERS_DIR: ${CHECKERS_DIR:-checkers}
+    restart: unless-stopped
+    environment:
+      FASTAD_CHECKERS_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
+      FASTAD_CHECKERS_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
+      FASTAD_CHECKERS_METRICS_ADDRESS: ":3006"
+      FASTAD_CHECKERS_TEMPORAL_ADDRESS: "temporal:7233"
+      FASTAD_CHECKERS_DATA_SERVICE_ADDRESS: "dataservice:8003"
+      FASTAD_CHECKERS_INSTALLATION: "fastad-prod"
+    depends_on:
+      temporal-create-namespace:
+        condition: service_completed_successfully
+      dataservice:
+        condition: service_healthy
+
+  caddy:
+    build:
+      context: .
+      dockerfile: ./docker/presets/simple/caddy.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${CADDY_PORT}:80"
+    volumes:
+      - ./docker/presets/production/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+
+  temporal-admin-tools:
+    image: temporalio/admin-tools:1.26.2
+    restart: on-failure:6
+    depends_on:
+      temporal-postgres:
+        condition: service_healthy
+    environment:
+      DB: postgres12
+      DB_PORT: ${TEMPORAL_POSTGRES_PORT}
+      POSTGRES_USER: ${TEMPORAL_POSTGRES_USER}
+      POSTGRES_PWD: ${TEMPORAL_POSTGRES_PASSWORD}
+      POSTGRES_SEEDS: ${TEMPORAL_POSTGRES_HOST}
+      SQL_PASSWORD: ${TEMPORAL_POSTGRES_PASSWORD}
+    volumes:
+      - ./docker/presets/simple/temporal-scripts:/scripts:ro
+    entrypoint: ["/bin/sh"]
+    command: /scripts/setup-postgres.sh
+
+  temporal:
+    image: temporalio/server:1.26.2
+    restart: unless-stopped
+    environment:
+      DB: postgres12
+      DB_PORT: ${TEMPORAL_POSTGRES_PORT}
+      POSTGRES_USER: ${TEMPORAL_POSTGRES_USER}
+      POSTGRES_PWD: ${TEMPORAL_POSTGRES_PASSWORD}
+      POSTGRES_SEEDS: ${TEMPORAL_POSTGRES_HOST}
+      BIND_ON_IP: "0.0.0.0"
+      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
+    depends_on:
+      temporal-admin-tools:
+        condition: service_completed_successfully
+    volumes:
+      - ./docker/presets/simple/temporal-dynamicconfig:/etc/temporal/config/dynamicconfig:ro
+    healthcheck:
+      test: ['CMD', 'nc', '-z', 'localhost', '7233']
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 30s
+
+  temporal-create-namespace:
+    image: temporalio/admin-tools:1.26.2
+    restart: on-failure:5
+    depends_on:
+      temporal:
+        condition: service_healthy
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      DEFAULT_NAMESPACE: default
+    volumes:
+      - ./docker/presets/simple/temporal-scripts:/scripts:ro
+    entrypoint: ["/bin/sh"]
+    command: /scripts/create-namespace.sh
+
+  temporal-ui:
+    image: temporalio/ui:2.33.0
+    restart: unless-stopped
+    environment:
+      - TEMPORAL_ADDRESS=temporal:7233
+      - TEMPORAL_UI_PORT=8080
+      - TEMPORAL_UI_PUBLIC_PATH=/temporal
+    depends_on:
+      temporal:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17.2-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${FASTAD_POSTGRES_EXTERNAL_PORT:-5433}:5432"
+    environment:
+      POSTGRES_USER: fastad
+      POSTGRES_PASSWORD: fastad
+      POSTGRES_DB: fastad
+    volumes:
+      - ${FASTAD_DATA_DIR:-./data}/fastad-db:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U fastad -d fastad
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  temporal-postgres:
+    image: postgres:17.2-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${TEMPORAL_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${TEMPORAL_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${TEMPORAL_POSTGRES_DATABASE}
+    volumes:
+      - ${FASTAD_DATA_DIR:-./data}/temporal-db:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U temporal -d temporal
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.108.1
+    restart: unless-stopped
+    command:
+      - "-storageDataPath=/storage"
+      - "-retentionPeriod=30d"
+      - "-promscrape.config=/etc/victoriametrics/scrape.yml"
+    volumes:
+      - ${FASTAD_DATA_DIR:-./data}/victoriametrics:/storage
+      - ./docker/presets/production/victoriametrics:/etc/victoriametrics:ro
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8428/-/healthy']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3030}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-fastad}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/presets/production/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/presets/production/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      victoriametrics:
+        condition: service_healthy
+
+volumes:
+  caddy-data:
+  caddy-config:
+  grafana-data:

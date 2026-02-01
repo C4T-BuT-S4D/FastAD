@@ -1,51 +1,160 @@
----
+version: "2"
 run:
-  timeout: 5m
+  concurrency: 4
   modules-download-mode: readonly
-
+  tests: true
 linters:
+  default: none
   enable:
+    - asasalint
     - asciicheck
+    - bidichk
     - bodyclose
-    - deadcode
+    - canonicalheader
+    - containedctx
+    - copyloopvar
     - dogsled
     - durationcheck
+    - errcheck
     - errname
-    - exportloopref
+    - errorlint
     - exhaustive
+    - fatcontext
+    - forbidigo
+    - forcetypeassert
+    - gocheckcompilerdirectives
+    - gochecknoinits
+    - goconst
     - gocritic
-    - gofmt
-    - goimports
+    - godot
     - gomoddirectives
-    - gosimple
+    - gomodguard
+    - goprintffuncname
+    - gosmopolitan
     - govet
-    - ifshort
+    - inamedparam
     - ineffassign
-    - importas
+    - intrange
+    - loggercheck
+    - makezero
+    - mirror
     - misspell
+    - musttag
+    - nilerr
+    - nilnil
     - noctx
+    - nolintlint
+    - nosprintfhostport
+    - perfsprint
     - prealloc
     - predeclared
+    - protogetter
+    - reassign
     - revive
+    - rowserrcheck
+    - spancheck
+    - sqlclosecheck
     - staticcheck
+    - testifylint
+    - testpackage
     - thelper
     - tparallel
     - unconvert
     - unparam
     - unused
-    - varcheck
+    - usestdlibvars
+    - wastedassign
     - whitespace
     - wrapcheck
-
-linters-settings:
-  wrapcheck:
-    ignoreSigs:
-      - errors.New
-      - (context.Context).Err()
-      - google.golang.org/grpc/status.Error
-      - google.golang.org/grpc/status.Errorf
-      - .Read(p []byte)  # most Read errors should be passed as-is, e.g. io.EOF.
-
-issues:
-  max-issues-per-linter: 0
-  max-same-issues: 0
+  settings:
+    asasalint:
+      use-builtin-exclusions: false
+    copyloopvar:
+      check-alias: true
+    errcheck:
+      disable-default-exclusions: true
+      check-type-assertions: true
+      check-blank: true
+    exhaustive:
+      default-signifies-exhaustive: true
+    forbidigo:
+      forbid:
+        - pattern: self
+        - pattern: this
+      exclude-godoc-examples: false
+    godot:
+      capital: true
+    gomoddirectives:
+      exclude-forbidden: true
+    gomodguard:
+      blocked:
+        modules:
+          - github.com/golang/protobuf:
+              recommendations:
+                - google.golang.org/protobuf
+          - github.com/satori/go.uuid:
+              recommendations:
+                - github.com/google/uuid
+          - github.com/gofrs/uuid:
+              recommendations:
+                - github.com/gofrs/uuid/v5
+    govet:
+      disable:
+        - fieldalignment
+        - shadow
+      enable-all: true
+    inamedparam:
+      skip-single-param: true
+    loggercheck:
+      require-string-key: true
+    makezero:
+      always: true
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    perfsprint:
+      strconcat: false
+    wrapcheck:
+      ignore-sigs:
+        - func errors.New(text string) error
+        - status.Error(
+        - status.Errorf(
+        - fmt.Errorf(
+        - (context.Context).Err()
+        - (*google.golang.org/grpc/internal/status.Status).Err()
+        - (github.com/labstack/echo/v4.Context).JSONBlob(code int, b []byte) error
+        - (github.com/labstack/echo/v4.Context).Blob(code int, contentType string, b []byte) error
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - goconst
+        path: (.+)_test\.go
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - gci
+  settings:
+    gofmt:
+      simplify: true
+      rewrite-rules:
+        - pattern: 'interface{}'
+          replacement: 'any'
+    gofumpt:
+      extra-rules: true
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/c4t-but-s4d/fastad)
+        - blank
+        - localmodule
+      custom-order: true
+  exclusions:
+    generated: lax

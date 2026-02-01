@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+package data.version;
+
+message Version {
+  int64 version = 1;
+}

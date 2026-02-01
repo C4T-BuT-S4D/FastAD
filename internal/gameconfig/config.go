@@ -1,0 +1,295 @@
+package gameconfig
+
+import (
+	"errors"
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/samber/lo"
+	"go.uber.org/zap"
+	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"gopkg.in/yaml.v3"
+
+	checkerpb "github.com/c4t-but-s4d/fastad/pkg/proto/checker"
+	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
+	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
+)
+
+type Game struct {
+	StartTime   time.Time  `yaml:"start_time"`
+	EndTime     *time.Time `yaml:"end_time"`
+	TotalRounds uint32     `yaml:"total_rounds"`
+
+	FlagLifetimeRounds uint32        `yaml:"flag_lifetime_rounds"`
+	RoundDuration      time.Duration `yaml:"round_duration"`
+	Hardness           float64       `yaml:"hardness"`
+	Inflation          bool          `yaml:"inflation"`
+
+	CheckersBasePath string `yaml:"checkers_base_path"`
+}
+
+func (g *Game) Validate() error {
+	if g.StartTime.IsZero() {
+		return errors.New("start_time required")
+	}
+	if g.EndTime != nil && g.EndTime.Before(g.StartTime) {
+		return errors.New("end_time is before start_time")
+	}
+	if g.Hardness <= 0 {
+		return errors.New("hardness must be positive")
+	}
+	if g.CheckersBasePath == "" {
+		g.CheckersBasePath = "checkers"
+	}
+	return nil
+}
+
+func (g *Game) ToCreateRequestProto() *gspb.CreateRequest {
+	res := &gspb.CreateRequest{
+		GameState: &gspb.GameState{
+			StartTime:   timestamppb.New(g.StartTime),
+			TotalRounds: uint64(g.TotalRounds),
+
+			FlagLifetimeRounds: uint64(g.FlagLifetimeRounds),
+			RoundDuration:      durationpb.New(g.RoundDuration),
+			Hardness:           g.Hardness,
+			Inflation:          g.Inflation,
+			Status:             gspb.GameStatus_GAME_STATUS_NOT_STARTED,
+		},
+	}
+
+	if g.EndTime != nil {
+		res.GameState.EndTime = timestamppb.New(*g.EndTime)
+	}
+
+	return res
+}
+
+type Team struct {
+	Name    string            `yaml:"name"`
+	Address string            `yaml:"address"`
+	Labels  map[string]string `yaml:"labels"`
+}
+
+func (t *Team) Validate() error {
+	if t.Name == "" {
+		return errors.New("name required")
+	}
+	if t.Address == "" {
+		return errors.New("address required")
+	}
+	return nil
+}
+
+func (t *Team) ToProto() *teamspb.Team {
+	return &teamspb.Team{
+		Name:    t.Name,
+		Address: t.Address,
+		Labels:  t.Labels,
+	}
+}
+
+type CheckerActionConfig struct {
+	Count   int           `yaml:"count"`
+	Timeout time.Duration `yaml:"timeout"`
+}
+
+type Checker struct {
+	Type CheckerType `yaml:"type"`
+	Path string      `yaml:"path"`
+
+	DefaultTimeout time.Duration                         `yaml:"default_timeout"`
+	Actions        map[CheckerAction]CheckerActionConfig `yaml:"actions"`
+}
+
+func (c *Checker) Validate() error {
+	if c.Type == CheckerType(checkerpb.Type_TYPE_UNSPECIFIED) {
+		c.Type = CheckerType(checkerpb.Type_TYPE_LEGACY)
+	}
+	if c.Path == "" {
+		return errors.New("path required")
+	}
+	if c.DefaultTimeout == 0 {
+		return errors.New("default_timeout required")
+	}
+	return nil
+}
+
+type Service struct {
+	Name         string  `yaml:"name"`
+	DefaultScore float64 `yaml:"default_score"`
+
+	Checker *Checker `yaml:"checker"`
+}
+
+func (s *Service) Validate() error {
+	if s.Name == "" {
+		return errors.New("name required")
+	}
+	if s.DefaultScore == 0 {
+		return errors.New("default_score required")
+	}
+	if s.Checker == nil {
+		s.Checker = &Checker{}
+	}
+	if err := s.Checker.Validate(); err != nil {
+		return fmt.Errorf("checker: %w", err)
+	}
+	return nil
+}
+
+func (s *Service) ToProto() *servicespb.Service {
+	return &servicespb.Service{
+		Name:         s.Name,
+		DefaultScore: s.DefaultScore,
+		Checker: &servicespb.Service_Checker{
+			Type:           checkerpb.Type(s.Checker.Type),
+			Path:           s.Checker.Path,
+			DefaultTimeout: durationpb.New(s.Checker.DefaultTimeout),
+			Actions: lo.MapToSlice(
+				s.Checker.Actions,
+				func(action CheckerAction, actionConfig CheckerActionConfig) *servicespb.Service_Checker_Action {
+					return &servicespb.Service_Checker_Action{
+						Action:   checkerpb.Action(action),
+						RunCount: int64(actionConfig.Count),
+						Timeout:  durationpb.New(actionConfig.Timeout),
+					}
+				},
+			),
+		},
+	}
+}
+
+type FastAD struct {
+	ListenPort    int    `yaml:"listen_port"`
+	LogLevel      string `yaml:"log_level"`
+	IntercomToken string `yaml:"intercom_token"`
+}
+
+func (f *FastAD) Validate() error {
+	if f.ListenPort == 0 {
+		f.ListenPort = 8080
+	}
+	if f.LogLevel == "" {
+		f.LogLevel = "info"
+	}
+	if f.IntercomToken == "" {
+		f.IntercomToken = uuid.NewString()
+		zap.L().Info(
+			"intercom token not provided, generated",
+			zap.String("token", f.IntercomToken),
+		)
+	}
+	return nil
+}
+
+type Admin struct {
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+}
+
+func (a *Admin) Validate() error {
+	if a.Username == "" {
+		return errors.New("username required")
+	}
+	if a.Password == "" {
+		return errors.New("password required")
+	}
+	return nil
+}
+
+type Database struct {
+	ExternalDSN         string `yaml:"external_dsn"`
+	TemporalExternalDSN string `yaml:"temporal_external_dsn"`
+}
+
+type GameConfig struct {
+	FastAD   *FastAD   `yaml:"fastad"`
+	Admin    *Admin    `yaml:"admin"`
+	Database *Database `yaml:"database"`
+
+	Game     *Game      `yaml:"game"`
+	Teams    []*Team    `yaml:"teams"`
+	Services []*Service `yaml:"services"`
+}
+
+func (c *GameConfig) Validate() error {
+	if c.FastAD == nil {
+		c.FastAD = &FastAD{}
+	}
+	if err := c.FastAD.Validate(); err != nil {
+		return fmt.Errorf("fastad: %w", err)
+	}
+	if c.Game == nil {
+		return errors.New("game required")
+	}
+	if err := c.Game.Validate(); err != nil {
+		return fmt.Errorf("game: %w", err)
+	}
+
+	if c.Admin == nil {
+		c.Admin = &Admin{
+			Username: "fastad",
+			Password: strings.ReplaceAll(uuid.NewString(), "-", ""),
+		}
+		zap.L().Info(
+			"admin credentials not provided, generated",
+			zap.String("username", c.Admin.Username),
+			zap.String("password", c.Admin.Password),
+		)
+	} else if err := c.Admin.Validate(); err != nil {
+		return fmt.Errorf("admin: %w", err)
+	}
+
+	for i, team := range c.Teams {
+		if team == nil {
+			return fmt.Errorf("team %d: nil", i)
+		}
+		if err := team.Validate(); err != nil {
+			return fmt.Errorf("team %d: %w", i, err)
+		}
+	}
+
+	for i, service := range c.Services {
+		if service == nil {
+			return fmt.Errorf("service %d: nil", i)
+		}
+		if err := service.Validate(); err != nil {
+			return fmt.Errorf("service %d: %w", i, err)
+		}
+	}
+	return nil
+}
+
+func ReadGeneratedConfig() (*GameConfig, error) {
+	root, err := GetFastADRoot()
+	if err != nil {
+		return nil, fmt.Errorf("getting fastad root: %w", err)
+	}
+
+	gameConfig := filepath.Join(root, GeneratedDir, GeneratedGameConfig)
+	configContent, err := os.ReadFile(gameConfig)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, fmt.Errorf(
+			"game was not initialized, run 'fastad init' first (config at %s missing)",
+			gameConfig,
+		)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("reading game config: %w", err)
+	}
+
+	var cfg GameConfig
+	if err := yaml.Unmarshal(configContent, &cfg); err != nil {
+		return nil, fmt.Errorf("unmarshaling game config: %w", err)
+	}
+
+	return &cfg, nil
+}
