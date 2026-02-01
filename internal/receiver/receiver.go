@@ -96,6 +96,10 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 		return nil, status.Error(codes.FailedPrecondition, "game is finished")
 	case gspb.GameStatus_GAME_STATUS_NOT_STARTED:
 		return nil, status.Error(codes.FailedPrecondition, "game has not started")
+	case gspb.GameStatus_GAME_STATUS_UNSPECIFIED:
+		return nil, status.Error(codes.FailedPrecondition, "game state is unspecified")
+	case gspb.GameStatus_GAME_STATUS_RUNNING:
+		// Game is running, allow flag submission
 	}
 	// Also check end time even if status is RUNNING
 	if gameState.GetEndTime() != nil && time.Now().After(gameState.GetEndTime().AsTime()) {
@@ -233,10 +237,6 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 				VictimId:  int64(flag.TeamID),
 				Message:   duplicateFlagMessage,
 			})
-		}
-
-		if len(attacksToAdd) == 0 {
-			return nil
 		}
 
 		s.stateMu.Lock()

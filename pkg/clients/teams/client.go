@@ -48,7 +48,7 @@ func (c *Client) fetch(ctx context.Context, version *versionpb.Version) ([]*team
 func (c *Client) List(ctx context.Context) ([]*teamspb.Team, error) {
 	teams, err := c.cache.Get(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getting cached teams: %w", err)
 	}
 	c.updateIndex(teams)
 	return teams, nil

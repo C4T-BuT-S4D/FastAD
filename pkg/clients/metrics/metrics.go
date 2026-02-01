@@ -55,16 +55,10 @@ func NewCacheMetrics(installation, client string) *CacheMetrics {
 
 // Hit records a cache hit.
 func (m *CacheMetrics) Hit() {
-	if m == nil {
-		return
-	}
 	m.hits.Inc()
 }
 
 // Miss records a cache miss.
 func (m *CacheMetrics) Miss() {
-	if m == nil {
-		return
-	}
 	m.misses.Inc()
 }

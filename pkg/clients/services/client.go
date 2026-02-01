@@ -33,7 +33,11 @@ func (c *Client) fetch(ctx context.Context, version *versionpb.Version) ([]*serv
 }
 
 func (c *Client) List(ctx context.Context) ([]*servicespb.Service, error) {
-	return c.cache.Get(ctx)
+	services, err := c.cache.Get(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("getting cached services: %w", err)
+	}
+	return services, nil
 }
 
 func (c *Client) CreateBatch(ctx context.Context, services []*servicespb.Service) ([]*servicespb.Service, error) {

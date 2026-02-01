@@ -40,7 +40,7 @@ func (c *Client) fetch(ctx context.Context, version *versionpb.Version) (*gspb.G
 func (c *Client) Get(ctx context.Context) (*gspb.GameState, error) {
 	state, err := c.cache.Get(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getting cached state: %w", err)
 	}
 	if state == nil {
 		return nil, ErrStateUnavailable

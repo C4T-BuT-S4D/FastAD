@@ -38,7 +38,7 @@ type VersionedCache[T any] struct {
 
 // NewVersionedCache creates a new versioned cache.
 // The fetcher is called to retrieve data when the cache needs refreshing.
-// installation and clientName are used for metrics labels.
+// Installation and clientName are used for metrics labels.
 func NewVersionedCache[T any](fetcher Fetcher[T], installation, clientName string) *VersionedCache[T] {
 	return &VersionedCache[T]{
 		fetcher: fetcher,
