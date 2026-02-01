@@ -3,61 +3,49 @@ package services
 import (
 	"context"
 	"fmt"
-	"sync"
 
+	"github.com/c4t-but-s4d/fastad/pkg/clients/cache"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
 	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
 )
 
 type Client struct {
-	c servicespb.ServicesServiceClient
-
-	refreshMu sync.Mutex
-	version   *versionpb.Version
-
-	cache *Cache
+	grpc  servicespb.ServicesServiceClient
+	cache *cache.VersionedCache[[]*servicespb.Service]
 }
 
-func NewClient(c servicespb.ServicesServiceClient) *Client {
-	return &Client{c: c, cache: NewCache()}
+func NewClient(c servicespb.ServicesServiceClient, installation string) *Client {
+	client := &Client{grpc: c}
+	client.cache = cache.NewVersionedCache(
+		cache.FetcherFunc[[]*servicespb.Service](client.fetch),
+		installation,
+		"services",
+	)
+	return client
+}
+
+func (c *Client) fetch(ctx context.Context, version *versionpb.Version) ([]*servicespb.Service, *versionpb.Version, error) {
+	resp, err := c.grpc.List(ctx, &servicespb.ListRequest{Version: version})
+	if err != nil {
+		return nil, nil, fmt.Errorf("getting services: %w", err)
+	}
+	return resp.GetServices(), resp.GetVersion(), nil
 }
 
 func (c *Client) List(ctx context.Context) ([]*servicespb.Service, error) {
-	if err := c.refresh(ctx); err != nil {
-		return nil, fmt.Errorf("refreshing services: %w", err)
-	}
-	return c.cache.GetServices(), nil
+	return c.cache.Get(ctx)
 }
 
 func (c *Client) CreateBatch(ctx context.Context, services []*servicespb.Service) ([]*servicespb.Service, error) {
-	resp, err := c.c.CreateBatch(ctx, &servicespb.CreateBatchRequest{Services: services})
+	resp, err := c.grpc.CreateBatch(ctx, &servicespb.CreateBatchRequest{Services: services})
 	if err != nil {
 		return nil, fmt.Errorf("making api request: %w", err)
 	}
 
-	if err := c.refresh(ctx); err != nil {
-		return nil, fmt.Errorf("refreshing: %w", err)
+	// Force cache refresh after write
+	if _, err := c.cache.Get(ctx); err != nil {
+		return nil, fmt.Errorf("refreshing cache: %w", err)
 	}
 
 	return resp.GetServices(), nil
-}
-
-func (c *Client) refresh(ctx context.Context) error {
-	c.refreshMu.Lock()
-	defer c.refreshMu.Unlock()
-
-	resp, err := c.c.List(ctx, &servicespb.ListRequest{Version: c.version})
-	if err != nil {
-		return fmt.Errorf("getting services: %w", err)
-	}
-
-	if c.version.EqualVT(resp.GetVersion()) {
-		return nil
-	}
-
-	c.version = resp.GetVersion()
-
-	c.cache.SetServices(resp.GetServices())
-
-	return nil
 }

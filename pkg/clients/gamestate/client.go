@@ -3,11 +3,11 @@ package gamestate
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/c4t-but-s4d/fastad/pkg/clients/cache"
 	gspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/game_state"
 	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
 )
@@ -15,31 +15,41 @@ import (
 var ErrStateUnavailable = status.Error(codes.Unavailable, "game state is unavailable")
 
 type Client struct {
-	c gspb.GameStateServiceClient
-
-	refreshMu sync.Mutex
-	version   *versionpb.Version
-
-	cache *Cache
+	grpc  gspb.GameStateServiceClient
+	cache *cache.VersionedCache[*gspb.GameState]
 }
 
-func NewClient(c gspb.GameStateServiceClient) *Client {
-	return &Client{c: c, cache: NewCache()}
+func NewClient(c gspb.GameStateServiceClient, installation string) *Client {
+	client := &Client{grpc: c}
+	client.cache = cache.NewVersionedCache(
+		cache.FetcherFunc[*gspb.GameState](client.fetch),
+		installation,
+		"gamestate",
+	)
+	return client
+}
+
+func (c *Client) fetch(ctx context.Context, version *versionpb.Version) (*gspb.GameState, *versionpb.Version, error) {
+	resp, err := c.grpc.Get(ctx, &gspb.GetRequest{Version: version})
+	if err != nil {
+		return nil, nil, fmt.Errorf("getting state: %w", err)
+	}
+	return resp.GetGameState(), resp.GetVersion(), nil
 }
 
 func (c *Client) Get(ctx context.Context) (*gspb.GameState, error) {
-	if err := c.refresh(ctx); err != nil {
-		return nil, fmt.Errorf("refreshing services: %w", err)
+	state, err := c.cache.Get(ctx)
+	if err != nil {
+		return nil, err
 	}
-	s := c.cache.GetState()
-	if s == nil {
+	if state == nil {
 		return nil, ErrStateUnavailable
 	}
-	return c.cache.GetState(), nil
+	return state, nil
 }
 
 func (c *Client) Create(ctx context.Context, req *gspb.CreateRequest) (*gspb.GameState, error) {
-	resp, err := c.c.Create(ctx, req)
+	resp, err := c.grpc.Create(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("creating state: %w", err)
 	}
@@ -47,7 +57,7 @@ func (c *Client) Create(ctx context.Context, req *gspb.CreateRequest) (*gspb.Gam
 }
 
 func (c *Client) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.GameState, error) {
-	resp, err := c.c.Update(ctx, req)
+	resp, err := c.grpc.Update(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("updating state: %w", err)
 	}
@@ -55,7 +65,7 @@ func (c *Client) Update(ctx context.Context, req *gspb.UpdateRequest) (*gspb.Gam
 }
 
 func (c *Client) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) (*gspb.GameState, error) {
-	resp, err := c.c.UpdateRound(ctx, req)
+	resp, err := c.grpc.UpdateRound(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("updating round: %w", err)
 	}
@@ -63,7 +73,7 @@ func (c *Client) UpdateRound(ctx context.Context, req *gspb.UpdateRoundRequest) 
 }
 
 func (c *Client) FinishGame(ctx context.Context) (*gspb.GameState, error) {
-	resp, err := c.c.FinishGame(ctx, &gspb.FinishGameRequest{})
+	resp, err := c.grpc.FinishGame(ctx, &gspb.FinishGameRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("finishing game: %w", err)
 	}
@@ -71,24 +81,5 @@ func (c *Client) FinishGame(ctx context.Context) (*gspb.GameState, error) {
 }
 
 func (c *Client) RawClient() gspb.GameStateServiceClient {
-	return c.c
-}
-
-func (c *Client) refresh(ctx context.Context) error {
-	c.refreshMu.Lock()
-	defer c.refreshMu.Unlock()
-
-	resp, err := c.c.Get(ctx, &gspb.GetRequest{Version: c.version})
-	if err != nil {
-		return fmt.Errorf("getting state: %w", err)
-	}
-
-	if c.version.EqualVT(resp.GetVersion()) {
-		return nil
-	}
-
-	c.version = resp.GetVersion()
-	c.cache.SetState(resp.GetGameState())
-
-	return nil
+	return c.grpc
 }

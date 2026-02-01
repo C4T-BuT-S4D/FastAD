@@ -35,7 +35,7 @@ func NewTokensCmd(cc *Context) *cobra.Command {
 			}
 			defer apiConn.Close()
 
-			teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(apiConn))
+			teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(apiConn), "fastad-cli")
 
 			teamsList, err := teamsClient.List(ctx)
 			if err != nil {

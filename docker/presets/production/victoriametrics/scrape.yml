@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+
+scrape_configs:
+  - job_name: 'api'
+    static_configs:
+      - targets: ['api:3001']
+
+  - job_name: 'receiver'
+    static_configs:
+      - targets: ['receiver:3002']
+
+  - job_name: 'slac'
+    static_configs:
+      - targets: ['slac:3003']
+
+  - job_name: 'dataservice'
+    static_configs:
+      - targets: ['dataservice:3004']
+
+  - job_name: 'scheduler'
+    static_configs:
+      - targets: ['scheduler:3005']
+
+  - job_name: 'checkers'
+    static_configs:
+      - targets: ['checkers:3006']

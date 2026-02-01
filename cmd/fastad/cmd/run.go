@@ -94,9 +94,9 @@ func NewRunCmd(cc *Context) *cobra.Command {
 			}
 			defer apiConn.Close()
 
-			teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(apiConn))
-			servicesClient := services.NewClient(servicespb.NewServicesServiceClient(apiConn))
-			gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(apiConn))
+			teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(apiConn), "fastad-cli")
+			servicesClient := services.NewClient(servicespb.NewServicesServiceClient(apiConn), "fastad-cli")
+			gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(apiConn), "fastad-cli")
 
 			teamsToCreate := lo.Map(cfg.Teams, func(t *gameconfig.Team, _ int) *teamspb.Team {
 				return t.ToProto()

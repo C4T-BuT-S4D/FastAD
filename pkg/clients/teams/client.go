@@ -5,38 +5,65 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/samber/lo"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/c4t-but-s4d/fastad/pkg/clients/cache"
 	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	versionpb "github.com/c4t-but-s4d/fastad/pkg/proto/data/version"
 )
 
 type Client struct {
-	c teamspb.TeamsServiceClient
+	grpc  teamspb.TeamsServiceClient
+	cache *cache.VersionedCache[[]*teamspb.Team]
 
-	refreshMu sync.Mutex
-	version   *versionpb.Version
-
-	cache *Cache
+	// Secondary index for fast token lookup.
+	// Updated lazily when List is called.
+	indexMu      sync.RWMutex
+	teamsByToken map[string]*teamspb.Team
 }
 
-func NewClient(c teamspb.TeamsServiceClient) *Client {
-	return &Client{c: c, cache: NewCache()}
+func NewClient(c teamspb.TeamsServiceClient, installation string) *Client {
+	client := &Client{
+		grpc:         c,
+		teamsByToken: make(map[string]*teamspb.Team),
+	}
+	client.cache = cache.NewVersionedCache(
+		cache.FetcherFunc[[]*teamspb.Team](client.fetch),
+		installation,
+		"teams",
+	)
+	return client
+}
+
+func (c *Client) fetch(ctx context.Context, version *versionpb.Version) ([]*teamspb.Team, *versionpb.Version, error) {
+	resp, err := c.grpc.List(ctx, &teamspb.ListRequest{Version: version})
+	if err != nil {
+		return nil, nil, fmt.Errorf("getting teams: %w", err)
+	}
+	return resp.GetTeams(), resp.GetVersion(), nil
 }
 
 func (c *Client) List(ctx context.Context) ([]*teamspb.Team, error) {
-	if err := c.refresh(ctx); err != nil {
-		return nil, fmt.Errorf("refreshing teams: %w", err)
+	teams, err := c.cache.Get(ctx)
+	if err != nil {
+		return nil, err
 	}
-	return c.cache.GetTeams(), nil
+	c.updateIndex(teams)
+	return teams, nil
 }
 
 func (c *Client) GetByToken(ctx context.Context, token string) (*teamspb.Team, error) {
-	if err := c.refresh(ctx); err != nil {
-		return nil, fmt.Errorf("refreshing teams: %w", err)
+	// Ensure cache is fresh and index is updated
+	if _, err := c.List(ctx); err != nil {
+		return nil, err
 	}
-	team := c.cache.GetTeamByToken(token)
+
+	c.indexMu.RLock()
+	team := c.teamsByToken[token]
+	c.indexMu.RUnlock()
+
 	if team == nil {
 		return nil, status.Error(codes.NotFound, "team not found")
 	}
@@ -44,45 +71,37 @@ func (c *Client) GetByToken(ctx context.Context, token string) (*teamspb.Team, e
 }
 
 func (c *Client) CreateBatch(ctx context.Context, teams []*teamspb.Team) ([]*teamspb.Team, error) {
-	resp, err := c.c.CreateBatch(ctx, &teamspb.CreateBatchRequest{Teams: teams})
+	resp, err := c.grpc.CreateBatch(ctx, &teamspb.CreateBatchRequest{Teams: teams})
 	if err != nil {
 		return nil, fmt.Errorf("making api request: %w", err)
 	}
 
-	if err := c.refresh(ctx); err != nil {
-		return nil, fmt.Errorf("refreshing: %w", err)
+	// Force cache refresh after write
+	if _, err := c.List(ctx); err != nil {
+		return nil, fmt.Errorf("refreshing cache: %w", err)
 	}
 
 	return resp.GetTeams(), nil
 }
 
 func (c *Client) Update(ctx context.Context, req *teamspb.UpdateRequest) (*teamspb.Team, error) {
-	resp, err := c.c.Update(ctx, req)
+	resp, err := c.grpc.Update(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("making api request: %w", err)
 	}
 
-	if err := c.refresh(ctx); err != nil {
-		return nil, fmt.Errorf("refreshing: %w", err)
+	// Force cache refresh after write
+	if _, err := c.List(ctx); err != nil {
+		return nil, fmt.Errorf("refreshing cache: %w", err)
 	}
 
 	return resp.GetTeam(), nil
 }
 
-func (c *Client) refresh(ctx context.Context) error {
-	c.refreshMu.Lock()
-	defer c.refreshMu.Unlock()
-
-	resp, err := c.c.List(ctx, &teamspb.ListRequest{Version: c.version})
-	if err != nil {
-		return fmt.Errorf("getting teams: %w", err)
-	}
-
-	if c.version.EqualVT(resp.GetVersion()) {
-		return nil
-	}
-
-	c.cache.SetTeams(resp.GetTeams())
-
-	return nil
+func (c *Client) updateIndex(teams []*teamspb.Team) {
+	c.indexMu.Lock()
+	defer c.indexMu.Unlock()
+	c.teamsByToken = lo.KeyBy(teams, func(team *teamspb.Team) string {
+		return team.GetToken()
+	})
 }

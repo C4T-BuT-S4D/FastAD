@@ -24,6 +24,7 @@ services:
       FASTAD_DATA_SERVICE_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
       FASTAD_DATA_SERVICE_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
       FASTAD_DATA_SERVICE_LISTEN_ADDRESS: ":8003"
+      FASTAD_DATA_SERVICE_METRICS_ADDRESS: ":3004"
       FASTAD_DATA_SERVICE_INSTALLATION: "fastad-prod"
     depends_on:
       migrator:
@@ -46,6 +47,7 @@ services:
       FASTAD_API_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
       FASTAD_API_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
       FASTAD_API_LISTEN_ADDRESS: ":8080"
+      FASTAD_API_METRICS_ADDRESS: ":3001"
       FASTAD_API_DATA_SERVICE_ADDRESS: "dataservice:8003"
       FASTAD_API_RECEIVER_ADDRESS: "receiver:8001"
       FASTAD_API_SLAC_ADDRESS: "slac:8002"
@@ -74,6 +76,7 @@ services:
       FASTAD_RECEIVER_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
       FASTAD_RECEIVER_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
       FASTAD_RECEIVER_LISTEN_ADDRESS: ":8001"
+      FASTAD_RECEIVER_METRICS_ADDRESS: ":3002"
       FASTAD_RECEIVER_DATA_SERVICE_ADDRESS: "dataservice:8003"
       FASTAD_RECEIVER_CENTRIFUGE_CLIENT_ADDRESS: "ws://api:8080/centrifuge/websocket"
       FASTAD_RECEIVER_INSTALLATION: "fastad-prod"
@@ -100,6 +103,7 @@ services:
       FASTAD_SLAC_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
       FASTAD_SLAC_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
       FASTAD_SLAC_LISTEN_ADDRESS: ":8002"
+      FASTAD_SLAC_METRICS_ADDRESS: ":3003"
       FASTAD_SLAC_DATA_SERVICE_ADDRESS: "dataservice:8003"
       FASTAD_SLAC_INSTALLATION: "fastad-prod"
     depends_on:
@@ -122,6 +126,7 @@ services:
     environment:
       FASTAD_SCHEDULER_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
       FASTAD_SCHEDULER_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
+      FASTAD_SCHEDULER_METRICS_ADDRESS: ":3005"
       FASTAD_SCHEDULER_DATA_SERVICE_ADDRESS: "dataservice:8003"
       FASTAD_SCHEDULER_TEMPORAL_ADDRESS: "temporal:7233"
       FASTAD_SCHEDULER_INSTALLATION: "fastad-prod"
@@ -141,6 +146,7 @@ services:
     environment:
       FASTAD_CHECKERS_POSTGRES_DSN: ${FASTAD_POSTGRES_DSN}
       FASTAD_CHECKERS_INTERCOM_TOKEN: ${FASTAD_INTERCOM_TOKEN}
+      FASTAD_CHECKERS_METRICS_ADDRESS: ":3006"
       FASTAD_CHECKERS_TEMPORAL_ADDRESS: "temporal:7233"
       FASTAD_CHECKERS_DATA_SERVICE_ADDRESS: "dataservice:8003"
       FASTAD_CHECKERS_INSTALLATION: "fastad-prod"
@@ -263,6 +269,42 @@ services:
       retries: 5
       start_period: 30s
 
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.108.1
+    restart: unless-stopped
+    command:
+      - "-storageDataPath=/storage"
+      - "-retentionPeriod=30d"
+      - "-promscrape.config=/etc/victoriametrics/scrape.yml"
+    volumes:
+      - ${FASTAD_DATA_DIR:-./data}/victoriametrics:/storage
+      - ./docker/presets/production/victoriametrics:/etc/victoriametrics:ro
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8428/-/healthy']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-fastad}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/presets/production/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/presets/production/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      victoriametrics:
+        condition: service_healthy
+
 volumes:
   caddy-data:
   caddy-config:
+  grafana-data:

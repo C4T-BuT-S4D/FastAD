@@ -15,11 +15,12 @@ import (
 )
 
 type Controller struct {
-	db *bun.DB
+	db      *bun.DB
+	metrics *Metrics
 }
 
-func NewController(db *bun.DB) *Controller {
-	return &Controller{db: db}
+func NewController(db *bun.DB, metrics *Metrics) *Controller {
+	return &Controller{db: db, metrics: metrics}
 }
 
 func (c *Controller) AddFlags(ctx context.Context, flags []*models.Flag) error {
@@ -97,6 +98,11 @@ func (c *Controller) SavePutExecutions(ctx context.Context, putResults []*PutAct
 	}); err != nil {
 		return fmt.Errorf("in tx: %w", err)
 	}
+
+	for _, exec := range executions {
+		c.metrics.ObserveExecution(exec.Action, exec.Status, exec.ServiceID)
+	}
+
 	return nil
 }
 
@@ -174,6 +180,11 @@ func (c *Controller) AddCheckerExecutions(ctx context.Context, executions ...*mo
 		Exec(ctx); err != nil {
 		return fmt.Errorf("inserting executions: %w", err)
 	}
+
+	for _, exec := range executions {
+		c.metrics.ObserveExecution(exec.Action, exec.Status, exec.ServiceID)
+	}
+
 	return nil
 }
 

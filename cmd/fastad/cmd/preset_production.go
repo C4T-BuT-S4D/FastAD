@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"text/template"
 
 	"github.com/c4t-but-s4d/fastad/internal/gameconfig"
@@ -92,7 +93,22 @@ func PresetProduction(root string, config *gameconfig.GameConfig) error {
 		return err
 	}
 
-	compose, err := LoadCompose(PresetComposePath(root, "production"))
+	env := map[string]string{
+		"FASTAD_LOG_LEVEL":           envContext.LogLevel,
+		"FASTAD_POSTGRES_DSN":        envContext.DatabaseDSN,
+		"FASTAD_INTERCOM_TOKEN":      envContext.IntercomToken,
+		"CHECKERS_DIR":               envContext.CheckersDir,
+		"TEMPORAL_POSTGRES_USER":     envContext.Temporal.User,
+		"TEMPORAL_POSTGRES_PASSWORD": envContext.Temporal.Password,
+		"TEMPORAL_POSTGRES_DATABASE": envContext.Temporal.Database,
+		"TEMPORAL_POSTGRES_HOST":     envContext.Temporal.Host,
+		"TEMPORAL_POSTGRES_PORT":     envContext.Temporal.Port,
+		"TEMPORAL_POSTGRES_TLS":      envContext.Temporal.TLS,
+		"TEMPORAL_SKIP_DB_CREATE":    envContext.Temporal.SkipDBCreate,
+		"CADDY_PORT":                 strconv.Itoa(envContext.PublicPort),
+	}
+
+	compose, err := LoadComposeWithEnv(PresetComposePath(root, "production"), env)
 	if err != nil {
 		return err
 	}

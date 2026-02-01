@@ -41,9 +41,11 @@ func Run(runCtx, shutdownCtx context.Context, cfg *receiver.Config) error {
 		return fmt.Errorf("dialing data service: %w", err)
 	}
 
-	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn))
-	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn))
-	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn))
+	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn), cfg.Installation)
+	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn), cfg.Installation)
+	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn), cfg.Installation)
+
+	receiverMetrics := receiver.NewMetrics(cfg.Installation)
 
 	receiverService := receiver.New(
 		db,
@@ -51,6 +53,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *receiver.Config) error {
 		servicesClient,
 		gameStateClient,
 		producer,
+		receiverMetrics,
 	)
 
 	if err := receiverService.RestoreState(runCtx); err != nil {

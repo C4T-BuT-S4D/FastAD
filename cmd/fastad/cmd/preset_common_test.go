@@ -122,8 +122,8 @@ volumes:
 	t.Run("LoadCompose", func(t *testing.T) {
 		compose, err := cmd.LoadCompose(composePath)
 		require.NoError(t, err)
-		assert.Len(t, compose.Services, 3)
-		assert.Len(t, compose.Volumes, 2)
+		assert.Len(t, compose.Services(), 3)
+		assert.Len(t, compose.Volumes(), 2)
 	})
 
 	t.Run("RemoveService", func(t *testing.T) {
@@ -131,8 +131,8 @@ volumes:
 		require.NoError(t, err)
 
 		compose.RemoveService("postgres")
-		assert.Len(t, compose.Services, 2)
-		_, exists := compose.Services["postgres"]
+		assert.Len(t, compose.Services(), 2)
+		_, exists := compose.Services()["postgres"]
 		assert.False(t, exists)
 	})
 
@@ -141,8 +141,8 @@ volumes:
 		require.NoError(t, err)
 
 		compose.RemoveVolume("postgres-data")
-		assert.Len(t, compose.Volumes, 1)
-		_, exists := compose.Volumes["postgres-data"]
+		assert.Len(t, compose.Volumes(), 1)
+		_, exists := compose.Volumes()["postgres-data"]
 		assert.False(t, exists)
 	})
 
@@ -151,10 +151,9 @@ volumes:
 		require.NoError(t, err)
 
 		compose.RemoveDependsOn("app")
-		appService, ok := compose.Services["app"].(map[string]any)
-		require.True(t, ok, "app service should be a map")
-		_, hasDependsOn := appService["depends_on"]
-		assert.False(t, hasDependsOn)
+		appService, exists := compose.Services()["app"]
+		require.True(t, exists, "app service should exist")
+		assert.Nil(t, appService.DependsOn)
 	})
 
 	t.Run("SetDependsOn", func(t *testing.T) {
@@ -166,12 +165,12 @@ volumes:
 		}
 		compose.SetDependsOn("app", newDeps)
 
-		appService, ok := compose.Services["app"].(map[string]any)
-		require.True(t, ok, "app service should be a map")
-		deps, ok := appService["depends_on"].(map[string]any)
-		require.True(t, ok, "depends_on should be a map")
-		_, hasRedis := deps["redis"]
-		assert.True(t, hasRedis)
+		appService, exists := compose.Services()["app"]
+		require.True(t, exists, "app service should exist")
+		require.NotNil(t, appService.DependsOn)
+		dep, hasDep := appService.DependsOn["redis"]
+		assert.True(t, hasDep)
+		assert.Equal(t, "service_started", dep.Condition)
 	})
 
 	t.Run("SetVolumes", func(t *testing.T) {
@@ -180,11 +179,11 @@ volumes:
 
 		compose.SetVolumes("app", []string{"/new/path:/container/path"})
 
-		appService, ok := compose.Services["app"].(map[string]any)
-		require.True(t, ok, "app service should be a map")
-		volumes, ok := appService["volumes"].([]string)
-		require.True(t, ok, "volumes should be a string slice")
-		assert.Equal(t, []string{"/new/path:/container/path"}, volumes)
+		appService, exists := compose.Services()["app"]
+		require.True(t, exists, "app service should exist")
+		require.Len(t, appService.Volumes, 1)
+		assert.Equal(t, "/new/path", appService.Volumes[0].Source)
+		assert.Equal(t, "/container/path", appService.Volumes[0].Target)
 	})
 
 	t.Run("Write", func(t *testing.T) {
@@ -199,7 +198,7 @@ volumes:
 
 		reloaded, err := cmd.LoadCompose(outputPath)
 		require.NoError(t, err)
-		assert.Len(t, reloaded.Services, 2)
+		assert.Len(t, reloaded.Services(), 2)
 	})
 
 	t.Run("LoadCompose_FileNotFound", func(t *testing.T) {

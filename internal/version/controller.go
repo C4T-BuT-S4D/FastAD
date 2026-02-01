@@ -40,12 +40,13 @@ func (c *Controller) Increment(ctx context.Context, tx bun.Tx, name string) (int
 		Name:    name,
 		Version: 1,
 	}
-	if _, err := tx.
+	if err := tx.
 		NewInsert().
 		Model(v).
 		On("CONFLICT (name) DO UPDATE").
 		Set("version = v.version + 1").
-		Exec(ctx); err != nil {
+		Returning("version").
+		Scan(ctx); err != nil {
 		return 0, fmt.Errorf("inserting version: %w", err)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 	"github.com/c4t-but-s4d/fastad/pkg/clients/services"
 	"github.com/c4t-but-s4d/fastad/pkg/clients/teams"
 	servicespb "github.com/c4t-but-s4d/fastad/pkg/proto/data/services"
+	teamspb "github.com/c4t-but-s4d/fastad/pkg/proto/data/teams"
 	receiverpb "github.com/c4t-but-s4d/fastad/pkg/proto/receiver"
 )
 
@@ -42,6 +44,7 @@ type Service struct {
 	servicesClient  *services.Client
 	gameStateClient *gamestate.Client
 	producer        centutil.Producer
+	metrics         *Metrics
 
 	stateMu sync.Mutex
 	state   *State
@@ -53,6 +56,7 @@ func New(
 	servicesClient *services.Client,
 	gameStateClient *gamestate.Client,
 	producer centutil.Producer,
+	metrics *Metrics,
 ) *Service {
 	return &Service{
 		db:              db,
@@ -61,10 +65,12 @@ func New(
 		gameStateClient: gameStateClient,
 		state:           NewState(),
 		producer:        producer,
+		metrics:         metrics,
 	}
 }
 
 func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRequest) (*receiverpb.SubmitFlagsResponse, error) {
+	start := time.Now()
 	zap.L().Debug("Receiver/SubmitFlags", zap.Any("request", req))
 
 	if len(req.GetFlags()) == 0 {
@@ -97,9 +103,19 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 		return int(srv.GetId())
 	})
 
-	attacker, err := s.teamsClient.GetByToken(ctx, req.GetTeamToken())
+	teamList, err := s.teamsClient.List(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("fetching attacker: %w", err)
+		return nil, fmt.Errorf("fetching teams: %w", err)
+	}
+	teamByID := lo.KeyBy(teamList, func(t *teamspb.Team) int {
+		return int(t.GetId())
+	})
+
+	attacker, ok := lo.Find(teamList, func(t *teamspb.Team) bool {
+		return t.GetToken() == req.GetTeamToken()
+	})
+	if !ok {
+		return nil, status.Error(codes.NotFound, "team not found")
 	}
 
 	attacksRequestID := uuid.NewString()
@@ -170,6 +186,7 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 				baseResponse.Verdict = receiverpb.FlagResponse_VERDICT_FLAG_NOT_READY
 				baseResponse.Message = notReadyFlagMessage
 				resp.Responses = append(resp.Responses, baseResponse)
+				continue
 			}
 
 			attacksToAdd = append(attacksToAdd, &models.Attack{
@@ -272,12 +289,73 @@ func (s *Service) SubmitFlags(ctx context.Context, req *receiverpb.SubmitFlagsRe
 			}),
 		}
 		if err := s.producer.PublishProto(ctx, notification); err != nil {
-			// It's not a critical error, so we don't return an error to the client.
 			zap.L().Error("publishing attack notification", zap.Error(err))
 		}
 	}
 
+	s.observeMetrics(resp, attacker, teamByID, serviceByID, addedAttacks, time.Since(start).Seconds())
+
 	return resp, nil
+}
+
+func (s *Service) observeMetrics(
+	resp *receiverpb.SubmitFlagsResponse,
+	attacker *teamspb.Team,
+	teamByID map[int]*teamspb.Team,
+	serviceByID map[int]*servicespb.Service,
+	addedAttacks []*models.Attack,
+	durationSeconds float64,
+) {
+	attackerIDStr := strconv.FormatInt(attacker.GetId(), 10)
+	attackerName := attacker.GetName()
+	s.metrics.ObserveSubmission(attackerIDStr, attackerName, len(resp.GetResponses()))
+
+	hasAccepted := false
+	for _, r := range resp.GetResponses() {
+		serviceID := strconv.FormatInt(r.GetServiceId(), 10)
+		serviceName := ""
+		if svc, ok := serviceByID[int(r.GetServiceId())]; ok {
+			serviceName = svc.GetName()
+		}
+
+		victimID := strconv.FormatInt(r.GetVictimId(), 10)
+		victimName := ""
+		if team, ok := teamByID[int(r.GetVictimId())]; ok {
+			victimName = team.GetName()
+		}
+
+		s.metrics.ObserveVerdict(r.GetVerdict(), serviceID, serviceName)
+		s.metrics.ObserveVerdictDetailed(attackerIDStr, attackerName, victimID, victimName, serviceID, serviceName, r.GetVerdict())
+		if r.GetVerdict() == receiverpb.FlagResponse_VERDICT_ACCEPTED {
+			hasAccepted = true
+		}
+	}
+
+	for _, attack := range addedAttacks {
+		victimIDStr := strconv.Itoa(attack.VictimID)
+		victimName := ""
+		if team, ok := teamByID[attack.VictimID]; ok {
+			victimName = team.GetName()
+		}
+
+		serviceIDStr := strconv.Itoa(attack.ServiceID)
+		serviceName := ""
+		if svc, ok := serviceByID[attack.ServiceID]; ok {
+			serviceName = svc.GetName()
+		}
+
+		s.metrics.ObserveAttack(
+			attackerIDStr,
+			attackerName,
+			victimIDStr,
+			victimName,
+			serviceIDStr,
+			serviceName,
+			attack.AttackerDelta,
+		)
+	}
+
+	s.metrics.ObserveProcessingTime(durationSeconds, hasAccepted)
 }
 
 func (s *Service) GetState(context.Context, *receiverpb.GetStateRequest) (*receiverpb.GetStateResponse, error) {

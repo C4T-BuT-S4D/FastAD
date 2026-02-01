@@ -39,11 +39,22 @@ jobs:
         with:
           go-version-file: 'go.mod'
 
-      - name: Create .fastad_root marker
-        run: touch .fastad_root
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Pre-build Docker images
+        run: |
+          go run ./cmd/fastad init --game-config tests/e2e/fastad_test.yaml --preset ${{ matrix.preset }}
+          docker compose -f compose.yml build
 
       - name: Run E2E tests (${{ matrix.preset }} preset)
         run: go test -tags "e2e e2e_${{ matrix.preset }}" -v ./tests/e2e/... -timeout 15m
+
+      - name: Collect Docker logs on failure
+        if: failure()
+        run: |
+          docker compose -f compose.yml logs --tail=100 || true
+          docker ps -a || true
 
   lint-go:
     runs-on: ubuntu-latest

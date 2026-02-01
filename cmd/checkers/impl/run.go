@@ -44,7 +44,8 @@ func Run(runCtx, shutdownCtx context.Context, cfg *checkers.Config) error {
 
 	db := cfg.Postgres.BunDB()
 
-	checkersController := checkers.NewController(db)
+	checkersMetrics := checkers.NewMetrics(cfg.Installation)
+	checkersController := checkers.NewController(db, checkersMetrics)
 
 	dataServiceConn, err := grpcext.Dial(
 		cfg.DataService.Address,
@@ -55,9 +56,9 @@ func Run(runCtx, shutdownCtx context.Context, cfg *checkers.Config) error {
 		return fmt.Errorf("dialing data service: %w", err)
 	}
 
-	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn))
-	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn))
-	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn))
+	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn), cfg.Installation)
+	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn), cfg.Installation)
+	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn), cfg.Installation)
 
 	checkersWorker := worker.New(temporalClient, "checkers", worker.Options{
 		DisableRegistrationAliasing: true,

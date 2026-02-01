@@ -45,9 +45,9 @@ func Run(runCtx, shutdownCtx context.Context, cfg *scheduler.Config) error {
 		return fmt.Errorf("dialing data service: %w", err)
 	}
 
-	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn))
-	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn))
-	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn))
+	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn), cfg.Installation)
+	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn), cfg.Installation)
+	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn), cfg.Installation)
 
 	t := scheduler.NewRoundScheduler(
 		temporalClient,

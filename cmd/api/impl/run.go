@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/centrifugal/centrifuge"
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"go.uber.org/zap"
@@ -37,9 +38,9 @@ func Run(runCtx, shutdownCtx context.Context, cfg *handlers.Config) error {
 		return fmt.Errorf("connecting to data service: %w", err)
 	}
 
-	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn))
-	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn))
-	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn))
+	teamsClient := teams.NewClient(teamspb.NewTeamsServiceClient(dataServiceConn), cfg.Installation)
+	servicesClient := services.NewClient(servicespb.NewServicesServiceClient(dataServiceConn), cfg.Installation)
+	gameStateClient := gamestate.NewClient(gspb.NewGameStateServiceClient(dataServiceConn), cfg.Installation)
 
 	receiverConn, err := grpcext.Dial(
 		cfg.ReceiverAddress,
@@ -103,6 +104,7 @@ func Run(runCtx, shutdownCtx context.Context, cfg *handlers.Config) error {
 
 	e := echo.New()
 	e.Use(
+		echoprometheus.NewMiddleware("http"),
 		httpext.RequestIDMiddleware(),
 		middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 			LogMethod:    true,
