@@ -151,7 +151,8 @@ volumes:
 		require.NoError(t, err)
 
 		compose.RemoveDependsOn("app")
-		appService := compose.Services()["app"].(map[string]any)
+		appService, ok := compose.Services()["app"].(map[string]any)
+		require.True(t, ok, "app service should be a map")
 		_, hasDeps := appService["depends_on"]
 		assert.False(t, hasDeps)
 	})
@@ -165,9 +166,12 @@ volumes:
 		}
 		compose.SetDependsOn("app", newDeps)
 
-		appService := compose.Services()["app"].(map[string]any)
-		deps := appService["depends_on"].(map[string]any)
-		redisDep := deps["redis"].(map[string]any)
+		appService, ok := compose.Services()["app"].(map[string]any)
+		require.True(t, ok, "app service should be a map")
+		deps, ok := appService["depends_on"].(map[string]any)
+		require.True(t, ok, "depends_on should be a map")
+		redisDep, ok := deps["redis"].(map[string]any)
+		require.True(t, ok, "redis dep should be a map")
 		assert.Equal(t, "service_started", redisDep["condition"])
 	})
 
@@ -177,8 +181,10 @@ volumes:
 
 		compose.SetVolumes("app", []string{"/new/path:/container/path"})
 
-		appService := compose.Services()["app"].(map[string]any)
-		volumes := appService["volumes"].([]string)
+		appService, ok := compose.Services()["app"].(map[string]any)
+		require.True(t, ok, "app service should be a map")
+		volumes, ok := appService["volumes"].([]string)
+		require.True(t, ok, "volumes should be a string slice")
 		require.Len(t, volumes, 1)
 		assert.Equal(t, "/new/path:/container/path", volumes[0])
 	})
