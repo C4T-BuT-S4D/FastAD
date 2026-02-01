@@ -17,7 +17,6 @@ type FlagsSuite struct {
 	BaseSuite
 }
 
-// TestSubmitInvalidFlag verifies that submitting an invalid flag returns VERDICT_INVALID.
 func (s *FlagsSuite) TestSubmitInvalidFlag() {
 	s.Require().NotEmpty(s.teamTokens(), "Team tokens required")
 
@@ -28,7 +27,6 @@ func (s *FlagsSuite) TestSubmitInvalidFlag() {
 	s.Assert().Equal("INVALID_FLAG_12345", resp.GetResponses()[0].GetFlag())
 }
 
-// TestSubmitEmptyFlags verifies that submitting empty flag array returns BadRequest.
 func (s *FlagsSuite) TestSubmitEmptyFlags() {
 	s.Require().NotEmpty(s.teamTokens(), "Team tokens required")
 
@@ -48,7 +46,6 @@ func (s *FlagsSuite) TestSubmitEmptyFlags() {
 	s.Assert().Equal(http.StatusBadRequest, resp.StatusCode)
 }
 
-// TestSubmitTooManyFlags verifies that submitting more than 100 flags returns BadRequest.
 func (s *FlagsSuite) TestSubmitTooManyFlags() {
 	s.Require().NotEmpty(s.teamTokens(), "Team tokens required")
 
@@ -78,7 +75,6 @@ func (s *FlagsSuite) TestSubmitTooManyFlags() {
 		"Submitting >100 flags should return BadRequest")
 }
 
-// TestSubmitWithoutToken verifies that submitting without token returns BadRequest.
 func (s *FlagsSuite) TestSubmitWithoutToken() {
 	req, err := http.NewRequest(
 		"POST",
@@ -95,7 +91,6 @@ func (s *FlagsSuite) TestSubmitWithoutToken() {
 	s.Assert().Equal(http.StatusBadRequest, resp.StatusCode)
 }
 
-// TestSubmitWithInvalidToken verifies that submitting with invalid token returns NotFound.
 func (s *FlagsSuite) TestSubmitWithInvalidToken() {
 	req, err := http.NewRequest(
 		"POST",
@@ -114,7 +109,6 @@ func (s *FlagsSuite) TestSubmitWithInvalidToken() {
 	s.Assert().Equal(http.StatusNotFound, resp.StatusCode)
 }
 
-// TestSubmitMultipleInvalidFlags verifies that all invalid flags return VERDICT_INVALID.
 func (s *FlagsSuite) TestSubmitMultipleInvalidFlags() {
 	s.Require().NotEmpty(s.teamTokens(), "Team tokens required")
 
@@ -127,7 +121,6 @@ func (s *FlagsSuite) TestSubmitMultipleInvalidFlags() {
 	}
 }
 
-// TestSubmitDuplicateFlagsInSameRequest verifies that API deduplicates identical flags.
 func (s *FlagsSuite) TestSubmitDuplicateFlagsInSameRequest() {
 	s.Require().NotEmpty(s.teamTokens(), "Team tokens required")
 
@@ -138,7 +131,6 @@ func (s *FlagsSuite) TestSubmitDuplicateFlagsInSameRequest() {
 	s.Assert().Equal(receiverpb.FlagResponse_VERDICT_INVALID, resp.GetResponses()[0].GetVerdict())
 }
 
-// TestSubmitValidFlag verifies that a valid flag from another team is accepted.
 func (s *FlagsSuite) TestSubmitValidFlag() {
 	s.Require().GreaterOrEqual(len(s.teamTokens()), 2, "Need at least 2 team tokens")
 	s.Require().NotEmpty(s.services(), "Services required")
@@ -160,7 +152,6 @@ func (s *FlagsSuite) TestSubmitValidFlag() {
 	s.Assert().Greater(flagResp.GetAttackerDelta(), float64(0), "Attacker should gain points")
 }
 
-// TestSubmitOwnFlag verifies that submitting your own flag returns VERDICT_OWN.
 func (s *FlagsSuite) TestSubmitOwnFlag() {
 	s.Require().NotEmpty(s.teamTokens(), "Team tokens required")
 	s.Require().NotEmpty(s.services(), "Services required")
@@ -180,7 +171,6 @@ func (s *FlagsSuite) TestSubmitOwnFlag() {
 		"Expected VERDICT_OWN for own flag, got %v: %s", flagResp.GetVerdict(), flagResp.GetMessage())
 }
 
-// TestSubmitOldFlag verifies that submitting an expired flag returns VERDICT_OLD.
 func (s *FlagsSuite) TestSubmitOldFlag() {
 	s.Require().GreaterOrEqual(len(s.teamTokens()), 2, "Need at least 2 team tokens")
 	s.Require().NotEmpty(s.services(), "Services required")
@@ -190,8 +180,6 @@ func (s *FlagsSuite) TestSubmitOldFlag() {
 	flagLifetime := gs.GetFlagLifetimeRounds()
 	currentRound := s.GetCurrentRound()
 
-	s.T().Logf("Flag lifetime: %d rounds, current round: %d", flagLifetime, currentRound)
-
 	if currentRound <= flagLifetime {
 		s.T().Skipf("Current round %d <= lifetime %d, cannot test old flags yet", currentRound, flagLifetime)
 	}
@@ -199,10 +187,8 @@ func (s *FlagsSuite) TestSubmitOldFlag() {
 	serviceID := int(s.services()[0].GetId())
 	victimTeamID := int(s.teamTokens()[1].ID)
 
-	// Use round 0 to guarantee flag is old
 	oldRound := uint64(0)
 	oldFlag := s.InsertTestFlag(victimTeamID, serviceID, oldRound, true)
-	s.T().Logf("Inserted old flag from round %d (current: %d, lifetime: %d)", oldRound, currentRound, flagLifetime)
 
 	resp := s.SubmitFlags(s.teamTokens()[0].Token, []string{oldFlag.Flag})
 	s.Require().Len(resp.GetResponses(), 1)
@@ -213,7 +199,6 @@ func (s *FlagsSuite) TestSubmitOldFlag() {
 		oldRound, currentRound, flagLifetime, flagResp.GetVerdict(), flagResp.GetMessage())
 }
 
-// TestSubmitDuplicateValidFlag verifies that re-submitting an already accepted flag returns VERDICT_DUPLICATE.
 func (s *FlagsSuite) TestSubmitDuplicateValidFlag() {
 	s.Require().GreaterOrEqual(len(s.teamTokens()), 2, "Need at least 2 team tokens")
 	s.Require().NotEmpty(s.services(), "Services required")
@@ -239,7 +224,6 @@ func (s *FlagsSuite) TestSubmitDuplicateValidFlag() {
 		"Re-submitting same flag should return DUPLICATE")
 }
 
-// TestScoreboardUpdatesOnFlagSubmission verifies that scoreboard reflects flag submission.
 func (s *FlagsSuite) TestScoreboardUpdatesOnFlagSubmission() {
 	s.Require().GreaterOrEqual(len(s.teamTokens()), 2, "Need at least 2 team tokens")
 	s.Require().NotEmpty(s.services(), "Services required")
@@ -272,7 +256,7 @@ func (s *FlagsSuite) TestScoreboardUpdatesOnFlagSubmission() {
 	s.Require().Equal(receiverpb.FlagResponse_VERDICT_ACCEPTED, resp.GetResponses()[0].GetVerdict())
 
 	// Wait for scoreboard update
-	s.WaitForCondition(func() bool {
+	s.Require().Eventually(func() bool {
 		sbAfter := s.GetScoreboard()
 		attackerStateAfter := s.GetTeamServiceState(sbAfter, attackerID, serviceID)
 		if attackerStateAfter == nil {
@@ -302,7 +286,6 @@ func (s *FlagsSuite) TestScoreboardUpdatesOnFlagSubmission() {
 		attackerPointsBefore, attackerStateAfter.GetPoints())
 }
 
-// TestFlagNotPutFinished verifies that flags not yet put_finished cannot be submitted.
 func (s *FlagsSuite) TestFlagNotPutFinished() {
 	s.Require().GreaterOrEqual(len(s.teamTokens()), 2, "Need at least 2 team tokens")
 	s.Require().NotEmpty(s.services(), "Services required")
@@ -344,7 +327,9 @@ func (s *FlagsSuite) TestFlagSubmissionWhenGamePaused() {
 	s.SetGameStatus(gspb.GameStatus_GAME_STATUS_PAUSED)
 	defer s.SetGameStatus(gspb.GameStatus_GAME_STATUS_RUNNING)
 
-	time.Sleep(time.Second)
+	s.Require().Eventually(func() bool {
+		return s.GetGameState().GetStatus() == gspb.GameStatus_GAME_STATUS_PAUSED
+	}, 5*time.Second, 100*time.Millisecond, "Game should be paused")
 
 	serviceID := int(s.services()[0].GetId())
 	victimTeamID := int(s.teamTokens()[1].ID)
@@ -376,7 +361,9 @@ func (s *FlagsSuite) TestFlagSubmissionWhenGameFinished() {
 	s.SetGameStatus(gspb.GameStatus_GAME_STATUS_FINISHED)
 	defer s.SetGameStatus(gspb.GameStatus_GAME_STATUS_RUNNING)
 
-	time.Sleep(time.Second)
+	s.Require().Eventually(func() bool {
+		return s.GetGameState().GetStatus() == gspb.GameStatus_GAME_STATUS_FINISHED
+	}, 5*time.Second, 100*time.Millisecond, "Game should be finished")
 
 	serviceID := int(s.services()[0].GetId())
 	victimTeamID := int(s.teamTokens()[1].ID)
@@ -412,7 +399,15 @@ func (s *FlagsSuite) TestFlagSubmissionForDisabledService() {
 	s.SetServiceDisabled(serviceID, true)
 	defer s.SetServiceDisabled(serviceID, false)
 
-	time.Sleep(time.Second)
+	s.Require().Eventually(func() bool {
+		resp, err := http.Get(baseURL + "/api/services")
+		if err != nil {
+			return false
+		}
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(resp.Body)
+		return bytes.Contains(body, []byte(`"disabled":true`))
+	}, 5*time.Second, 100*time.Millisecond, "Service should be disabled")
 
 	flag := s.InsertTestFlag(victimTeamID, serviceID, currentRound, true)
 

@@ -20,7 +20,7 @@ type ScoreboardSuite struct {
 func (s *ScoreboardSuite) TestGetScoreboard() {
 	var states []*scoreboardpb.Scoreboard_TeamServiceState
 
-	s.WaitForCondition(func() bool {
+	s.Require().Eventually(func() bool {
 		sb := s.GetScoreboard()
 		states = sb.GetTeamServiceStates()
 		return len(states) == 3
@@ -80,10 +80,18 @@ func (s *ScoreboardSuite) TestScoreboardTeamsAreSortedByScore() {
 		s.Require().Len(resp.GetResponses(), 1)
 	}
 
-	time.Sleep(3 * time.Second)
-
-	sb := s.GetScoreboard()
-	states := sb.GetTeamServiceStates()
+	attackerID := int64(s.teamTokens()[0].ID)
+	var states []*scoreboardpb.Scoreboard_TeamServiceState
+	s.Require().Eventually(func() bool {
+		sb := s.GetScoreboard()
+		states = sb.GetTeamServiceStates()
+		for _, state := range states {
+			if state.GetTeamId() == attackerID && state.GetFlagsStolen() >= 3 {
+				return true
+			}
+		}
+		return false
+	}, 10*time.Second, 500*time.Millisecond, "Attacker should have stolen flags reflected in scoreboard")
 
 	type teamScore struct {
 		teamID int64
@@ -98,14 +106,13 @@ func (s *ScoreboardSuite) TestScoreboardTeamsAreSortedByScore() {
 		return scores[i].points >= scores[j].points
 	})
 
-	s.T().Logf("Team scores: %+v", scores)
 	s.Assert().True(isSorted || len(scores) <= 1, "Teams should be sorted by score (descending)")
 }
 
 func (s *ScoreboardSuite) TestChecksAreBeingRecorded() {
 	var totalChecks int64
 
-	s.WaitForCondition(func() bool {
+	s.Require().Eventually(func() bool {
 		sb := s.GetScoreboard()
 		totalChecks = 0
 		for _, state := range sb.GetTeamServiceStates() {
@@ -113,8 +120,6 @@ func (s *ScoreboardSuite) TestChecksAreBeingRecorded() {
 		}
 		return totalChecks > 0
 	}, 60*time.Second, 2*time.Second, "Checks should be recorded")
-
-	s.T().Logf("Total checks recorded: %d", totalChecks)
 }
 
 func (s *ScoreboardSuite) TestScoreboardUpdatesOnRoundProgression() {
@@ -128,7 +133,7 @@ func (s *ScoreboardSuite) TestScoreboardUpdatesOnRoundProgression() {
 	s.WaitForRoundIncrement(initialRound, 30*time.Second)
 
 	var totalChecksAfter int64
-	s.WaitForCondition(func() bool {
+	s.Require().Eventually(func() bool {
 		sbAfter := s.GetScoreboard()
 		totalChecksAfter = 0
 		for _, state := range sbAfter.GetTeamServiceStates() {
@@ -136,8 +141,6 @@ func (s *ScoreboardSuite) TestScoreboardUpdatesOnRoundProgression() {
 		}
 		return totalChecksAfter > totalChecksBefore
 	}, 30*time.Second, time.Second, "Total checks should increase after round progression")
-
-	s.T().Logf("Checks increased: before=%d, after=%d", totalChecksBefore, totalChecksAfter)
 }
 
 func (s *ScoreboardSuite) TestSLACalculationWithUpStatus() {
@@ -158,7 +161,7 @@ func (s *ScoreboardSuite) TestSLACalculationWithUpStatus() {
 	s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_UP, "Service is up")
 
 	var checksPassedAfter int64
-	s.WaitForCondition(func() bool {
+	s.Require().Eventually(func() bool {
 		sbAfter := s.GetScoreboard()
 		stateAfter := s.GetTeamServiceState(sbAfter, int64(teamID), int64(serviceID))
 		if stateAfter == nil {
@@ -167,8 +170,6 @@ func (s *ScoreboardSuite) TestSLACalculationWithUpStatus() {
 		checksPassedAfter = stateAfter.GetChecksPassed()
 		return checksPassedAfter > checksPassedBefore
 	}, 30*time.Second, time.Second, "ChecksPassed should increase after STATUS_UP execution")
-
-	s.T().Logf("ChecksPassed increased: before=%d, after=%d", checksPassedBefore, checksPassedAfter)
 }
 
 func (s *ScoreboardSuite) TestSLACalculationWithDownStatus() {
@@ -190,7 +191,7 @@ func (s *ScoreboardSuite) TestSLACalculationWithDownStatus() {
 	s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_DOWN, "Connection error")
 
 	var checksTotalAfter, checksPassedAfter int64
-	s.WaitForCondition(func() bool {
+	s.Require().Eventually(func() bool {
 		sbAfter := s.GetScoreboard()
 		stateAfter := s.GetTeamServiceState(sbAfter, int64(teamID), int64(serviceID))
 		if stateAfter == nil {
@@ -204,9 +205,6 @@ func (s *ScoreboardSuite) TestSLACalculationWithDownStatus() {
 	s.Assert().Equal(checksPassedBefore, checksPassedAfter,
 		"ChecksPassed should NOT increase after STATUS_DOWN: before=%d, after=%d",
 		checksPassedBefore, checksPassedAfter)
-
-	s.T().Logf("STATUS_DOWN: ChecksTotal %d->%d, ChecksPassed %d->%d (unchanged)",
-		checksTotalBefore, checksTotalAfter, checksPassedBefore, checksPassedAfter)
 }
 
 func (s *ScoreboardSuite) TestSLADecreasesWithFailedChecks() {
@@ -219,26 +217,29 @@ func (s *ScoreboardSuite) TestSLADecreasesWithFailedChecks() {
 	s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_UP, "Up 1")
 	s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_UP, "Up 2")
 
-	time.Sleep(2 * time.Second)
-
-	sbBeforeDown := s.GetScoreboard()
-	stateBeforeDown := s.GetTeamServiceState(sbBeforeDown, int64(teamID), int64(serviceID))
-	s.Require().NotNil(stateBeforeDown)
+	var stateBeforeDown *scoreboardpb.Scoreboard_TeamServiceState
+	s.Require().Eventually(func() bool {
+		sbBeforeDown := s.GetScoreboard()
+		stateBeforeDown = s.GetTeamServiceState(sbBeforeDown, int64(teamID), int64(serviceID))
+		return stateBeforeDown != nil && stateBeforeDown.GetChecksPassed() >= 2
+	}, 10*time.Second, 500*time.Millisecond, "Checks should be reflected in scoreboard")
 
 	slaBeforeDown := float64(0)
 	if stateBeforeDown.GetChecksTotal() > 0 {
 		slaBeforeDown = float64(stateBeforeDown.GetChecksPassed()) / float64(stateBeforeDown.GetChecksTotal())
 	}
 
+	checksTotalBefore := stateBeforeDown.GetChecksTotal()
 	s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_DOWN, "Down 1")
 	s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_DOWN, "Down 2")
 	s.InsertCheckerExecution(teamID, serviceID, checkerpb.Action_ACTION_CHECK, checkerpb.Status_STATUS_DOWN, "Down 3")
 
-	time.Sleep(2 * time.Second)
-
-	sbAfterDown := s.GetScoreboard()
-	stateAfterDown := s.GetTeamServiceState(sbAfterDown, int64(teamID), int64(serviceID))
-	s.Require().NotNil(stateAfterDown)
+	var stateAfterDown *scoreboardpb.Scoreboard_TeamServiceState
+	s.Require().Eventually(func() bool {
+		sbAfterDown := s.GetScoreboard()
+		stateAfterDown = s.GetTeamServiceState(sbAfterDown, int64(teamID), int64(serviceID))
+		return stateAfterDown != nil && stateAfterDown.GetChecksTotal() >= checksTotalBefore+3
+	}, 10*time.Second, 500*time.Millisecond, "Down checks should be reflected in scoreboard")
 
 	slaAfterDown := float64(0)
 	if stateAfterDown.GetChecksTotal() > 0 {
@@ -248,8 +249,6 @@ func (s *ScoreboardSuite) TestSLADecreasesWithFailedChecks() {
 	s.Assert().Less(slaAfterDown, slaBeforeDown,
 		"SLA should decrease after failed checks: before=%.4f, after=%.4f",
 		slaBeforeDown, slaAfterDown)
-
-	s.T().Logf("SLA decreased: before=%.4f, after=%.4f", slaBeforeDown, slaAfterDown)
 }
 
 func (s *ScoreboardSuite) TestCheckStatusHistory() {
@@ -257,7 +256,7 @@ func (s *ScoreboardSuite) TestCheckStatusHistory() {
 	s.Require().NotEmpty(s.services(), "Services required")
 
 	var sb *scoreboardpb.Scoreboard
-	s.WaitForCondition(func() bool {
+	s.Require().Eventually(func() bool {
 		sb = s.GetScoreboard()
 		if len(sb.GetTeamServiceStates()) == 0 {
 			return false

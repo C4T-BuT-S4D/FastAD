@@ -5,6 +5,7 @@ package e2e
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -369,6 +370,7 @@ func (s *BaseSuite) services() []*servicespb.Service {
 }
 
 func (s *BaseSuite) GetGameState() *gspb.GameState {
+	s.T().Helper()
 	resp, err := http.Get(baseURL + "/api/game")
 	s.Require().NoError(err)
 	defer resp.Body.Close()
@@ -384,10 +386,12 @@ func (s *BaseSuite) GetGameState() *gspb.GameState {
 }
 
 func (s *BaseSuite) GetCurrentRound() uint64 {
+	s.T().Helper()
 	return s.GetGameState().GetRunningRound()
 }
 
 func (s *BaseSuite) GetScoreboard() *scoreboardpb.Scoreboard {
+	s.T().Helper()
 	resp, err := http.Get(baseURL + "/api/scoreboard")
 	s.Require().NoError(err)
 	defer resp.Body.Close()
@@ -412,6 +416,7 @@ func (s *BaseSuite) GetTeamServiceState(sb *scoreboardpb.Scoreboard, teamID, ser
 }
 
 func (s *BaseSuite) SubmitFlags(token string, flags []string) *receiverpb.SubmitFlagsResponse {
+	s.T().Helper()
 	flagsJSON := `["` + strings.Join(flags, `","`) + `"]`
 	body := []byte(`{"flags":` + flagsJSON + `}`)
 
@@ -439,6 +444,7 @@ func (s *BaseSuite) SubmitFlags(token string, flags []string) *receiverpb.Submit
 }
 
 func (s *BaseSuite) InsertTestFlag(teamID int, serviceID int, round uint64, putFinished bool) *models.Flag {
+	s.T().Helper()
 	ctx := context.Background()
 
 	flag := &models.Flag{
@@ -453,11 +459,11 @@ func (s *BaseSuite) InsertTestFlag(teamID int, serviceID int, round uint64, putF
 	_, err := s.db().NewInsert().Model(flag).Exec(ctx)
 	s.Require().NoError(err, "Failed to insert test flag")
 
-	s.T().Logf("Inserted test flag ID=%d for team %d, round %d: %s", flag.ID, teamID, round, flag.Flag)
 	return flag
 }
 
 func (s *BaseSuite) InsertCheckerExecution(teamID, serviceID int, action checkerpb.Action, status checkerpb.Status, publicMsg string) *models.CheckerExecution {
+	s.T().Helper()
 	ctx := context.Background()
 
 	exec := &models.CheckerExecution{
@@ -473,12 +479,11 @@ func (s *BaseSuite) InsertCheckerExecution(teamID, serviceID int, action checker
 	_, err := s.db().NewInsert().Model(exec).Exec(ctx)
 	s.Require().NoError(err, "Failed to insert checker execution")
 
-	s.T().Logf("Inserted checker execution ID=%d for team %d, service %d: %s -> %s",
-		exec.ID, teamID, serviceID, action.String(), status.String())
 	return exec
 }
 
 func (s *BaseSuite) WaitForRoundIncrement(initialRound uint64, timeout time.Duration) uint64 {
+	s.T().Helper()
 	var currentRound uint64
 	require.Eventually(s.T(), func() bool {
 		currentRound = s.GetCurrentRound()
@@ -487,35 +492,33 @@ func (s *BaseSuite) WaitForRoundIncrement(initialRound uint64, timeout time.Dura
 	return currentRound
 }
 
-func (s *BaseSuite) WaitForCondition(condition func() bool, timeout time.Duration, interval time.Duration, msg string) {
-	require.Eventually(s.T(), condition, timeout, interval, msg)
-}
-
 func (s *BaseSuite) randomString(n int) string {
 	const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, n)
+	if _, err := rand.Read(b); err != nil {
+		s.T().Fatalf("Failed to generate random string: %v", err)
+	}
 	for i := range b {
-		b[i] = letters[time.Now().UnixNano()%int64(len(letters))]
-		time.Sleep(time.Nanosecond)
+		b[i] = letters[b[i]%byte(len(letters))]
 	}
 	return string(b)
 }
 
 func (s *BaseSuite) SetGameStatus(status gspb.GameStatus) {
+	s.T().Helper()
 	ctx := context.Background()
 	_, err := s.gsClient().Update(ctx, &gspb.UpdateRequest{
 		Status: status,
 	})
 	s.Require().NoError(err, "Failed to set game status=%s", status)
-	s.T().Logf("Set game status=%s via API", status)
 }
 
 func (s *BaseSuite) SetServiceDisabled(serviceID int, disabled bool) {
+	s.T().Helper()
 	ctx := context.Background()
 	_, err := s.svcClient().Update(ctx, &servicespb.UpdateRequest{
 		Id:       int64(serviceID),
 		Disabled: proto.Bool(disabled),
 	})
 	s.Require().NoError(err, "Failed to set service %d disabled=%v via API", serviceID, disabled)
-	s.T().Logf("Set service %d disabled=%v via API", serviceID, disabled)
 }

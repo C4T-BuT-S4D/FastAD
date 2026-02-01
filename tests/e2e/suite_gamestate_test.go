@@ -58,15 +58,12 @@ func (s *GameStateSuite) TestGetGameStateProtoFormat() {
 func (s *GameStateSuite) TestRoundsIncrement() {
 	var initialRound uint64
 
-	s.WaitForCondition(func() bool {
+	s.Require().Eventually(func() bool {
 		initialRound = s.GetCurrentRound()
 		return initialRound > 0
 	}, 30*time.Second, time.Second, "Game should start with round > 0")
 
-	s.T().Logf("Initial round: %d", initialRound)
-
 	currentRound := s.WaitForRoundIncrement(initialRound, 30*time.Second)
-	s.T().Logf("Round incremented from %d to %d", initialRound, currentRound)
 
 	s.Assert().Greater(currentRound, initialRound, "Round should have incremented")
 }

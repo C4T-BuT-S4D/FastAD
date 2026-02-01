@@ -1,7 +1,6 @@
 .idea
 .DS_Store
 .vscode
-/vol
 mise.local.toml
 __pycache__
 .sccignore
@@ -11,3 +10,4 @@ __pycache__
 /game.yml
 .sisyphus
 /fastad
+/data
